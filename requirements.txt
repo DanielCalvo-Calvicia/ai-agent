@@ -1,0 +1,21 @@
+openai
+pydantic
+# AI Integration
+google-genai
+
+mcp
+uvicorn
+fastapi
+
+uv
+nodeenv
+jsonschema
+
+langchain
+langchain-openai
+langchain_google_genai 
+langsmith
+
+#db
+mongomock #dev
+pymongo #dev 
