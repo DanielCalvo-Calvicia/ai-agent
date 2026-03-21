@@ -7,6 +7,10 @@ mcp
 uvicorn
 fastapi
 
+python-jose
+passlib[bcrypt]
+pydantic[email]
+
 uv
 nodeenv
 jsonschema
@@ -15,6 +19,7 @@ langchain
 langchain-openai
 langchain_google_genai 
 langsmith
+ai-sdk-python
 
 #db
 mongomock #dev
