@@ -1,0 +1,49 @@
+{
+    
+    "constraints": {
+      "type": "object",
+      "required": [
+        "format",
+        "language",
+        "tone",
+        "length"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "type": "string",
+          "enum": [
+            "json",
+            "markdown",
+            "plain_text",
+            "code",
+            "table"
+          ],
+          "description": "Required structure of the final output"
+        },
+        "language": {
+          "type": "string",
+          "description": "Language to be used for the response"
+        },
+        "tone": {
+          "type": "string",
+          "enum": [
+            "formal",
+            "neutral",
+            "casual",
+            "technical"
+          ],
+          "description": "Stylistic tone constraints for the response"
+        },
+        "length": {
+          "type": "string",
+          "enum": [
+            "short",
+            "medium",
+            "long"
+          ],
+          "description": "Expected verbosity of the output"
+        }
+      }
+    }
+}

@@ -1,0 +1,32 @@
+{
+    "mcp_context": {
+        "type": "object",
+        "required": [
+            "server_id",
+            "tool_name",
+            "parameters"
+        ],
+        "additionalProperties": false,
+        "description": "Specific MCP tool invocation context if this action requires an MCP server",
+        "properties": {
+            "server_id": {
+                "type": "string",
+                "enum": [
+                    "dynamics_mcp",
+                    "gmail_mcp",
+                    "linear_mcp",
+                    "system_internal"
+                ],
+                "description": "Target MCP server identifier"
+            },
+            "tool_name": {
+                "type": "string",
+                "description": "Specific tool to invoke on the MCP server"
+            },
+            "parameters": {
+                "type": "object",
+                "description": "Arguments to pass to the MCP tool"
+            }
+        }
+    }
+}

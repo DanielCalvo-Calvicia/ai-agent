@@ -1,0 +1,6 @@
+{
+    "why_needed": {
+        "type": "string",
+        "description": "Explanation of how this missing information affects execution"
+    }
+}

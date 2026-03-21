@@ -1,0 +1,6 @@
+{
+    "recommended_action": {
+        "type": "string",
+        "description": "Machine-readable instruction indicating what the orchestrator should do next"
+    }
+}
