@@ -1,0 +1,11 @@
+{
+    "fetch": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "ghcr.io/modelcontextprotocol/servers/fetch:latest"
+      ]
+    }
+  }
