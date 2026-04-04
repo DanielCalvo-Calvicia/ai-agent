@@ -4,7 +4,7 @@ import json
 
 ErrExpectedOutcomeEmpty = ValueError("Expected outcome cannot be empty")
 
-schema_path = "schema/response/user_goal/user_goal.expected_outcome.schema.json"
+schema_path = "schema/response/basic/user_goal/user_goal.expected_outcome.schema.json"
 
 @dataclass(frozen=True)
 class ExpectedOutcome:

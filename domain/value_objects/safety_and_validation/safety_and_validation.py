@@ -4,8 +4,8 @@ import json
 from .requires_confirmation import RequiresConfirmation, create_requires_confirmation
 from .sensitive import Sensitive, create_sensitive
 
-schema_path = "schema/response/safety_and_validation/safety_and_validation.schema.json"
-schema_base_path = "schema/response/safety_and_validation/"
+schema_path = "schema/response/advanced/safety_and_validation/safety_and_validation.schema.json"
+schema_base_path = "schema/response/advanced/safety_and_validation/"
 
 @dataclass(frozen=True)
 class SafetyAndValidation:

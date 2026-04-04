@@ -6,7 +6,7 @@ ErrActionMcpContextServerIdEmpty = ValueError("Action mcp context server id cann
 ErrActionMcpContextToolNameEmpty = ValueError("Action mcp context tool name cannot be empty")
 ErrActionMcpContextParametersEmpty = ValueError("Action mcp context parameters cannot be empty")
 
-schema_path = "schema/response/actions/actions.mcp_context.schema.json"
+schema_path = "schema/response/basic/actions/actions.mcp_context.schema.json"
 
 @dataclass(frozen=True)
 class McpContext:

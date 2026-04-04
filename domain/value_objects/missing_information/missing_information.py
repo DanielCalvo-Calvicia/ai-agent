@@ -6,9 +6,9 @@ from .field import Field, create_field
 from .why_needed import WhyNeeded, create_why_needed
 from .blocking import Blocking, create_blocking
 
-schema_path = "schema/response/missing_information/missing_information.schema.json"
-schema_base_path = "schema/response/missing_information/missing_information.base.schema.json"
-schema_item_path = "schema/response/missing_information/missing_information.item.schema.json"
+schema_path = "schema/response/advanced/missing_information/missing_information.schema.json"
+schema_base_path = "schema/response/advanced/missing_information/missing_information.base.schema.json"
+schema_item_path = "schema/response/advanced/missing_information/missing_information.item.schema.json"
 
 
 @dataclass(frozen=True)

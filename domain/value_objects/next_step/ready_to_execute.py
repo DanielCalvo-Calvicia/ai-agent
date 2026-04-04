@@ -2,7 +2,7 @@
 from dataclasses import dataclass
 import json
 
-schema_path = "schema/response/missing_information/next_step.ready_to_execute.schema.json"
+schema_path = "schema/response/basic/missing_information/next_step.ready_to_execute.schema.json"
 
 @dataclass(frozen=True)
 class ReadyToExecute:

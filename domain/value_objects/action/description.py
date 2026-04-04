@@ -4,7 +4,7 @@ import json
 
 ErrActionDescriptionEmpty = ValueError("Action description cannot be empty")
 
-schema_path = "schema/response/actions/actions.description.schema.json"
+schema_path = "schema/response/basic/actions/actions.description.schema.json"
 
 @dataclass(frozen=True)
 class Description:

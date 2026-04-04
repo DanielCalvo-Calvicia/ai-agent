@@ -14,9 +14,9 @@ from domain.value_objects.action.error import Error as ActionError, create_error
 ErrActionCantMarkSuccessWhenHasError = RuntimeError("Cannot mark success when action has error.")
 ErrActionOutputEmptyWhenSuccess = ValueError("output cannot be empty on success.")
 
-schema_full_path = "schema/response/actions/actions.schema.json"
-schema_base_path = "schema/response/actions/actions.base.schema.json"
-schema_items_path = "schema/response/actions/actions.item.schema.json" 
+schema_full_path = "schema/response/advanced/actions/actions.schema.json"
+schema_base_path = "schema/response/advanced/actions/actions.base.schema.json"
+schema_items_path = "schema/response/advanced/actions/actions.item.schema.json" 
 
 
 @dataclass

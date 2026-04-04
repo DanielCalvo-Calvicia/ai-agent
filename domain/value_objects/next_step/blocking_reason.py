@@ -4,7 +4,7 @@ import json
 
 ErrBlockingReasonEmpty = ValueError("Blocking reason cannot be empty")
 
-schema_path = "schema/response/actions/next_step.blocking_reason.schema.json"
+schema_path = "schema/response/basic/next_step/next_step.blocking_reason.schema.json"
 
 @dataclass(frozen=True)
 class BlockingReason:

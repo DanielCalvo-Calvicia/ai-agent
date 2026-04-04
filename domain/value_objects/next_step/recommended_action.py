@@ -4,7 +4,7 @@ import json
 
 ErrRecommendedActionEmpty = ValueError("Recommended action cannot be empty")
 
-schema_path = "schema/response/actions/next_step.recommended_action.schema.json"
+schema_path = "schema/response/basic/next_step.recommended_action.schema.json"
 
 @dataclass(frozen=True)
 class RecommendedAction:

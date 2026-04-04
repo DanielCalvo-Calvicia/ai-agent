@@ -4,7 +4,7 @@ import json
 
 ErrRetryActionIdEmpty = ValueError("Retry action id cannot be empty")
 
-schema_path = "schema/response/actions/next_step.retry_action_id.schema.json"
+schema_path = "schema/response/basic/actions/next_step.retry_action_id.schema.json"
 
 @dataclass(frozen=True)
 class RetryActionId:

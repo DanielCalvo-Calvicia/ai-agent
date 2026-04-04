@@ -5,7 +5,7 @@ import json
 
 ErrStatusNotInList = ValueError("status must be one of PROCEED, AWAITING_USER_INPUT, AWAITING_CONFIRMATION, RETRY, ERROR, COMPLETE")
 
-schema_path = "schema/response/missing_information/missing_information.status.schema.json"
+schema_path = "schema/response/basic/missing_information/missing_information.status.schema.json"
 
 
 class Statuses(str, Enum):

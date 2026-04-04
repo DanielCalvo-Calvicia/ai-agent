@@ -4,7 +4,7 @@ import json
 
 ErrActionIdEmpty = ValueError("Action id cannot be empty")
 
-schema_path = "schema/response/actions/actions.id.schema.json"
+schema_path = "schema/response/basic/actions/actions.id.schema.json"
 
 @dataclass(frozen=True)
 class Id:

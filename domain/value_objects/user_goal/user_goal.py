@@ -5,8 +5,8 @@ from typing import Any, Dict, List
 from .expected_outcome import ExpectedOutcome, create_expected_outcome
 from .summary import Summary, create_summary
 
-schema_path = "schema/response/user_goal/user_goal.schema.json"
-schema_base_path = "schema/response/user_goal/user_goal.base.schema.json"
+schema_path = "schema/response/advanced/user_goal/user_goal.schema.json"
+schema_base_path = "schema/response/advanced/user_goal/user_goal.base.schema.json"
 
 @dataclass(frozen=True)
 class UserGoal:

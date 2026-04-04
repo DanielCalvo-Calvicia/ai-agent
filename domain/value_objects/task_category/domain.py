@@ -5,7 +5,7 @@ import json
 
 ErrDomainsNotInList = ValueError("domain must be one of SOFTWARE, DATA, WRITING, DESIGN, RESEARCH, OPERATIONS, COMUNICATION, SYSTEM")
 
-schema_path = "schema/response/task_category/task_category.domain.schema.json"
+schema_path = "schema/response/basic/task_category/task_category.domain.schema.json"
 
 
 class Domains(str, Enum):

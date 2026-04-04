@@ -5,8 +5,8 @@ from .domain import Domain, get_domain_enum, create_domain
 from .complexity import Complexity, get_complexity_enum, create_complexity
 from .type import Type, get_type_enum, create_type
 
-schema_path = "schema/response/task_category/task_category.schema.json"
-schema_base_path = "schema/response/task_category/task_category.base.schema.json"
+schema_path = "schema/response/advanced/task_category/task_category.schema.json"
+schema_base_path = "schema/response/advanced/task_category/task_category.base.schema.json"
 
 @dataclass(frozen=True)
 class TaskCategory:

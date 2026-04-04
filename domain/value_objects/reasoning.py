@@ -21,3 +21,6 @@ class ReasoningConfig:
 
     def to_dict(self) -> dict:
         return {"effort": self.effort.value}
+
+def create_reasoning_config(effort: ReasoningEffort) -> ReasoningConfig:
+    return ReasoningConfig(effort=effort)

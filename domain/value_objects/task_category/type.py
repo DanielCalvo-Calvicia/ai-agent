@@ -5,7 +5,7 @@ import json
 
 ErrTypesNotInList = ValueError("Type must be one of analysis, design, generation, modification, validation, classification, orchestration")
 
-schema_path = "./schema/response/task_category/task_category.type.schema.json"
+schema_path = "./schema/response/basic/task_category/task_category.type.schema.json"
 
 
 class Types(str, Enum):

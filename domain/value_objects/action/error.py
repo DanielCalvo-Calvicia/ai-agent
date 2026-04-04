@@ -4,7 +4,7 @@ import json
 
 ErrActionErrorEmpty = ValueError("error message cannot be empty.")
 
-schema_path = "schema/response/actions/actions.error.schema.json"
+schema_path = "schema/response/basic/actions/actions.error.schema.json"
 
 @dataclass(frozen=True)
 class Error:

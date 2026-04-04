@@ -10,8 +10,8 @@ from .recommended_action import create_recommended_action, RecommendedAction
 from .blocking_reason import create_blocking_reason, BlockingReason
 from .request_user_input import create_request_user_input, RequestUserInput
 
-schema_path = "schema/response/next_steps/next_step.schema.json"
-schema_base_path = "schema/response/next_steps/next_step.base.schema.json"
+schema_path = "schema/response/advanced/next_steps/next_step.schema.json"
+schema_base_path = "schema/response/advanced/next_steps/next_step.base.schema.json"
 
 @dataclass(frozen=True)
 class NextStep:

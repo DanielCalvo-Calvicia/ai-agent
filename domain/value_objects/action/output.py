@@ -4,7 +4,7 @@ import json
 
 ErrActionOutputEmpty = ValueError("Action output cannot be empty")
 
-schema_path = "schema/response/actions/actions.output.schema.json"
+schema_path = "schema/response/basic/actions/actions.output.schema.json"
 
 @dataclass(frozen=True)
 class Output:

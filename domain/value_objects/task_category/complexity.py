@@ -5,7 +5,7 @@ import json
 
 ErrComplexityNotInList = ValueError("Complexity must be one of LOW, MEDIUM, HIGH")
 
-schema_path = "schema/response/task_category/task_category.complexity.schema.json"
+schema_path = "schema/response/basic/task_category/task_category.complexity.schema.json"
 
 
 class Complexities(str, Enum):

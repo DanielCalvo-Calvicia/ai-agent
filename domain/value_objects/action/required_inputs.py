@@ -5,7 +5,7 @@ from typing import List
 
 ErrActionRequiredInputEmpty = ValueError("Required input name cannot be empty.")
 
-schema_path = "schema/response/actions/actions.required_inputs.schema.json"
+schema_path = "schema/response/basic/actions/actions.required_inputs.schema.json"
 
 @dataclass(frozen=True)
 class RequiredInputs:

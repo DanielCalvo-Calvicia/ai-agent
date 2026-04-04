@@ -8,7 +8,7 @@ from domain.value_objects.action.dependencies import Dependencies
 ErrRequestUserInputEmpty = ValueError("Request user input cannot be empty.")
 ErrRequestUserInputAlreadyExists = ValueError("Request user input already exists.")
 
-schema_path = "schema/response/actions/next_step.request_user_input.schema.json"
+schema_path = "schema/response/basic/next_step.request_user_input.schema.json"
 
 @dataclass(frozen=True)
 class RequestUserInput:

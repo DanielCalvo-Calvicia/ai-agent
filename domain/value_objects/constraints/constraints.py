@@ -9,12 +9,12 @@ ErrConstraintLanguageNotInList = ValueError("language must be one of english, sp
 ErrConstraintToneNotInList = ValueError("tone must be one of formal, neutral, informal")
 ErrConstraintLengthMax = ValueError("length must be a number between 1 and 1000")
 
-schema_full_path = "schema/response/constraints/constraints.schema.json"
-schema_base_path = "schema/response/constraints/constraints.base.schema.json"
-schema_format_path = "schema/response/constraints/constraints.format.schema.json"
-schema_language_path = "schema/response/constraints/constraints.language.schema.json"
-schema_tone_path = "schema/response/constraints/constraints.tone.schema.json"
-schema_length_path = "schema/response/constraints/constraints.length.schema.json"
+schema_full_path = "schema/response/advanced/constraints/constraints.schema.json"
+schema_base_path = "schema/response/advanced/constraints/constraints.base.schema.json"
+schema_format_path = "schema/response/basic/constraints/constraints.format.schema.json"
+schema_language_path = "schema/response/basic/constraints/constraints.language.schema.json"
+schema_tone_path = "schema/response/basic/constraints/constraints.tone.schema.json"
+schema_length_path = "schema/response/basic/constraints/constraints.length.schema.json"
 
 class Formats(str, Enum):
     EMPTY = ""  

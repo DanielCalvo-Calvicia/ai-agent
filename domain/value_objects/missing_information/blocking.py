@@ -4,7 +4,7 @@ import json
 
 ErrBlockingEmpty = ValueError("Blocking value cannot be empty.")
 
-schema_path = "schema/response/missing_information/missing_information.blocking.schema.json"
+schema_path = "schema/response/basic/missing_information/missing_information.blocking.schema.json"
 
 @dataclass(frozen=True)
 class Blocking:

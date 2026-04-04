@@ -4,7 +4,7 @@ import json
 
 ErrActionTypeEmpty = ValueError("Action type cannot be empty")
 
-schema_path = "schema/response/actions/actions.action_type.schema.json"
+schema_path = "schema/response/basic/actions/actions.action_type.schema.json"
 
 @dataclass(frozen=True)
 class ActionType:

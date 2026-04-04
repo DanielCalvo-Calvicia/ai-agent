@@ -1,14 +1,16 @@
 from dataclasses import dataclass
+from typing import Optional
+import uuid
 
 from domain.entities.payload import Payload
 from domain.entities.response import Response
 
 class Conversation:
-    id: int
-    payload: Payload
-    response: Response
+    id: str
+    request: str
+    response: Optional[str]
 
-    def __init__(self, id: int, payload: Payload, response: Response) -> None:
+    def __init__(self, id: str, request: str, response: Optional[str]) -> None:
         self.id = id
-        self.payload = payload
+        self.request = request
         self.response = response

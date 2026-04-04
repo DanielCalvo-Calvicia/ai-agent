@@ -4,7 +4,7 @@ import json
 
 ErrFieldEmpty = ValueError("Field value cannot be empty.")
 
-schema_path = "schema/response/missing_information/missing_information.field.schema.json"
+schema_path = "schema/response/basic/missing_information/missing_information.field.schema.json"
 
 @dataclass(frozen=True)
 class Field:

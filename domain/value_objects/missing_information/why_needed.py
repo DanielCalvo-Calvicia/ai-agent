@@ -4,7 +4,7 @@ import json
 
 ErrWhyNeededEmpty = ValueError("Why needed value cannot be empty.")
 
-schema_path = "schema/response/missing_information/missing_information.why_needed.schema.json"
+schema_path = "schema/response/basic/missing_information/missing_information.why_needed.schema.json"
 
 @dataclass(frozen=True)
 class WhyNeeded:

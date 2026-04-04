@@ -4,7 +4,7 @@ import json
 
 ErrSummaryEmpty = ValueError("Summary cannot be empty")
 
-schema_path = "schema/response/user_goal/user_goal.summary.schema.json"
+schema_path = "schema/response/basic/user_goal/user_goal.summary.schema.json"
 
 @dataclass(frozen=True)
 class Summary:

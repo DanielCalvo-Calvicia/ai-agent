@@ -2,7 +2,7 @@
 from dataclasses import dataclass
 import json
 
-schema_path = "schema/response/safety_and_validation/safety_and_validation.requires_confirmation.schema.json"
+schema_path = "schema/response/basic/safety_and_validation/safety_and_validation.requires_confirmation.schema.json"
 
 @dataclass(frozen=True)
 class RequiresConfirmation:

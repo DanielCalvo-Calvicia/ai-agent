@@ -6,7 +6,7 @@ import json
 ErrActionDependencyIdEmpty = ValueError("Action dependency id cannot be empty.")
 ErrActionDependencyAlreadyExists = ValueError("Action dependency already exists.")
 
-schema_path = "schema/response/actions/actions.action_type.schema.json"
+schema_path = "schema/response/basic/actions/actions.action_type.schema.json"
 
 @dataclass(frozen=True)
 class Dependencies:
