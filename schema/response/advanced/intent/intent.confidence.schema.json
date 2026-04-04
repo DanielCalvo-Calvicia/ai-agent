@@ -1,0 +1,8 @@
+{
+    "confidence": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1,
+        "description": "Classifier confidence score that the intent assignment is correct (0 = low confidence, 1 = certain)"
+    }
+}

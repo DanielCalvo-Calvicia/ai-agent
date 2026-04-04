@@ -1,0 +1,11 @@
+{
+    "length": {
+        "type": "string",
+        "enum": [
+            "short",
+            "medium",
+            "long"
+        ],
+        "description": "Expected verbosity of the output"
+    }
+}

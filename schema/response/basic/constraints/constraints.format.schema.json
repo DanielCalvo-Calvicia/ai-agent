@@ -1,0 +1,13 @@
+{
+    "format": {
+        "type": "string",
+        "enum": [
+            "json",
+            "markdown",
+            "plain_text",
+            "code",
+            "table"
+        ],
+        "description": "Required structure of the final output"
+    }
+}

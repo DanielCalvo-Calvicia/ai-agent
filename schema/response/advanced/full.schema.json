@@ -1,0 +1,367 @@
+{
+  "type": "object",
+  "required": [
+    "intent",
+    "user_goal",
+    "task_category",
+    "actions",
+    "missing_information",
+    "constraints",
+    "safety_and_validation",
+    "next_step",
+    "mcp_routing"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "intent": {
+      "type": "object",
+      "required": [
+        "primary",
+        "secondary",
+        "confidence"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "primary": {
+          "type": "string",
+          "enum": [
+            "information_request",
+            "task_execution",
+            "content_generation",
+            "decision_support",
+            "clarification_request",
+            "system_operation"
+          ],
+          "description": "Single dominant intent category that best represents the user's request"
+        },
+        "secondary": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Optional supporting intent categories that are present but not dominant"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Classifier confidence score that the intent assignment is correct (0 = low confidence, 1 = certain)"
+        }
+      }
+    },
+    "user_goal": {
+      "type": "object",
+      "required": [
+        "summary",
+        "expected_outcome"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "summary": {
+          "type": "string",
+          "description": "Concise human-readable interpretation of what the user is trying to achieve"
+        },
+        "expected_outcome": {
+          "type": "string",
+          "description": "Concrete description of the result that would satisfy the user's request"
+        }
+      }
+    },
+    "task_category": {
+      "type": "object",
+      "required": [
+        "domain",
+        "type",
+        "complexity"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "type": "string",
+          "enum": [
+            "software",
+            "data",
+            "writing",
+            "design",
+            "research",
+            "operations",
+            "communication",
+            "system"
+          ],
+          "description": "Primary knowledge or work domain involved in the task"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "analysis",
+            "design",
+            "generation",
+            "modification",
+            "validation",
+            "classification",
+            "orchestration"
+          ],
+          "description": "Type of cognitive or procedural work required"
+        },
+        "complexity": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "description": "Estimated execution complexity based on reasoning depth and number of steps"
+        }
+      }
+    },
+    "actions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "description",
+          "action_type",
+          "dependencies",
+          "mcp_context",
+          "required_inputs",
+          "output",
+          "error"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable unique identifier for this action, used for dependency resolution and retries"
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable explanation of what this action accomplishes"
+          },
+          "action_type": {
+            "type": "string",
+            "enum": [
+              "analysis",
+              "generation",
+              "transformation",
+              "decision",
+              "retrieval",
+              "clarification",
+              "mcp_tool_call"
+            ],
+            "description": "Canonical action category used by the orchestrator to determine execution strategy"
+          },
+          "dependencies": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Action IDs that must complete successfully before this action can run"
+          },
+          "mcp_context": {
+            "type": "object",
+            "required": [
+              "server_id",
+              "tool_name",
+              "parameters"
+            ],
+            "additionalProperties": false,
+            "description": "Specific MCP tool invocation context if this action requires an MCP server",
+            "properties": {
+              "server_id": {
+                "type": "string",
+                "enum": [
+                  "dynamics_mcp",
+                  "gmail_mcp",
+                  "linear_mcp",
+                  "system_internal"
+                ],
+                "description": "Target MCP server identifier"
+              },
+              "tool_name": {
+                "type": "string",
+                "description": "Specific tool to invoke on the MCP server"
+              },
+              "parameters": {
+                "type": "object",
+                "description": "Arguments to pass to the MCP tool"
+              }
+            }
+          },
+          "required_inputs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Inputs required to perform this action"
+          },
+          "output": {
+            "type": "string",
+            "description": "Expected result produced by the action if successful"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message or diagnostic information if the action fails"
+          }
+        }
+      }
+    },
+    "missing_information": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "field",
+          "why_needed",
+          "blocking"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "field": {
+            "type": "string",
+            "description": "Name of the missing field or information"
+          },
+          "why_needed": {
+            "type": "string",
+            "description": "Explanation of how this missing information affects execution"
+          },
+          "blocking": {
+            "type": "boolean",
+            "description": "If true, execution cannot proceed until this information is provided"
+          }
+        }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "required": [
+        "format",
+        "language",
+        "tone",
+        "length"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "type": "string",
+          "enum": [
+            "json",
+            "markdown",
+            "plain_text",
+            "code",
+            "table"
+          ],
+          "description": "Required structure of the final output"
+        },
+        "language": {
+          "type": "string",
+          "description": "Language to be used for the response"
+        },
+        "tone": {
+          "type": "string",
+          "enum": [
+            "formal",
+            "neutral",
+            "casual",
+            "technical"
+          ],
+          "description": "Stylistic tone constraints for the response"
+        },
+        "length": {
+          "type": "string",
+          "enum": [
+            "short",
+            "medium",
+            "long"
+          ],
+          "description": "Expected verbosity of the output"
+        }
+      }
+    },
+    "safety_and_validation": {
+      "type": "object",
+      "required": [
+        "sensitive",
+        "requires_confirmation"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "sensitive": {
+          "type": "boolean",
+          "description": "Whether the request involves sensitive or restricted content"
+        },
+        "requires_confirmation": {
+          "type": "boolean",
+          "description": "Whether explicit user confirmation is required before execution"
+        }
+      }
+    },
+    "next_step": {
+      "type": "object",
+      "required": [
+        "ready_to_execute",
+        "status",
+        "recommended_action"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "ready_to_execute": {
+          "type": "boolean",
+          "description": "Indicates whether execution can proceed immediately without external intervention"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "proceed",
+            "awaiting_user_input",
+            "awaiting_confirmation",
+            "retry",
+            "error",
+            "complete"
+          ],
+          "description": "Current execution state of the request lifecycle"
+        },
+        "recommended_action": {
+          "type": "string",
+          "description": "Machine-readable instruction indicating what the orchestrator should do next"
+        },
+        "blocking_reason": {
+          "type": "string",
+          "description": "Explanation of why execution cannot proceed if ready_to_execute is false"
+        },
+        "requested_user_input": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Specific information required from the user if status is awaiting_user_input"
+        },
+        "retry_action_id": {
+          "type": "string",
+          "description": "Action ID to retry if status is retry"
+        }
+      }
+    },
+    "mcp_routing": {
+      "type": "object",
+      "required": [
+        "required_servers"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "required_servers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "filesystem",
+              "system_internal"
+            ]
+          },
+          "description": "MCP servers required to fulfill this request"
+        }
+      }
+    }
+  }
+}

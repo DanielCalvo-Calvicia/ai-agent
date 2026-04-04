@@ -1,0 +1,9 @@
+{
+    "required_inputs": {
+        "type": "array",
+        "items": {
+            "type": "string"
+        },
+        "description": "Inputs required to perform this action"
+    }
+}

@@ -1,0 +1,6 @@
+{
+    "blocking_reason": {
+        "type": "string",
+        "description": "Explanation of why execution cannot proceed if ready_to_execute is false"
+    }
+}

@@ -1,0 +1,6 @@
+{
+    "blocking": {
+        "type": "boolean",
+        "description": "If true, execution cannot proceed until this information is provided"
+    }
+}
