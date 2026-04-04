@@ -1,0 +1,50 @@
+{
+    
+    "task_category": {
+      "type": "object",
+      "required": [
+        "domain",
+        "type",
+        "complexity"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "type": "string",
+          "enum": [
+            "software",
+            "data",
+            "writing",
+            "design",
+            "research",
+            "operations",
+            "communication",
+            "system"
+          ],
+          "description": "Primary knowledge or work domain involved in the task"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "analysis",
+            "design",
+            "generation",
+            "modification",
+            "validation",
+            "classification",
+            "orchestration"
+          ],
+          "description": "Type of cognitive or procedural work required"
+        },
+        "complexity": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "description": "Estimated execution complexity based on reasoning depth and number of steps"
+        }
+      }
+    }
+}

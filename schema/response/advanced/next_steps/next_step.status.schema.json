@@ -1,0 +1,14 @@
+{
+    "status": {
+        "type": "string",
+        "enum": [
+            "proceed",
+            "awaiting_user_input",
+            "awaiting_confirmation",
+            "retry",
+            "error",
+            "complete"
+        ],
+        "description": "Current execution state of the request lifecycle"
+    }
+}

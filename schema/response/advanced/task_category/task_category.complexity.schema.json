@@ -1,0 +1,11 @@
+{
+    "complexity": {
+        "type": "string",
+        "enum": [
+            "low",
+            "medium",
+            "high"
+        ],
+        "description": "Estimated execution complexity based on reasoning depth and number of steps"
+    }
+}

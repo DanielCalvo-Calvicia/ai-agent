@@ -1,0 +1,6 @@
+{
+    "expected_outcome": {
+        "type": "string",
+        "description": "Concrete description of the result that would satisfy the user's request"
+    }
+}

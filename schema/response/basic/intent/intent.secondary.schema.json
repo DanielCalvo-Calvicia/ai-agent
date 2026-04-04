@@ -1,0 +1,9 @@
+{
+    "secondary": {
+        "type": "array",
+        "items": {
+            "type": "string"
+        },
+        "description": "Optional supporting intent categories that are present but not dominant"
+    }
+}

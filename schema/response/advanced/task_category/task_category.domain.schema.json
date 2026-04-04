@@ -1,0 +1,16 @@
+{
+    "domain": {
+        "type": "string",
+        "enum": [
+            "software",
+            "data",
+            "writing",
+            "design",
+            "research",
+            "operations",
+            "communication",
+            "system"
+        ],
+        "description": "Primary knowledge or work domain involved in the task"
+    }
+}

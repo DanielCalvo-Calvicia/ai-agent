@@ -1,5 +1,6 @@
 openai
 pydantic
+pytest
 # AI Integration
 google-genai
 
