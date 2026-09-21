@@ -1,12 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Any, Dict, List
 
-import json
-
-schema_path = "schema/response/mcp_routing/mcp_routing.schema.json"
-schema_base_path = "schema/response/mcp_routing/mcp_routing.base.schema.json" 
-schema_required_servers_path = "schema/response/mcp_routing/mcp_routing.required_servers.schema.json"
-
 
 @dataclass(frozen=True)
 class MCPRouting:
@@ -23,16 +17,3 @@ def create_mcp_routing(required_servers: List[str] | str):
         required_servers = [required_servers]
     mcp_routing = MCPRouting(required_servers=required_servers)
     return mcp_routing
-
-def get_schema():
-    with open(schema_path, 'r') as f:
-        schema_dic = json.load(f)
-    return schema_dic
-def get_base_schema():
-    with open(schema_base_path, 'r') as f:
-        schema_dic = json.load(f)
-    return schema_dic
-def get_required_servers_schema():
-    with open(schema_required_servers_path, 'r') as f:
-        schema_dic = json.load(f)
-    return schema_dic

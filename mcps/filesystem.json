@@ -1,0 +1,15 @@
+{
+    "filesystem": {
+        "type": "stdio",
+        "command": "docker",
+        "args": [
+            "run",
+            "-i",
+            "--rm",
+            "--mount",
+            "type=bind,source=D:/Hobbys/IA/LLM/downloads,target=/data",
+            "ghcr.io/modelcontextprotocol/servers/filesystem:latest",
+            "/data"
+        ]
+    }
+}

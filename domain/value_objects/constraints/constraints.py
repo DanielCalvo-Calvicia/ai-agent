@@ -1,7 +1,6 @@
 
 from dataclasses import dataclass
 from enum import Enum
-import json
 
 
 ErrConstraintFormatNotInList = ValueError("format must be one of json, markdown, plain_text, code, table")
@@ -9,12 +8,6 @@ ErrConstraintLanguageNotInList = ValueError("language must be one of english, sp
 ErrConstraintToneNotInList = ValueError("tone must be one of formal, neutral, informal")
 ErrConstraintLengthMax = ValueError("length must be a number between 1 and 1000")
 
-schema_full_path = "schema/response/advanced/constraints/constraints.schema.json"
-schema_base_path = "schema/response/advanced/constraints/constraints.base.schema.json"
-schema_format_path = "schema/response/basic/constraints/constraints.format.schema.json"
-schema_language_path = "schema/response/basic/constraints/constraints.language.schema.json"
-schema_tone_path = "schema/response/basic/constraints/constraints.tone.schema.json"
-schema_length_path = "schema/response/basic/constraints/constraints.length.schema.json"
 
 class Formats(str, Enum):
     EMPTY = ""  
@@ -80,33 +73,3 @@ def get_language_from_string(language_string: str):
 
 def get_tone_from_string(tone_string: str):
     return Tones(tone_string.lower())
-
-def get_full_schema():
-    with open(schema_full_path, 'r') as f:
-        schema_dic = json.load(f)
-    return schema_dic
-
-def get_base_schema():
-    with open(schema_base_path, 'r') as f:
-        schema_dic = json.load(f)
-    return schema_dic
-
-def get_format_schema():
-    with open(schema_format_path, 'r') as f:
-        schema_dic = json.load(f)
-    return schema_dic
-
-def get_language_schema():
-    with open(schema_language_path, 'r') as f:
-        schema_dic = json.load(f)
-    return schema_dic
-
-def get_tone_schema():
-    with open(schema_tone_path, 'r') as f:
-        schema_dic = json.load(f)
-    return schema_dic
-
-def get_length_schema():
-    with open(schema_length_path, 'r') as f:
-        schema_dic = json.load(f)
-    return schema_dic

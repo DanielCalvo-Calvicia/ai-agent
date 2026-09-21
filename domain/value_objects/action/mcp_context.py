@@ -1,12 +1,10 @@
 from dataclasses import dataclass, field
-import json
 from typing import Any, Dict, List
 
 ErrActionMcpContextServerIdEmpty = ValueError("Action mcp context server id cannot be empty")
 ErrActionMcpContextToolNameEmpty = ValueError("Action mcp context tool name cannot be empty")
 ErrActionMcpContextParametersEmpty = ValueError("Action mcp context parameters cannot be empty")
 
-schema_path = "schema/response/basic/actions/actions.mcp_context.schema.json"
 
 @dataclass(frozen=True)
 class McpContext:
@@ -43,7 +41,3 @@ def create_mcp_context(server_id: str, tool_name: str, parameters: Dict[str, Any
     mcp_context.validate()
     return mcp_context
        
-def get_schema():
-    with open(schema_path, 'r') as f:
-        schema_dic = json.load(f)
-    return schema_dic

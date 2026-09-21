@@ -36,6 +36,7 @@ class TextRequestDTO(BaseRequestDTO):
     session_id: str
     content: str
     metadata: Optional[Dict[str, Any]] = None
+    session_name: Optional[str] = None
 
 
 class TextResponseDTO(BaseResponseDTO):

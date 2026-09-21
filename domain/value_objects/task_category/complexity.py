@@ -1,11 +1,8 @@
 
 from dataclasses import dataclass
 from enum import Enum
-import json
 
 ErrComplexityNotInList = ValueError("Complexity must be one of LOW, MEDIUM, HIGH")
-
-schema_path = "schema/response/basic/task_category/task_category.complexity.schema.json"
 
 
 class Complexities(str, Enum):
@@ -30,9 +27,3 @@ def create_complexity(value: str):
     complexity_enum = get_complexity_enum(value)
     complexity = Complexity(complexity_enum)
     return complexity
-
-def get_schema():
-    # Load the schema from your local file
-    with open(schema_path, 'r') as f:
-        schema_dic = json.load(f)
-    return schema_dic

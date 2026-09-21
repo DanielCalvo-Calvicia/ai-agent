@@ -1,10 +1,8 @@
 
 from dataclasses import dataclass
-import json
 
 ErrSummaryEmpty = ValueError("Summary cannot be empty")
 
-schema_path = "schema/response/basic/user_goal/user_goal.summary.schema.json"
 
 @dataclass(frozen=True)
 class Summary:
@@ -21,9 +19,3 @@ def create_summary(value: str):
     summary = Summary(value)
     summary.validate()
     return summary
-
-def get_schema():
-    # Load the schema from your local file
-    with open(schema_path, 'r') as f:
-        schema_dic = json.load(f)
-    return schema_dic

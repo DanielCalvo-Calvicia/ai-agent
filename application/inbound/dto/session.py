@@ -9,6 +9,8 @@ from application.inbound.dto.base_request import BaseRequestDTO, BaseResponseDTO
 class StartSessionRequestDTO(BaseRequestDTO):
     username: str
     email: Optional[str] = None
+    # Name of the chat, like the title of a chat in an online LLM. Its messages are grouped under it in Langfuse.
+    session_name: Optional[str] = None
 
 class StartSessionResponseDTO(BaseResponseDTO):
     session_id: str

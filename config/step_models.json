@@ -1,0 +1,65 @@
+{
+  "_help": "Which LLM answers each step. Order of precedence: 1) the variable AI_AGENT_MODEL_PHASE_<n> (n = 1..9, 99), 2) `steps` below, 3) the active profile, 4) the `default` of the profile, 5) the default of the code. A step or a profile entry set to null or \"\" is skipped. To change one step: write it in `steps`. To change everything at once: change `profile`. Model ids: config/gemini_models.json and docs/gemini_models_per_step.md. Step names: triage_specialist, project_manager, safety_quality_gatekeeper, cognitive_worker, mcp_operator, data_engineer, draft_writer, editor_in_chief, answer_checker, user_clarification. Keys that start with _ are ignored. See what is in use with: tests/manual/show_models.py",
+  "profile": "budget50_groq",
+  "steps": {
+    "triage_specialist": null,
+    "project_manager": null,
+    "safety_quality_gatekeeper": null,
+    "cognitive_worker": null,
+    "mcp_operator": null,
+    "data_engineer": null,
+    "draft_writer": null,
+    "editor_in_chief": null,
+    "answer_checker": null,
+    "user_clarification": null
+  },
+  "profiles": {
+    "proven": {
+      "_about": "Every step on gemini-2.5-flash, the only model tested end to end in this project. Works, but slow (it always thinks).",
+      "default": "gemini-2.5-flash"
+    },
+    "budget": {
+      "_about": "The cheapest that should work: lite models everywhere except the planner and the tool step. Untested.",
+      "default": "gemini-2.5-flash-lite",
+      "project_manager": "gemini-2.5-flash",
+      "mcp_operator": "gemini-2.5-flash"
+    },
+    "balanced": {
+      "_about": "Cheap lite models for the small steps, a stronger Flash for planning, tools and writing. Untested. Prices of 3.6 to 3.8 Flash double on 2027-01-01.",
+      "default": "gemini-3.1-flash-lite",
+      "project_manager": "gemini-3.8-flash",
+      "cognitive_worker": "gemini-3.5-flash-lite",
+      "mcp_operator": "gemini-3.8-flash",
+      "draft_writer": "gemini-3.8-flash"
+    },
+    "quality": {
+      "_about": "The best plan and the best writing, whatever the price. Untested. gemini-3.1-pro-preview is a preview.",
+      "default": "gemini-3.8-flash",
+      "project_manager": "gemini-3.1-pro-preview",
+      "triage_specialist": "gemini-3.5-flash-lite",
+      "data_engineer": "gemini-3.1-flash-lite",
+      "answer_checker": "gemini-3.5-flash-lite",
+      "user_clarification": "gemini-3.5-flash-lite"
+    },
+    "budget50": {
+      "_about": "Fits 50 EUR for 1,000 messages even if every message has a plan of 30 actions. Google models only. Lite models for almost everything (they do not think, so they cost little), gemini-2.5-flash for the planner (the one step that needs reasoning, and the model tested for it). Untested as a combination.",
+      "default": "gemini-3.1-flash-lite",
+      "project_manager": "gemini-2.5-flash",
+      "data_engineer": "gemini-2.5-flash-lite",
+      "answer_checker": "gemini-2.5-flash-lite",
+      "user_clarification": "gemini-2.5-flash-lite"
+    },
+    "budget50_groq": {
+      "_about": "Cheaper than budget50: the planner, the gate, the worker, the draft and the editor use openai/gpt-oss-120b on Groq (strong reasoning at 0.15 in and 0.60 out per 1M tokens, tested end to end). Triage, tools, cleaning, the checker and the question use Google lite models. Needs GROQ_API_KEY and GROQ_URL. Untested as a combination.",
+      "default": "gemini-3.1-flash-lite",
+      "project_manager": "openai/gpt-oss-120b",
+      "safety_quality_gatekeeper": "openai/gpt-oss-120b",
+      "cognitive_worker": "openai/gpt-oss-120b",
+      "draft_writer": "openai/gpt-oss-120b",
+      "editor_in_chief": "openai/gpt-oss-120b",
+      "data_engineer": "gemini-2.5-flash-lite",
+      "answer_checker": "gemini-2.5-flash-lite",
+      "user_clarification": "gemini-2.5-flash-lite"
+    }
+  }
+}

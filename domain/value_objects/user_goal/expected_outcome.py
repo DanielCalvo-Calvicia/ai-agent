@@ -1,10 +1,8 @@
 
 from dataclasses import dataclass
-import json
 
 ErrExpectedOutcomeEmpty = ValueError("Expected outcome cannot be empty")
 
-schema_path = "schema/response/basic/user_goal/user_goal.expected_outcome.schema.json"
 
 @dataclass(frozen=True)
 class ExpectedOutcome:
@@ -21,9 +19,3 @@ def create_expected_outcome(value: str):
     expected_outcome = ExpectedOutcome(value)
     expected_outcome.validate()
     return expected_outcome
-
-def get_schema():
-    # Load the schema from your local file
-    with open(schema_path, 'r') as f:
-        schema_dic = json.load(f)
-    return schema_dic

@@ -1,27 +1,33 @@
-openai
-pydantic
-pytest
-# AI Integration
-google-genai
+# Versions are the ones installed in windows\ (Python 3.14) when this file was pinned.
 
-mcp
-uvicorn
-fastapi
+# Web service
+fastapi==0.133.1
+uvicorn==0.41.0
+pydantic[email]==2.12.5
+anyio==4.12.1
+python-dotenv==1.2.1
 
-python-jose
-passlib[bcrypt]
-pydantic[email]
+# LLM access and MCP client
+ai-sdk-python==0.1.1
+openai==2.24.0
+mcp==1.26.0
 
-uv
-nodeenv
-jsonschema
+# Tests
+pytest==9.0.2
 
-langchain
-langchain-openai
-langchain_google_genai 
-langsmith
-ai-sdk-python
+# Shared logging + distributed tracing (local checkout; see shared-logging/README.md)
+-e ../shared-logging
 
-#db
-mongomock #dev
-pymongo #dev 
+# Listed before but not imported by any code today. Kept pinned until confirmed unused.
+google-genai==1.64.0
+langchain==1.2.10
+langchain-openai==1.1.10
+langchain-google-genai==4.2.1
+langsmith==0.7.7
+python-jose==3.5.0
+passlib[bcrypt]==1.7.4
+jsonschema==4.26.0
+uv==0.10.6
+nodeenv==1.10.0
+pymongo==4.16.0
+mongomock==4.3.0

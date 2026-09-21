@@ -1,5 +1,6 @@
 {
     "fetch": {
+      "type": "stdio",
       "command": "docker",
       "args": [
         "run",

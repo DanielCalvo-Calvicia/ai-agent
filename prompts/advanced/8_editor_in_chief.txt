@@ -23,14 +23,14 @@ If the response fully satisfies the request:
 - next_step.status = "complete"
 - next_step.recommended_action = ""
 - next_step.blocking_reason = ""
-- next_step.request_user_input = []
+- next_step.requested_user_input = []
 
 If something is still missing:
 - next_step.ready_to_execute = false
 - next_step.status = "awaiting_user_input"
 - next_step.recommended_action = "ask_user_for_missing_information"
 - next_step.blocking_reason = short explanation
-- next_step.request_user_input = list of what is still needed
+- next_step.requested_user_input = list of what is still needed
 
 RULES:
 - Do NOT add new facts

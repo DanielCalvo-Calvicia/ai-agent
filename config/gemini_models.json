@@ -1,0 +1,620 @@
+{
+  "_source": "Prices and status: Google's pages ai.google.dev/gemini-api/docs/pricing, /models and /thinking, read on 2026-09-21. Prices are USD per 1M tokens, text, standard paid tier, and the output price includes thinking tokens. Check the page before you rely on a number.",
+  "_ratings": "The ratings are estimates from the tier and Google's description, NOT measurements. Only gemini-2.5-flash was run end to end in this project. Measure a model on a step with: tests/manual/debug_flow.py --only=<step> --state=<file> --repeat=5 --real (see docs/debugging_the_flow.md).",
+  "_levels": {
+    "best": "the right model for this step",
+    "good": "works well, a fair price for the job",
+    "ok": "works, but slower, weaker or more expensive than needed",
+    "weak": "likely to fail or to give poor results here",
+    "avoid": "wasteful (too expensive or too slow for what the step does)"
+  },
+  "_blend": "blended cost = (3 x input + 1 x output) / 4 per 1M tokens: the calls of this agent send about three times more tokens than they get back. The list is sorted by it, cheapest first.",
+  "message_tokens": 10000,
+  "steps": {
+    "triage_specialist": "Classifies the request into a small JSON. Runs first, so latency matters. Little reasoning, but it must not ask for details it does not need.",
+    "project_manager": "The hardest step. Builds the plan: a recursive action tree with dependencies, types and tool choice, in a strict schema. Needs real reasoning. One call per message.",
+    "safety_quality_gatekeeper": "Judges the plan for risk and decides if the user must confirm. Small JSON, judgement more than reasoning. One call.",
+    "cognitive_worker": "One call per action of the plan: answers, analyses, writes a piece. The quality of the content comes from here. The number of calls grows with the plan.",
+    "mcp_operator": "One or more calls per tool action. Needs reliable function calling plus a valid JSON answer.",
+    "data_engineer": "Cleans the output of a tool. Mechanical: precision, no creativity.",
+    "draft_writer": "Writes the first answer for the user from all the outputs. Writing quality and following the constraints.",
+    "editor_in_chief": "Polishes the draft without adding facts and sets the final status. Faithfulness more than creativity.",
+    "answer_checker": "Reads the user's reply to a question: an answer, a yes or a no, not an answer, or stop. Short, any language, latency matters.",
+    "user_clarification": "Writes a short friendly question for the user. Trivial."
+  },
+  "step_tokens": {
+    "triage_specialist": {
+      "tokens": 1650,
+      "calls": "1 per message",
+      "note": "measured with gemini-2.5-flash: 1,500 to 1,700"
+    },
+    "project_manager": {
+      "tokens": 2150,
+      "calls": "1 per message",
+      "note": "measured with gemini-2.5-flash: about 2,150"
+    },
+    "safety_quality_gatekeeper": {
+      "tokens": 1500,
+      "calls": "1 per message",
+      "note": "measured with gemini-2.5-flash: 1,350 to 1,700"
+    },
+    "cognitive_worker": {
+      "tokens": 1270,
+      "calls": "1 per action of the plan (1 to 3 is usual)",
+      "note": "measured with gemini-2.5-flash: about 1,270 per action"
+    },
+    "mcp_operator": {
+      "tokens": 1600,
+      "calls": "1 to 3 per tool action, 0 when no tool is used",
+      "note": "estimate, not measured: the tool list makes the prompt longer"
+    },
+    "data_engineer": {
+      "tokens": 1100,
+      "calls": "1 per tool result, 0 when no tool is used",
+      "note": "estimate, not measured"
+    },
+    "draft_writer": {
+      "tokens": 1150,
+      "calls": "1 per message",
+      "note": "measured with gemini-2.5-flash: about 1,150"
+    },
+    "editor_in_chief": {
+      "tokens": 1400,
+      "calls": "1 per message",
+      "note": "measured with gemini-2.5-flash: 1,300 to 1,500"
+    },
+    "answer_checker": {
+      "tokens": 1200,
+      "calls": "1 per reply to a question of the agent, 0 otherwise",
+      "note": "measured with gemini-2.5-flash: about 1,200"
+    },
+    "user_clarification": {
+      "tokens": 130,
+      "calls": "1 when the agent asks the user, 0 otherwise",
+      "note": "measured with gemini-2.5-flash: about 130"
+    }
+  },
+  "models": [
+    {
+      "name": "Gemini 2.5 Flash-Lite",
+      "id": "gemini-2.5-flash-lite",
+      "status": "stable",
+      "free_tier": true,
+      "input": 0.1,
+      "output": 0.4,
+      "price_note": "",
+      "thinking": "off by default (the fastest)",
+      "summary": "The cheapest and fastest. Good for short, simple tasks.",
+      "ratings": {
+        "triage_specialist": [
+          "good",
+          "Fast classifier. Watch that it does not ask too much."
+        ],
+        "project_manager": [
+          "weak",
+          "Deep plans with dependencies are too much for it."
+        ],
+        "safety_quality_gatekeeper": [
+          "ok",
+          "Fine for obvious cases, shallow on risk."
+        ],
+        "cognitive_worker": [
+          "ok",
+          "Simple actions only (facts, short text)."
+        ],
+        "mcp_operator": [
+          "weak",
+          "Tool calling is the least reliable here."
+        ],
+        "data_engineer": [
+          "best",
+          "Mechanical cleaning: cheapest and enough."
+        ],
+        "draft_writer": [
+          "ok",
+          "Plain writing."
+        ],
+        "editor_in_chief": [
+          "ok",
+          "Light polishing."
+        ],
+        "answer_checker": [
+          "best",
+          "Short, fast, cheap."
+        ],
+        "user_clarification": [
+          "best",
+          "Trivial text."
+        ]
+      },
+      "api_check": "answered"
+    },
+    {
+      "name": "Gemini 3.1 Flash-Lite",
+      "id": "gemini-3.1-flash-lite",
+      "status": "stable",
+      "free_tier": true,
+      "input": 0.25,
+      "output": 1.5,
+      "price_note": "",
+      "thinking": "not stated in the pages read",
+      "summary": "Google: frontier-class performance at reduced cost.",
+      "ratings": {
+        "triage_specialist": [
+          "best",
+          "Cheap and capable classifier."
+        ],
+        "project_manager": [
+          "ok",
+          "May plan simple requests well. Test before trusting it."
+        ],
+        "safety_quality_gatekeeper": [
+          "good",
+          "Enough judgement for a yes or no on risk."
+        ],
+        "cognitive_worker": [
+          "good",
+          "Good content at a low price."
+        ],
+        "mcp_operator": [
+          "good",
+          "Function calling should be fine. Test it."
+        ],
+        "data_engineer": [
+          "best",
+          "Cheap and precise enough."
+        ],
+        "draft_writer": [
+          "good",
+          "Good writing for the price."
+        ],
+        "editor_in_chief": [
+          "good",
+          "Good polishing."
+        ],
+        "answer_checker": [
+          "best",
+          "Short and cheap."
+        ],
+        "user_clarification": [
+          "best",
+          "Trivial text."
+        ]
+      },
+      "api_check": "answered"
+    },
+    {
+      "name": "Gemini 3.5 Flash-Lite",
+      "id": "gemini-3.5-flash-lite",
+      "status": "stable",
+      "free_tier": true,
+      "input": 0.3,
+      "output": 2.5,
+      "price_note": "",
+      "thinking": "minimal by default",
+      "summary": "Google: the fastest and most cost-effective 3.5 model. Costs 20% more input and 67% more output than 3.1 Flash-Lite.",
+      "ratings": {
+        "triage_specialist": [
+          "best",
+          "Minimal thinking by default: fast."
+        ],
+        "project_manager": [
+          "ok",
+          "Better than 3.1 Flash-Lite is likely, still a lite model."
+        ],
+        "safety_quality_gatekeeper": [
+          "good",
+          "Good judgement, fast."
+        ],
+        "cognitive_worker": [
+          "good",
+          "Good content."
+        ],
+        "mcp_operator": [
+          "good",
+          "Function calling should be fine. Test it."
+        ],
+        "data_engineer": [
+          "good",
+          "More than needed."
+        ],
+        "draft_writer": [
+          "good",
+          "Good writing."
+        ],
+        "editor_in_chief": [
+          "good",
+          "Good polishing."
+        ],
+        "answer_checker": [
+          "best",
+          "Fast, multilingual."
+        ],
+        "user_clarification": [
+          "best",
+          "Trivial text."
+        ]
+      },
+      "api_check": "answered"
+    },
+    {
+      "name": "Gemini 2.5 Flash",
+      "id": "gemini-2.5-flash",
+      "status": "stable",
+      "free_tier": true,
+      "input": 0.3,
+      "output": 2.5,
+      "price_note": "",
+      "thinking": "always on (the lowest level is 'low')",
+      "summary": "The only model tested in this project: it works on every step, but it is slow because it always thinks (3 to 14 s for triage alone).",
+      "ratings": {
+        "triage_specialist": [
+          "ok",
+          "Works, slow because of the thinking."
+        ],
+        "project_manager": [
+          "good",
+          "Tested: valid plans."
+        ],
+        "safety_quality_gatekeeper": [
+          "good",
+          "Tested: works."
+        ],
+        "cognitive_worker": [
+          "good",
+          "Tested: works."
+        ],
+        "mcp_operator": [
+          "good",
+          "Not tested with a real tool."
+        ],
+        "data_engineer": [
+          "ok",
+          "Works, but overkill and slow."
+        ],
+        "draft_writer": [
+          "good",
+          "Tested: works."
+        ],
+        "editor_in_chief": [
+          "good",
+          "Tested: works."
+        ],
+        "answer_checker": [
+          "ok",
+          "Works, slower than needed."
+        ],
+        "user_clarification": [
+          "ok",
+          "Works, slower than needed."
+        ]
+      },
+      "api_check": "answered"
+    },
+    {
+      "name": "Gemini 3.6 Flash",
+      "id": "gemini-3.6-flash",
+      "status": "stable",
+      "free_tier": true,
+      "input": 0.75,
+      "output": 3.75,
+      "price_note": "until 2026-12-31. From 2027-01-01: 1.50 in, 7.50 out.",
+      "thinking": "medium by default. Can go down to 'minimal'.",
+      "summary": "Google: balances speed and multimodal capabilities for general tasks. Same price as 3.7 and 3.8.",
+      "ratings": {
+        "triage_specialist": [
+          "ok",
+          "Overkill, unless the thinking level is set to minimal."
+        ],
+        "project_manager": [
+          "good",
+          "Solid planner."
+        ],
+        "safety_quality_gatekeeper": [
+          "good",
+          "Solid judgement."
+        ],
+        "cognitive_worker": [
+          "best",
+          "Strong content."
+        ],
+        "mcp_operator": [
+          "good",
+          "Good tool use."
+        ],
+        "data_engineer": [
+          "ok",
+          "Overkill."
+        ],
+        "draft_writer": [
+          "best",
+          "Strong writing."
+        ],
+        "editor_in_chief": [
+          "good",
+          "Good polishing."
+        ],
+        "answer_checker": [
+          "ok",
+          "Overkill."
+        ],
+        "user_clarification": [
+          "ok",
+          "Overkill."
+        ]
+      },
+      "api_check": "answered"
+    },
+    {
+      "name": "Gemini 3.7 Flash",
+      "id": "gemini-3.7-flash",
+      "status": "stable",
+      "free_tier": true,
+      "input": 0.75,
+      "output": 3.75,
+      "price_note": "until 2026-12-31. From 2027-01-01: 1.50 in, 7.50 out.",
+      "thinking": "medium by default",
+      "summary": "Google: previous-generation Flash for complex coding and agentic workflows. Same price as 3.6 and 3.8.",
+      "ratings": {
+        "triage_specialist": [
+          "ok",
+          "Overkill."
+        ],
+        "project_manager": [
+          "good",
+          "Strong at agentic planning."
+        ],
+        "safety_quality_gatekeeper": [
+          "good",
+          "Solid judgement."
+        ],
+        "cognitive_worker": [
+          "best",
+          "Strong content."
+        ],
+        "mcp_operator": [
+          "best",
+          "Built for agentic work with tools."
+        ],
+        "data_engineer": [
+          "ok",
+          "Overkill."
+        ],
+        "draft_writer": [
+          "best",
+          "Strong writing."
+        ],
+        "editor_in_chief": [
+          "good",
+          "Good polishing."
+        ],
+        "answer_checker": [
+          "ok",
+          "Overkill."
+        ],
+        "user_clarification": [
+          "ok",
+          "Overkill."
+        ]
+      },
+      "api_check": "answered"
+    },
+    {
+      "name": "Gemini 3.8 Flash",
+      "id": "gemini-3.8-flash",
+      "status": "stable",
+      "free_tier": true,
+      "input": 0.75,
+      "output": 3.75,
+      "price_note": "until 2026-12-31. From 2027-01-01: 1.50 in, 7.50 out.",
+      "thinking": "medium by default",
+      "summary": "Google: made for long-horizon software engineering, autonomous agents and complex workflows. The newest Flash, same price as 3.6 and 3.7, so prefer it.",
+      "ratings": {
+        "triage_specialist": [
+          "ok",
+          "Overkill."
+        ],
+        "project_manager": [
+          "best",
+          "The best Flash for planning."
+        ],
+        "safety_quality_gatekeeper": [
+          "good",
+          "Solid judgement."
+        ],
+        "cognitive_worker": [
+          "best",
+          "Strong content."
+        ],
+        "mcp_operator": [
+          "best",
+          "Built for agents and tools."
+        ],
+        "data_engineer": [
+          "ok",
+          "Overkill."
+        ],
+        "draft_writer": [
+          "best",
+          "Strong writing."
+        ],
+        "editor_in_chief": [
+          "best",
+          "Faithful, clean polishing."
+        ],
+        "answer_checker": [
+          "ok",
+          "Overkill."
+        ],
+        "user_clarification": [
+          "ok",
+          "Overkill."
+        ]
+      },
+      "api_check": "answered"
+    },
+    {
+      "name": "Gemini 3.5 Flash",
+      "id": "gemini-3.5-flash",
+      "status": "stable",
+      "free_tier": true,
+      "input": 1.5,
+      "output": 9.0,
+      "price_note": "",
+      "thinking": "not stated in the pages read",
+      "summary": "Google calls it the legacy Flash. It costs more than the newer 3.6, 3.7 and 3.8 Flash (also after their price change in 2027): not recommended.",
+      "ratings": {
+        "triage_specialist": [
+          "avoid",
+          "Costs more than newer models that do it better."
+        ],
+        "project_manager": [
+          "ok",
+          "Capable, but 3.8 Flash costs less."
+        ],
+        "safety_quality_gatekeeper": [
+          "ok",
+          "Capable, but 3.8 Flash costs less."
+        ],
+        "cognitive_worker": [
+          "ok",
+          "Capable, but 3.8 Flash costs less."
+        ],
+        "mcp_operator": [
+          "ok",
+          "Capable, but 3.8 Flash costs less."
+        ],
+        "data_engineer": [
+          "avoid",
+          "Wasteful."
+        ],
+        "draft_writer": [
+          "ok",
+          "Capable, but 3.8 Flash costs less."
+        ],
+        "editor_in_chief": [
+          "ok",
+          "Capable, but 3.8 Flash costs less."
+        ],
+        "answer_checker": [
+          "avoid",
+          "Wasteful."
+        ],
+        "user_clarification": [
+          "avoid",
+          "Wasteful."
+        ]
+      },
+      "api_check": "answered"
+    },
+    {
+      "name": "Gemini 2.5 Pro",
+      "id": "gemini-2.5-pro",
+      "status": "deprecated, no longer available to new users",
+      "free_tier": true,
+      "input": 1.25,
+      "output": 10.0,
+      "price_note": "prompts up to 200k tokens. Above: 2.50 in, 15.00 out.",
+      "thinking": "always on",
+      "summary": "Deep reasoning, but Google marks it as deprecated and the API refused it with this key (404: no longer available to new users). Do not use.",
+      "ratings": {
+        "triage_specialist": [
+          "avoid",
+          "Not available: the API answers 404 for new users."
+        ],
+        "project_manager": [
+          "avoid",
+          "Not available: the API answers 404 for new users."
+        ],
+        "safety_quality_gatekeeper": [
+          "avoid",
+          "Not available: the API answers 404 for new users."
+        ],
+        "cognitive_worker": [
+          "avoid",
+          "Not available: the API answers 404 for new users."
+        ],
+        "mcp_operator": [
+          "avoid",
+          "Not available: the API answers 404 for new users."
+        ],
+        "data_engineer": [
+          "avoid",
+          "Not available: the API answers 404 for new users."
+        ],
+        "draft_writer": [
+          "avoid",
+          "Not available: the API answers 404 for new users."
+        ],
+        "editor_in_chief": [
+          "avoid",
+          "Not available: the API answers 404 for new users."
+        ],
+        "answer_checker": [
+          "avoid",
+          "Not available: the API answers 404 for new users."
+        ],
+        "user_clarification": [
+          "avoid",
+          "Not available: the API answers 404 for new users."
+        ]
+      },
+      "api_check": "FAILED: 404, 'no longer available to new users'"
+    },
+    {
+      "name": "Gemini 3.1 Pro (preview)",
+      "id": "gemini-3.1-pro-preview",
+      "status": "preview",
+      "free_tier": false,
+      "input": 2.0,
+      "output": 12.0,
+      "price_note": "prompts up to 200k tokens. Above: 4.00 in, 18.00 out.",
+      "thinking": "always on",
+      "summary": "Google: advanced intelligence for complex problem solving. A preview: it can change, and it has no free tier.",
+      "ratings": {
+        "triage_specialist": [
+          "avoid",
+          "Wasteful."
+        ],
+        "project_manager": [
+          "best",
+          "The strongest planner, if the plan quality is the problem."
+        ],
+        "safety_quality_gatekeeper": [
+          "good",
+          "Very careful on risk, more than needed."
+        ],
+        "cognitive_worker": [
+          "good",
+          "Top content, at a price."
+        ],
+        "mcp_operator": [
+          "good",
+          "Top tool use, at a price."
+        ],
+        "data_engineer": [
+          "avoid",
+          "Wasteful."
+        ],
+        "draft_writer": [
+          "good",
+          "Top writing, at a price."
+        ],
+        "editor_in_chief": [
+          "ok",
+          "Overkill."
+        ],
+        "answer_checker": [
+          "avoid",
+          "Wasteful."
+        ],
+        "user_clarification": [
+          "avoid",
+          "Wasteful."
+        ]
+      },
+      "api_check": "answered"
+    }
+  ],
+  "_api_check": "'api_check' is the result of one tiny test call per model id through the OpenAI-compatible endpoint (GOOGLE_URL) with the key of this project, on 2026-09-21. It proves the id works with this key, not that the model is good at a step."
+}

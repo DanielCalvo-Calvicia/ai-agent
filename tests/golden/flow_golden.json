@@ -1,0 +1,2265 @@
+{
+  "action_with_subactions": {
+    "calls": [
+      {
+        "format": "triage_specialist_phase1_response_format",
+        "intent": "Intent(primary='clarification_request', secondary=('information_request',), confidence=1.0)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1-mini",
+        "reasoning": "None",
+        "schema_sha": "d60114adf287fa1d4d00bf0c1b475dc80f589b725304bd96fff596872a5cb243",
+        "seed": null,
+        "system_prompt_len": 4890,
+        "system_prompt_sha": "4010746547102bad9a1b62162b999f7a59cb8044b830bbe3d5c44c9a4541d6db",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "plan my day"
+      },
+      {
+        "format": "project_manager_phase2_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "481c93c6013cdc3882a717292063a81f361bb46c5cd04833a8d1638b9cf407c3",
+        "seed": null,
+        "system_prompt_len": 5705,
+        "system_prompt_sha": "3401938da4eaba355037f5fcdb883cfee6d8b963954a4e6662390910f3061668",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.SYSTEM: 'system'>), type=Type(value=<Types.ANALYSIS: 'analysis'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'available_mcp_servers': [{'name': 'aws_microservice', 'tools': []}]}"
+      },
+      {
+        "format": "safety_quality_gatekeeper_phase3_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "60be9fff021c79ce230339ae0da57527504778cf03aa4285241483b61f01070e",
+        "seed": null,
+        "system_prompt_len": 4001,
+        "system_prompt_sha": "6ea351479b113f9404364a5b32c20499b7bc699500122675cd44999fd46a3faa",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'actions': [Action(id=Id(value='1'), description=Description(value='step 1'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=None, required_inputs=None, output=None, error=None, subactions={'1.1': Action(id=Id(value='1.1'), description=Description(value='step 1.1'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=None, required_inputs=None, output=None, error=None, subactions=None), '1.2': Action(id=Id(value='1.2'), description=Description(value='step 1.2'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=Dependencies(value=['1.1']), required_inputs=None, output=None, error=None, subactions=None)}), Action(id=Id(value='2'), description=Description(value='step 2'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=Dependencies(value=['1']), required_inputs=None, output=None, error=None, subactions=None)], 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=None, blocking_reason=None, requested_user_input=None)}"
+      },
+      {
+        "format": "phase4_single_action_response_format",
+        "intent": "Intent(primary='decision_support', secondary=(), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "18fe8573d8a9f260a671fa2eab4371f1b17ff98341a9883e54c560f3932cf271",
+        "seed": null,
+        "system_prompt_len": 3683,
+        "system_prompt_sha": "e89f981f26517f475917924759ab4a826ff30b57ccdfed70d61edd561098b370",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'action': Action(id=Id(value='1.1'), description=Description(value='step 1.1'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=None, required_inputs=None, output=None, error=None, subactions=None), 'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'dependency_outputs': {}}"
+      },
+      {
+        "format": "phase4_single_action_response_format",
+        "intent": "Intent(primary='decision_support', secondary=(), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "18fe8573d8a9f260a671fa2eab4371f1b17ff98341a9883e54c560f3932cf271",
+        "seed": null,
+        "system_prompt_len": 3683,
+        "system_prompt_sha": "e89f981f26517f475917924759ab4a826ff30b57ccdfed70d61edd561098b370",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'action': Action(id=Id(value='1.2'), description=Description(value='step 1.2'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=Dependencies(value=['1.1']), required_inputs=None, output=None, error=None, subactions=None), 'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'dependency_outputs': {'1.1': 'out-p4-1.1'}}"
+      },
+      {
+        "format": "phase4_single_action_response_format",
+        "intent": "Intent(primary='decision_support', secondary=(), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "18fe8573d8a9f260a671fa2eab4371f1b17ff98341a9883e54c560f3932cf271",
+        "seed": null,
+        "system_prompt_len": 3683,
+        "system_prompt_sha": "e89f981f26517f475917924759ab4a826ff30b57ccdfed70d61edd561098b370",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'action': Action(id=Id(value='1'), description=Description(value='step 1'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=None, required_inputs=None, output=None, error=None, subactions={'1.1': Action(id=Id(value='1.1'), description=Description(value='step 1.1'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=None, required_inputs=None, output=Output(value='out-p4-1.1'), error=None, subactions=None), '1.2': Action(id=Id(value='1.2'), description=Description(value='step 1.2'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=Dependencies(value=['1.1']), required_inputs=None, output=Output(value='out-p4-1.2'), error=None, subactions=None)}), 'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'dependency_outputs': {}, 'subaction_outputs': {'1.1': 'out-p4-1.1', '1.2': 'out-p4-1.2'}}"
+      },
+      {
+        "format": "phase4_single_action_response_format",
+        "intent": "Intent(primary='decision_support', secondary=(), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "18fe8573d8a9f260a671fa2eab4371f1b17ff98341a9883e54c560f3932cf271",
+        "seed": null,
+        "system_prompt_len": 3683,
+        "system_prompt_sha": "e89f981f26517f475917924759ab4a826ff30b57ccdfed70d61edd561098b370",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'action': Action(id=Id(value='2'), description=Description(value='step 2'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=Dependencies(value=['1']), required_inputs=None, output=None, error=None, subactions=None), 'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'dependency_outputs': {'1': 'out-p4-1'}}"
+      },
+      {
+        "format": "draft_writer_phase7_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "bbe08f1c92d789b4ce521e7fc8786fd56a525623386354344d4ebdfc612eebc9",
+        "seed": null,
+        "system_prompt_len": 3087,
+        "system_prompt_sha": "8a6c7db5f753553fc4cda140ef65966743d80b058cf0f9b8603dfcb44e7b27a8",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.SYSTEM: 'system'>), type=Type(value=<Types.ANALYSIS: 'analysis'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'actions': [Action(id=Id(value='1'), description=Description(value='step 1'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=None, required_inputs=None, output=Output(value='out-p4-1'), error=None, subactions={'1.1': Action(id=Id(value='1.1'), description=Description(value='step 1.1'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=None, required_inputs=None, output=Output(value='out-p4-1.1'), error=None, subactions=None), '1.2': Action(id=Id(value='1.2'), description=Description(value='step 1.2'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=Dependencies(value=['1.1']), required_inputs=None, output=Output(value='out-p4-1.2'), error=None, subactions=None)}), Action(id=Id(value='2'), description=Description(value='step 2'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=Dependencies(value=['1']), required_inputs=None, output=Output(value='out-p4-2'), error=None, subactions=None)], 'constraints': None}"
+      },
+      {
+        "format": "editor_in_chief_phase8_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "5cb5aad982bc0d9e94c099fa2ec75d6b1d4340a7fa8c7881ad499298b95daccb",
+        "seed": null,
+        "system_prompt_len": 3567,
+        "system_prompt_sha": "a26e668b5f3e1d8feadcaabf19d3665a4ffb805822c76d527b1255c6e71d6d32",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_goal': UserGoal(summary=Summary(value='s'), expected_outcome=ExpectedOutcome(value='draft answer')), 'constraints': None, 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=RecommendedAction(value='run'), blocking_reason=None, requested_user_input=None)}"
+      }
+    ],
+    "metrics": {
+      "by_model": {
+        "gpt-4.1": {
+          "completion": 40,
+          "prompt": 80,
+          "requests": 8,
+          "total": 120
+        },
+        "gpt-4.1-mini": {
+          "completion": 5,
+          "prompt": 10,
+          "requests": 1,
+          "total": 15
+        }
+      },
+      "by_phase": {
+        "cognitive_worker": {
+          "gpt-4.1": {
+            "completion": 20,
+            "prompt": 40,
+            "requests": 4,
+            "total": 60
+          }
+        },
+        "draft_writer": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "editor_in_chief": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "project_manager": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "safety_quality_gatekeeper": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "triage_specialist": {
+          "gpt-4.1-mini": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        }
+      },
+      "request_log": [
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1-mini",
+          "phase_id": 1,
+          "phase_name": "triage_specialist",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 2,
+          "phase_name": "project_manager",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 3,
+          "phase_name": "safety_quality_gatekeeper",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": "1.1",
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 4,
+          "phase_name": "cognitive_worker",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": "1.2",
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 4,
+          "phase_name": "cognitive_worker",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": "1",
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 4,
+          "phase_name": "cognitive_worker",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": "2",
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 4,
+          "phase_name": "cognitive_worker",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 7,
+          "phase_name": "draft_writer",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 8,
+          "phase_name": "editor_in_chief",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        }
+      ],
+      "total_completion_tokens": 45,
+      "total_prompt_tokens": 90,
+      "total_requests": 9,
+      "total_tokens": 135
+    },
+    "reply": "final answer"
+  },
+  "full_path_with_mcp": {
+    "calls": [
+      {
+        "format": "triage_specialist_phase1_response_format",
+        "intent": "Intent(primary='clarification_request', secondary=('information_request',), confidence=1.0)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1-mini",
+        "reasoning": "None",
+        "schema_sha": "d60114adf287fa1d4d00bf0c1b475dc80f589b725304bd96fff596872a5cb243",
+        "seed": null,
+        "system_prompt_len": 4890,
+        "system_prompt_sha": "4010746547102bad9a1b62162b999f7a59cb8044b830bbe3d5c44c9a4541d6db",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "what is the weather"
+      },
+      {
+        "format": "project_manager_phase2_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "481c93c6013cdc3882a717292063a81f361bb46c5cd04833a8d1638b9cf407c3",
+        "seed": null,
+        "system_prompt_len": 5705,
+        "system_prompt_sha": "3401938da4eaba355037f5fcdb883cfee6d8b963954a4e6662390910f3061668",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.SYSTEM: 'system'>), type=Type(value=<Types.ANALYSIS: 'analysis'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'available_mcp_servers': [{'name': 'aws_microservice', 'tools': []}]}"
+      },
+      {
+        "format": "safety_quality_gatekeeper_phase3_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "60be9fff021c79ce230339ae0da57527504778cf03aa4285241483b61f01070e",
+        "seed": null,
+        "system_prompt_len": 4001,
+        "system_prompt_sha": "6ea351479b113f9404364a5b32c20499b7bc699500122675cd44999fd46a3faa",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'actions': [Action(id=Id(value='a1'), description=Description(value='think'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=None, required_inputs=None, output=None, error=None, subactions=None), Action(id=Id(value='a2'), description=Description(value='call tool'), action_type=ActionType(value='mcp_tool_call'), mcp_context=McpContext(server_id='aws_microservice', tool_name='get_weather', parameters={'city': 'Madrid'}), dependencies=Dependencies(value=['a1']), required_inputs=None, output=None, error=None, subactions=None)], 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=RecommendedAction(value='go'), blocking_reason=None, requested_user_input=None)}"
+      },
+      {
+        "format": "phase4_single_action_response_format",
+        "intent": "Intent(primary='decision_support', secondary=(), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "18fe8573d8a9f260a671fa2eab4371f1b17ff98341a9883e54c560f3932cf271",
+        "seed": null,
+        "system_prompt_len": 3683,
+        "system_prompt_sha": "e89f981f26517f475917924759ab4a826ff30b57ccdfed70d61edd561098b370",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'action': Action(id=Id(value='a1'), description=Description(value='think'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=None, required_inputs=None, output=None, error=None, subactions=None), 'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'dependency_outputs': {}}"
+      },
+      {
+        "format": "phase5_single_action_response_format",
+        "intent": "Intent(primary='decision_support', secondary=(), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "18fe8573d8a9f260a671fa2eab4371f1b17ff98341a9883e54c560f3932cf271",
+        "seed": null,
+        "system_prompt_len": 3589,
+        "system_prompt_sha": "363c9f718e0f5daaf4823e07045a83a3f17358af29a5129a0ba9ea3e0542f1b2",
+        "temperature": 1.0,
+        "tools": "[{\"config\": {\"type\": \"sse\", \"url\": \"http://example.invalid/mcp/sse\"}, \"name\": \"aws_microservice\", \"type\": \"sse\"}]",
+        "top_p": null,
+        "user_message": "{'action': Action(id=Id(value='a2'), description=Description(value='call tool'), action_type=ActionType(value='mcp_tool_call'), mcp_context=McpContext(server_id='aws_microservice', tool_name='get_weather', parameters={'city': 'Madrid'}), dependencies=Dependencies(value=['a1']), required_inputs=None, output=None, error=None, subactions=None), 'available_mcp_servers': [{'name': 'aws_microservice', 'tools': []}], 'safety_and_validation': SafetyAndValidation(sensitive=Sensitive(value=False), requires_confirmation=RequiresConfirmation(value=False)), 'dependency_outputs': {'a1': 'out-p4-a1'}}"
+      },
+      {
+        "format": "phase6_single_action_response_format",
+        "intent": "Intent(primary='decision_support', secondary=(), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "18fe8573d8a9f260a671fa2eab4371f1b17ff98341a9883e54c560f3932cf271",
+        "seed": null,
+        "system_prompt_len": 3455,
+        "system_prompt_sha": "d023216259bfa2f7285d460cccdf3bb3b333430f531568431db8472827bf9af7",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'action': Action(id=Id(value='a2'), description=Description(value='call tool'), action_type=ActionType(value='mcp_tool_call'), mcp_context=McpContext(server_id='aws_microservice', tool_name='get_weather', parameters={'city': 'Madrid'}), dependencies=Dependencies(value=['a1']), required_inputs=None, output=Output(value='out-p5-a2'), error=None, subactions=None)}"
+      },
+      {
+        "format": "draft_writer_phase7_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "bbe08f1c92d789b4ce521e7fc8786fd56a525623386354344d4ebdfc612eebc9",
+        "seed": null,
+        "system_prompt_len": 3087,
+        "system_prompt_sha": "8a6c7db5f753553fc4cda140ef65966743d80b058cf0f9b8603dfcb44e7b27a8",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.SYSTEM: 'system'>), type=Type(value=<Types.ANALYSIS: 'analysis'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'actions': [Action(id=Id(value='a1'), description=Description(value='think'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=None, required_inputs=None, output=Output(value='out-p4-a1'), error=None, subactions=None), Action(id=Id(value='a2'), description=Description(value='call tool'), action_type=ActionType(value='mcp_tool_call'), mcp_context=McpContext(server_id='aws_microservice', tool_name='get_weather', parameters={'city': 'Madrid'}), dependencies=Dependencies(value=['a1']), required_inputs=None, output=Output(value='out-p6-a2'), error=None, subactions=None)], 'constraints': None}"
+      },
+      {
+        "format": "editor_in_chief_phase8_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "5cb5aad982bc0d9e94c099fa2ec75d6b1d4340a7fa8c7881ad499298b95daccb",
+        "seed": null,
+        "system_prompt_len": 3567,
+        "system_prompt_sha": "a26e668b5f3e1d8feadcaabf19d3665a4ffb805822c76d527b1255c6e71d6d32",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_goal': UserGoal(summary=Summary(value='s'), expected_outcome=ExpectedOutcome(value='draft answer')), 'constraints': None, 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=RecommendedAction(value='run'), blocking_reason=None, requested_user_input=None)}"
+      }
+    ],
+    "metrics": {
+      "by_model": {
+        "gpt-4.1": {
+          "completion": 35,
+          "prompt": 70,
+          "requests": 7,
+          "total": 105
+        },
+        "gpt-4.1-mini": {
+          "completion": 5,
+          "prompt": 10,
+          "requests": 1,
+          "total": 15
+        }
+      },
+      "by_phase": {
+        "cognitive_worker": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "data_engineer": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "draft_writer": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "editor_in_chief": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "mcp_operator": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "project_manager": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "safety_quality_gatekeeper": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "triage_specialist": {
+          "gpt-4.1-mini": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        }
+      },
+      "request_log": [
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1-mini",
+          "phase_id": 1,
+          "phase_name": "triage_specialist",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 2,
+          "phase_name": "project_manager",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 3,
+          "phase_name": "safety_quality_gatekeeper",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": "a1",
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 4,
+          "phase_name": "cognitive_worker",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": "a2",
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 5,
+          "phase_name": "mcp_operator",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": "a2",
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 6,
+          "phase_name": "data_engineer",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 7,
+          "phase_name": "draft_writer",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 8,
+          "phase_name": "editor_in_chief",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        }
+      ],
+      "total_completion_tokens": 40,
+      "total_prompt_tokens": 80,
+      "total_requests": 8,
+      "total_tokens": 120
+    },
+    "reply": "final answer"
+  },
+  "mcp_blocked_by_confirmation": {
+    "calls": [
+      {
+        "format": "triage_specialist_phase1_response_format",
+        "intent": "Intent(primary='clarification_request', secondary=('information_request',), confidence=1.0)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1-mini",
+        "reasoning": "None",
+        "schema_sha": "d60114adf287fa1d4d00bf0c1b475dc80f589b725304bd96fff596872a5cb243",
+        "seed": null,
+        "system_prompt_len": 4890,
+        "system_prompt_sha": "4010746547102bad9a1b62162b999f7a59cb8044b830bbe3d5c44c9a4541d6db",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "read my files"
+      },
+      {
+        "format": "project_manager_phase2_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "481c93c6013cdc3882a717292063a81f361bb46c5cd04833a8d1638b9cf407c3",
+        "seed": null,
+        "system_prompt_len": 5705,
+        "system_prompt_sha": "3401938da4eaba355037f5fcdb883cfee6d8b963954a4e6662390910f3061668",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.SYSTEM: 'system'>), type=Type(value=<Types.ANALYSIS: 'analysis'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'available_mcp_servers': [{'name': 'aws_microservice', 'tools': []}]}"
+      },
+      {
+        "format": "safety_quality_gatekeeper_phase3_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "60be9fff021c79ce230339ae0da57527504778cf03aa4285241483b61f01070e",
+        "seed": null,
+        "system_prompt_len": 4001,
+        "system_prompt_sha": "6ea351479b113f9404364a5b32c20499b7bc699500122675cd44999fd46a3faa",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'actions': [Action(id=Id(value='a1'), description=Description(value='think'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=None, required_inputs=None, output=None, error=None, subactions=None), Action(id=Id(value='a2'), description=Description(value='call tool'), action_type=ActionType(value='mcp_tool_call'), mcp_context=McpContext(server_id='aws_microservice', tool_name='get_weather', parameters={'city': 'Madrid'}), dependencies=Dependencies(value=['a1']), required_inputs=None, output=None, error=None, subactions=None)], 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=RecommendedAction(value='go'), blocking_reason=None, requested_user_input=None)}"
+      },
+      {
+        "format": "phase4_single_action_response_format",
+        "intent": "Intent(primary='decision_support', secondary=(), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "18fe8573d8a9f260a671fa2eab4371f1b17ff98341a9883e54c560f3932cf271",
+        "seed": null,
+        "system_prompt_len": 3683,
+        "system_prompt_sha": "e89f981f26517f475917924759ab4a826ff30b57ccdfed70d61edd561098b370",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'action': Action(id=Id(value='a1'), description=Description(value='think'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=None, required_inputs=None, output=None, error=None, subactions=None), 'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'dependency_outputs': {}}"
+      },
+      {
+        "format": "draft_writer_phase7_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "bbe08f1c92d789b4ce521e7fc8786fd56a525623386354344d4ebdfc612eebc9",
+        "seed": null,
+        "system_prompt_len": 3087,
+        "system_prompt_sha": "8a6c7db5f753553fc4cda140ef65966743d80b058cf0f9b8603dfcb44e7b27a8",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.SYSTEM: 'system'>), type=Type(value=<Types.ANALYSIS: 'analysis'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'actions': [Action(id=Id(value='a1'), description=Description(value='think'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=None, required_inputs=None, output=Output(value='out-p4-a1'), error=None, subactions=None), Action(id=Id(value='a2'), description=Description(value='call tool'), action_type=ActionType(value='mcp_tool_call'), mcp_context=McpContext(server_id='aws_microservice', tool_name='get_weather', parameters={'city': 'Madrid'}), dependencies=Dependencies(value=['a1']), required_inputs=None, output=None, error=Error(value='Execution blocked: requires user confirmation before running MCP tools.'), subactions=None)], 'constraints': None}"
+      },
+      {
+        "format": "editor_in_chief_phase8_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "5cb5aad982bc0d9e94c099fa2ec75d6b1d4340a7fa8c7881ad499298b95daccb",
+        "seed": null,
+        "system_prompt_len": 3567,
+        "system_prompt_sha": "a26e668b5f3e1d8feadcaabf19d3665a4ffb805822c76d527b1255c6e71d6d32",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_goal': UserGoal(summary=Summary(value='s'), expected_outcome=ExpectedOutcome(value='draft answer')), 'constraints': None, 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=None, blocking_reason=None, requested_user_input=None)}"
+      }
+    ],
+    "metrics": {
+      "by_model": {
+        "gpt-4.1": {
+          "completion": 25,
+          "prompt": 50,
+          "requests": 5,
+          "total": 75
+        },
+        "gpt-4.1-mini": {
+          "completion": 5,
+          "prompt": 10,
+          "requests": 1,
+          "total": 15
+        }
+      },
+      "by_phase": {
+        "cognitive_worker": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "draft_writer": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "editor_in_chief": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "project_manager": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "safety_quality_gatekeeper": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "triage_specialist": {
+          "gpt-4.1-mini": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        }
+      },
+      "request_log": [
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1-mini",
+          "phase_id": 1,
+          "phase_name": "triage_specialist",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 2,
+          "phase_name": "project_manager",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 3,
+          "phase_name": "safety_quality_gatekeeper",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": "a1",
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 4,
+          "phase_name": "cognitive_worker",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 7,
+          "phase_name": "draft_writer",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 8,
+          "phase_name": "editor_in_chief",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        }
+      ],
+      "total_completion_tokens": 30,
+      "total_prompt_tokens": 60,
+      "total_requests": 6,
+      "total_tokens": 90
+    },
+    "reply": "final answer"
+  },
+  "mcp_result_feeds_a_cognitive_action": {
+    "calls": [
+      {
+        "format": "triage_specialist_phase1_response_format",
+        "intent": "Intent(primary='clarification_request', secondary=('information_request',), confidence=1.0)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1-mini",
+        "reasoning": "None",
+        "schema_sha": "d60114adf287fa1d4d00bf0c1b475dc80f589b725304bd96fff596872a5cb243",
+        "seed": null,
+        "system_prompt_len": 4890,
+        "system_prompt_sha": "4010746547102bad9a1b62162b999f7a59cb8044b830bbe3d5c44c9a4541d6db",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "tell me if I need an umbrella"
+      },
+      {
+        "format": "project_manager_phase2_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "481c93c6013cdc3882a717292063a81f361bb46c5cd04833a8d1638b9cf407c3",
+        "seed": null,
+        "system_prompt_len": 5705,
+        "system_prompt_sha": "3401938da4eaba355037f5fcdb883cfee6d8b963954a4e6662390910f3061668",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.SYSTEM: 'system'>), type=Type(value=<Types.ANALYSIS: 'analysis'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'available_mcp_servers': [{'name': 'aws_microservice', 'tools': []}]}"
+      },
+      {
+        "format": "safety_quality_gatekeeper_phase3_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "60be9fff021c79ce230339ae0da57527504778cf03aa4285241483b61f01070e",
+        "seed": null,
+        "system_prompt_len": 4001,
+        "system_prompt_sha": "6ea351479b113f9404364a5b32c20499b7bc699500122675cd44999fd46a3faa",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'actions': [Action(id=Id(value='2'), description=Description(value='step 2'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=Dependencies(value=['1']), required_inputs=None, output=None, error=None, subactions=None), Action(id=Id(value='1'), description=Description(value='step 1'), action_type=ActionType(value='mcp_tool_call'), mcp_context=McpContext(server_id='aws_microservice', tool_name='get_weather', parameters={'city': 'Madrid'}), dependencies=None, required_inputs=None, output=None, error=None, subactions=None)], 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=None, blocking_reason=None, requested_user_input=None)}"
+      },
+      {
+        "format": "phase5_single_action_response_format",
+        "intent": "Intent(primary='decision_support', secondary=(), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "18fe8573d8a9f260a671fa2eab4371f1b17ff98341a9883e54c560f3932cf271",
+        "seed": null,
+        "system_prompt_len": 3589,
+        "system_prompt_sha": "363c9f718e0f5daaf4823e07045a83a3f17358af29a5129a0ba9ea3e0542f1b2",
+        "temperature": 1.0,
+        "tools": "[{\"config\": {\"type\": \"sse\", \"url\": \"http://example.invalid/mcp/sse\"}, \"name\": \"aws_microservice\", \"type\": \"sse\"}]",
+        "top_p": null,
+        "user_message": "{'action': Action(id=Id(value='1'), description=Description(value='step 1'), action_type=ActionType(value='mcp_tool_call'), mcp_context=McpContext(server_id='aws_microservice', tool_name='get_weather', parameters={'city': 'Madrid'}), dependencies=None, required_inputs=None, output=None, error=None, subactions=None), 'available_mcp_servers': [{'name': 'aws_microservice', 'tools': []}], 'safety_and_validation': SafetyAndValidation(sensitive=Sensitive(value=False), requires_confirmation=RequiresConfirmation(value=False)), 'dependency_outputs': {}}"
+      },
+      {
+        "format": "phase6_single_action_response_format",
+        "intent": "Intent(primary='decision_support', secondary=(), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "18fe8573d8a9f260a671fa2eab4371f1b17ff98341a9883e54c560f3932cf271",
+        "seed": null,
+        "system_prompt_len": 3455,
+        "system_prompt_sha": "d023216259bfa2f7285d460cccdf3bb3b333430f531568431db8472827bf9af7",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'action': Action(id=Id(value='1'), description=Description(value='step 1'), action_type=ActionType(value='mcp_tool_call'), mcp_context=McpContext(server_id='aws_microservice', tool_name='get_weather', parameters={'city': 'Madrid'}), dependencies=None, required_inputs=None, output=Output(value='out-p5-1'), error=None, subactions=None)}"
+      },
+      {
+        "format": "phase4_single_action_response_format",
+        "intent": "Intent(primary='decision_support', secondary=(), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "18fe8573d8a9f260a671fa2eab4371f1b17ff98341a9883e54c560f3932cf271",
+        "seed": null,
+        "system_prompt_len": 3683,
+        "system_prompt_sha": "e89f981f26517f475917924759ab4a826ff30b57ccdfed70d61edd561098b370",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'action': Action(id=Id(value='2'), description=Description(value='step 2'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=Dependencies(value=['1']), required_inputs=None, output=None, error=None, subactions=None), 'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'dependency_outputs': {'1': 'out-p6-1'}}"
+      },
+      {
+        "format": "draft_writer_phase7_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "bbe08f1c92d789b4ce521e7fc8786fd56a525623386354344d4ebdfc612eebc9",
+        "seed": null,
+        "system_prompt_len": 3087,
+        "system_prompt_sha": "8a6c7db5f753553fc4cda140ef65966743d80b058cf0f9b8603dfcb44e7b27a8",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.SYSTEM: 'system'>), type=Type(value=<Types.ANALYSIS: 'analysis'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'actions': [Action(id=Id(value='2'), description=Description(value='step 2'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=Dependencies(value=['1']), required_inputs=None, output=Output(value='out-p4-2'), error=None, subactions=None), Action(id=Id(value='1'), description=Description(value='step 1'), action_type=ActionType(value='mcp_tool_call'), mcp_context=McpContext(server_id='aws_microservice', tool_name='get_weather', parameters={'city': 'Madrid'}), dependencies=None, required_inputs=None, output=Output(value='out-p6-1'), error=None, subactions=None)], 'constraints': None}"
+      },
+      {
+        "format": "editor_in_chief_phase8_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "5cb5aad982bc0d9e94c099fa2ec75d6b1d4340a7fa8c7881ad499298b95daccb",
+        "seed": null,
+        "system_prompt_len": 3567,
+        "system_prompt_sha": "a26e668b5f3e1d8feadcaabf19d3665a4ffb805822c76d527b1255c6e71d6d32",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_goal': UserGoal(summary=Summary(value='s'), expected_outcome=ExpectedOutcome(value='draft answer')), 'constraints': None, 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=RecommendedAction(value='run'), blocking_reason=None, requested_user_input=None)}"
+      }
+    ],
+    "metrics": {
+      "by_model": {
+        "gpt-4.1": {
+          "completion": 35,
+          "prompt": 70,
+          "requests": 7,
+          "total": 105
+        },
+        "gpt-4.1-mini": {
+          "completion": 5,
+          "prompt": 10,
+          "requests": 1,
+          "total": 15
+        }
+      },
+      "by_phase": {
+        "cognitive_worker": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "data_engineer": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "draft_writer": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "editor_in_chief": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "mcp_operator": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "project_manager": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "safety_quality_gatekeeper": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "triage_specialist": {
+          "gpt-4.1-mini": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        }
+      },
+      "request_log": [
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1-mini",
+          "phase_id": 1,
+          "phase_name": "triage_specialist",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 2,
+          "phase_name": "project_manager",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 3,
+          "phase_name": "safety_quality_gatekeeper",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": "1",
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 5,
+          "phase_name": "mcp_operator",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": "1",
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 6,
+          "phase_name": "data_engineer",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": "2",
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 4,
+          "phase_name": "cognitive_worker",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 7,
+          "phase_name": "draft_writer",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 8,
+          "phase_name": "editor_in_chief",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        }
+      ],
+      "total_completion_tokens": 40,
+      "total_prompt_tokens": 80,
+      "total_requests": 8,
+      "total_tokens": 120
+    },
+    "reply": "final answer"
+  },
+  "mcp_tool_fails_then_dependents_are_skipped": {
+    "calls": [
+      {
+        "format": "triage_specialist_phase1_response_format",
+        "intent": "Intent(primary='clarification_request', secondary=('information_request',), confidence=1.0)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1-mini",
+        "reasoning": "None",
+        "schema_sha": "d60114adf287fa1d4d00bf0c1b475dc80f589b725304bd96fff596872a5cb243",
+        "seed": null,
+        "system_prompt_len": 4890,
+        "system_prompt_sha": "4010746547102bad9a1b62162b999f7a59cb8044b830bbe3d5c44c9a4541d6db",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "tell me if I need an umbrella"
+      },
+      {
+        "format": "project_manager_phase2_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "481c93c6013cdc3882a717292063a81f361bb46c5cd04833a8d1638b9cf407c3",
+        "seed": null,
+        "system_prompt_len": 5705,
+        "system_prompt_sha": "3401938da4eaba355037f5fcdb883cfee6d8b963954a4e6662390910f3061668",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.SYSTEM: 'system'>), type=Type(value=<Types.ANALYSIS: 'analysis'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'available_mcp_servers': [{'name': 'aws_microservice', 'tools': []}]}"
+      },
+      {
+        "format": "safety_quality_gatekeeper_phase3_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "60be9fff021c79ce230339ae0da57527504778cf03aa4285241483b61f01070e",
+        "seed": null,
+        "system_prompt_len": 4001,
+        "system_prompt_sha": "6ea351479b113f9404364a5b32c20499b7bc699500122675cd44999fd46a3faa",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'actions': [Action(id=Id(value='1'), description=Description(value='step 1'), action_type=ActionType(value='mcp_tool_call'), mcp_context=McpContext(server_id='aws_microservice', tool_name='get_weather', parameters={'city': 'Madrid'}), dependencies=None, required_inputs=None, output=None, error=None, subactions=None), Action(id=Id(value='2'), description=Description(value='step 2'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=Dependencies(value=['1']), required_inputs=None, output=None, error=None, subactions=None), Action(id=Id(value='3'), description=Description(value='step 3'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=None, required_inputs=None, output=None, error=None, subactions=None)], 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=None, blocking_reason=None, requested_user_input=None)}"
+      },
+      {
+        "format": "phase5_single_action_response_format",
+        "intent": "Intent(primary='decision_support', secondary=(), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "18fe8573d8a9f260a671fa2eab4371f1b17ff98341a9883e54c560f3932cf271",
+        "seed": null,
+        "system_prompt_len": 3589,
+        "system_prompt_sha": "363c9f718e0f5daaf4823e07045a83a3f17358af29a5129a0ba9ea3e0542f1b2",
+        "temperature": 1.0,
+        "tools": "[{\"config\": {\"type\": \"sse\", \"url\": \"http://example.invalid/mcp/sse\"}, \"name\": \"aws_microservice\", \"type\": \"sse\"}]",
+        "top_p": null,
+        "user_message": "{'action': Action(id=Id(value='1'), description=Description(value='step 1'), action_type=ActionType(value='mcp_tool_call'), mcp_context=McpContext(server_id='aws_microservice', tool_name='get_weather', parameters={'city': 'Madrid'}), dependencies=None, required_inputs=None, output=None, error=None, subactions=None), 'available_mcp_servers': [{'name': 'aws_microservice', 'tools': []}], 'safety_and_validation': SafetyAndValidation(sensitive=Sensitive(value=False), requires_confirmation=RequiresConfirmation(value=False)), 'dependency_outputs': {}}"
+      },
+      {
+        "format": "phase5_single_action_response_format",
+        "intent": "Intent(primary='decision_support', secondary=(), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "18fe8573d8a9f260a671fa2eab4371f1b17ff98341a9883e54c560f3932cf271",
+        "seed": null,
+        "system_prompt_len": 3589,
+        "system_prompt_sha": "363c9f718e0f5daaf4823e07045a83a3f17358af29a5129a0ba9ea3e0542f1b2",
+        "temperature": 1.0,
+        "tools": "[{\"config\": {\"type\": \"sse\", \"url\": \"http://example.invalid/mcp/sse\"}, \"name\": \"aws_microservice\", \"type\": \"sse\"}]",
+        "top_p": null,
+        "user_message": "{'action': Action(id=Id(value='1'), description=Description(value='step 1'), action_type=ActionType(value='mcp_tool_call'), mcp_context=McpContext(server_id='aws_microservice', tool_name='get_weather', parameters={'city': 'Madrid'}), dependencies=None, required_inputs=None, output=None, error=None, subactions=None), 'available_mcp_servers': [{'name': 'aws_microservice', 'tools': []}], 'safety_and_validation': SafetyAndValidation(sensitive=Sensitive(value=False), requires_confirmation=RequiresConfirmation(value=False)), 'dependency_outputs': {}}"
+      },
+      {
+        "format": "phase5_single_action_response_format",
+        "intent": "Intent(primary='decision_support', secondary=(), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "18fe8573d8a9f260a671fa2eab4371f1b17ff98341a9883e54c560f3932cf271",
+        "seed": null,
+        "system_prompt_len": 3589,
+        "system_prompt_sha": "363c9f718e0f5daaf4823e07045a83a3f17358af29a5129a0ba9ea3e0542f1b2",
+        "temperature": 1.0,
+        "tools": "[{\"config\": {\"type\": \"sse\", \"url\": \"http://example.invalid/mcp/sse\"}, \"name\": \"aws_microservice\", \"type\": \"sse\"}]",
+        "top_p": null,
+        "user_message": "{'action': Action(id=Id(value='1'), description=Description(value='step 1'), action_type=ActionType(value='mcp_tool_call'), mcp_context=McpContext(server_id='aws_microservice', tool_name='get_weather', parameters={'city': 'Madrid'}), dependencies=None, required_inputs=None, output=None, error=None, subactions=None), 'available_mcp_servers': [{'name': 'aws_microservice', 'tools': []}], 'safety_and_validation': SafetyAndValidation(sensitive=Sensitive(value=False), requires_confirmation=RequiresConfirmation(value=False)), 'dependency_outputs': {}}"
+      },
+      {
+        "format": "phase4_single_action_response_format",
+        "intent": "Intent(primary='decision_support', secondary=(), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "18fe8573d8a9f260a671fa2eab4371f1b17ff98341a9883e54c560f3932cf271",
+        "seed": null,
+        "system_prompt_len": 3683,
+        "system_prompt_sha": "e89f981f26517f475917924759ab4a826ff30b57ccdfed70d61edd561098b370",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'action': Action(id=Id(value='3'), description=Description(value='step 3'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=None, required_inputs=None, output=None, error=None, subactions=None), 'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'dependency_outputs': {}}"
+      },
+      {
+        "format": "draft_writer_phase7_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "bbe08f1c92d789b4ce521e7fc8786fd56a525623386354344d4ebdfc612eebc9",
+        "seed": null,
+        "system_prompt_len": 3087,
+        "system_prompt_sha": "8a6c7db5f753553fc4cda140ef65966743d80b058cf0f9b8603dfcb44e7b27a8",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.SYSTEM: 'system'>), type=Type(value=<Types.ANALYSIS: 'analysis'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'actions': [Action(id=Id(value='1'), description=Description(value='step 1'), action_type=ActionType(value='mcp_tool_call'), mcp_context=McpContext(server_id='aws_microservice', tool_name='get_weather', parameters={'city': 'Madrid'}), dependencies=None, required_inputs=None, output=None, error=Error(value='tool unavailable'), subactions=None), Action(id=Id(value='2'), description=Description(value='step 2'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=Dependencies(value=['1']), required_inputs=None, output=None, error=Error(value='The step was skipped because a step it needs failed: 1.'), subactions=None), Action(id=Id(value='3'), description=Description(value='step 3'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=None, required_inputs=None, output=Output(value='out-p4-3'), error=None, subactions=None)], 'constraints': None}"
+      },
+      {
+        "format": "editor_in_chief_phase8_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "5cb5aad982bc0d9e94c099fa2ec75d6b1d4340a7fa8c7881ad499298b95daccb",
+        "seed": null,
+        "system_prompt_len": 3567,
+        "system_prompt_sha": "a26e668b5f3e1d8feadcaabf19d3665a4ffb805822c76d527b1255c6e71d6d32",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_goal': UserGoal(summary=Summary(value='s'), expected_outcome=ExpectedOutcome(value='draft answer')), 'constraints': None, 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=RecommendedAction(value='run'), blocking_reason=None, requested_user_input=None)}"
+      }
+    ],
+    "metrics": {
+      "by_model": {
+        "gpt-4.1": {
+          "completion": 40,
+          "prompt": 80,
+          "requests": 8,
+          "total": 120
+        },
+        "gpt-4.1-mini": {
+          "completion": 5,
+          "prompt": 10,
+          "requests": 1,
+          "total": 15
+        }
+      },
+      "by_phase": {
+        "cognitive_worker": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "draft_writer": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "editor_in_chief": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "mcp_operator": {
+          "gpt-4.1": {
+            "completion": 15,
+            "prompt": 30,
+            "requests": 3,
+            "total": 45
+          }
+        },
+        "project_manager": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "safety_quality_gatekeeper": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "triage_specialist": {
+          "gpt-4.1-mini": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        }
+      },
+      "request_log": [
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1-mini",
+          "phase_id": 1,
+          "phase_name": "triage_specialist",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 2,
+          "phase_name": "project_manager",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 3,
+          "phase_name": "safety_quality_gatekeeper",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": "1",
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 5,
+          "phase_name": "mcp_operator",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": "1",
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 5,
+          "phase_name": "mcp_operator",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": "1",
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 5,
+          "phase_name": "mcp_operator",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": "3",
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 4,
+          "phase_name": "cognitive_worker",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 7,
+          "phase_name": "draft_writer",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 8,
+          "phase_name": "editor_in_chief",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        }
+      ],
+      "total_completion_tokens": 45,
+      "total_prompt_tokens": 90,
+      "total_requests": 9,
+      "total_tokens": 135
+    },
+    "reply": "final answer"
+  },
+  "no_actions": {
+    "calls": [
+      {
+        "format": "triage_specialist_phase1_response_format",
+        "intent": "Intent(primary='clarification_request', secondary=('information_request',), confidence=1.0)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1-mini",
+        "reasoning": "None",
+        "schema_sha": "d60114adf287fa1d4d00bf0c1b475dc80f589b725304bd96fff596872a5cb243",
+        "seed": null,
+        "system_prompt_len": 4890,
+        "system_prompt_sha": "4010746547102bad9a1b62162b999f7a59cb8044b830bbe3d5c44c9a4541d6db",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "hello"
+      },
+      {
+        "format": "project_manager_phase2_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "481c93c6013cdc3882a717292063a81f361bb46c5cd04833a8d1638b9cf407c3",
+        "seed": null,
+        "system_prompt_len": 5705,
+        "system_prompt_sha": "3401938da4eaba355037f5fcdb883cfee6d8b963954a4e6662390910f3061668",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.SYSTEM: 'system'>), type=Type(value=<Types.ANALYSIS: 'analysis'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'available_mcp_servers': [{'name': 'aws_microservice', 'tools': []}]}"
+      },
+      {
+        "format": "safety_quality_gatekeeper_phase3_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "60be9fff021c79ce230339ae0da57527504778cf03aa4285241483b61f01070e",
+        "seed": null,
+        "system_prompt_len": 4001,
+        "system_prompt_sha": "6ea351479b113f9404364a5b32c20499b7bc699500122675cd44999fd46a3faa",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'actions': [], 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=None, blocking_reason=None, requested_user_input=None)}"
+      },
+      {
+        "format": "draft_writer_phase7_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "bbe08f1c92d789b4ce521e7fc8786fd56a525623386354344d4ebdfc612eebc9",
+        "seed": null,
+        "system_prompt_len": 3087,
+        "system_prompt_sha": "8a6c7db5f753553fc4cda140ef65966743d80b058cf0f9b8603dfcb44e7b27a8",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.SYSTEM: 'system'>), type=Type(value=<Types.ANALYSIS: 'analysis'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'actions': [], 'constraints': None}"
+      },
+      {
+        "format": "editor_in_chief_phase8_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "5cb5aad982bc0d9e94c099fa2ec75d6b1d4340a7fa8c7881ad499298b95daccb",
+        "seed": null,
+        "system_prompt_len": 3567,
+        "system_prompt_sha": "a26e668b5f3e1d8feadcaabf19d3665a4ffb805822c76d527b1255c6e71d6d32",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_goal': UserGoal(summary=Summary(value='s'), expected_outcome=ExpectedOutcome(value='draft answer')), 'constraints': None, 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=RecommendedAction(value='run'), blocking_reason=None, requested_user_input=None)}"
+      }
+    ],
+    "metrics": {
+      "by_model": {
+        "gpt-4.1": {
+          "completion": 20,
+          "prompt": 40,
+          "requests": 4,
+          "total": 60
+        },
+        "gpt-4.1-mini": {
+          "completion": 5,
+          "prompt": 10,
+          "requests": 1,
+          "total": 15
+        }
+      },
+      "by_phase": {
+        "draft_writer": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "editor_in_chief": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "project_manager": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "safety_quality_gatekeeper": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "triage_specialist": {
+          "gpt-4.1-mini": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        }
+      },
+      "request_log": [
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1-mini",
+          "phase_id": 1,
+          "phase_name": "triage_specialist",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 2,
+          "phase_name": "project_manager",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 3,
+          "phase_name": "safety_quality_gatekeeper",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 7,
+          "phase_name": "draft_writer",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 8,
+          "phase_name": "editor_in_chief",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        }
+      ],
+      "total_completion_tokens": 25,
+      "total_prompt_tokens": 50,
+      "total_requests": 5,
+      "total_tokens": 75
+    },
+    "reply": "final answer"
+  },
+  "pause_after_gatekeeper": {
+    "calls": [
+      {
+        "format": "triage_specialist_phase1_response_format",
+        "intent": "Intent(primary='clarification_request', secondary=('information_request',), confidence=1.0)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1-mini",
+        "reasoning": "None",
+        "schema_sha": "d60114adf287fa1d4d00bf0c1b475dc80f589b725304bd96fff596872a5cb243",
+        "seed": null,
+        "system_prompt_len": 4890,
+        "system_prompt_sha": "4010746547102bad9a1b62162b999f7a59cb8044b830bbe3d5c44c9a4541d6db",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "delete everything"
+      },
+      {
+        "format": "project_manager_phase2_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "481c93c6013cdc3882a717292063a81f361bb46c5cd04833a8d1638b9cf407c3",
+        "seed": null,
+        "system_prompt_len": 5705,
+        "system_prompt_sha": "3401938da4eaba355037f5fcdb883cfee6d8b963954a4e6662390910f3061668",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.SYSTEM: 'system'>), type=Type(value=<Types.ANALYSIS: 'analysis'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'available_mcp_servers': [{'name': 'aws_microservice', 'tools': []}]}"
+      },
+      {
+        "format": "safety_quality_gatekeeper_phase3_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "60be9fff021c79ce230339ae0da57527504778cf03aa4285241483b61f01070e",
+        "seed": null,
+        "system_prompt_len": 4001,
+        "system_prompt_sha": "6ea351479b113f9404364a5b32c20499b7bc699500122675cd44999fd46a3faa",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'actions': [Action(id=Id(value='a1'), description=Description(value='think'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=None, required_inputs=None, output=None, error=None, subactions=None), Action(id=Id(value='a2'), description=Description(value='call tool'), action_type=ActionType(value='mcp_tool_call'), mcp_context=McpContext(server_id='aws_microservice', tool_name='get_weather', parameters={'city': 'Madrid'}), dependencies=Dependencies(value=['a1']), required_inputs=None, output=None, error=None, subactions=None)], 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=RecommendedAction(value='go'), blocking_reason=None, requested_user_input=None)}"
+      },
+      {
+        "format": "<text>",
+        "intent": "Intent(primary='clarification_request', secondary=(), confidence=1.0)",
+        "max_tokens": 2000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "seed": null,
+        "system_prompt_len": 172,
+        "system_prompt_sha": "4500b960fd9681097d6d1adca2e5d17d7fe28725d8020d6cf19f4cc3cb85f89c",
+        "temperature": 0.7,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "The following information is required from the user:\n- destructive"
+      }
+    ],
+    "metrics": {
+      "by_model": {
+        "gpt-4.1": {
+          "completion": 15,
+          "prompt": 30,
+          "requests": 3,
+          "total": 45
+        },
+        "gpt-4.1-mini": {
+          "completion": 5,
+          "prompt": 10,
+          "requests": 1,
+          "total": 15
+        }
+      },
+      "by_phase": {
+        "project_manager": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "safety_quality_gatekeeper": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "triage_specialist": {
+          "gpt-4.1-mini": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "user_clarification": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        }
+      },
+      "request_log": [
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1-mini",
+          "phase_id": 1,
+          "phase_name": "triage_specialist",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 2,
+          "phase_name": "project_manager",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 3,
+          "phase_name": "safety_quality_gatekeeper",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 99,
+          "phase_name": "user_clarification",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        }
+      ],
+      "total_completion_tokens": 20,
+      "total_prompt_tokens": 40,
+      "total_requests": 4,
+      "total_tokens": 60
+    },
+    "reply": "Please tell me the missing details."
+  },
+  "pause_after_project_manager": {
+    "calls": [
+      {
+        "format": "triage_specialist_phase1_response_format",
+        "intent": "Intent(primary='clarification_request', secondary=('information_request',), confidence=1.0)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1-mini",
+        "reasoning": "None",
+        "schema_sha": "d60114adf287fa1d4d00bf0c1b475dc80f589b725304bd96fff596872a5cb243",
+        "seed": null,
+        "system_prompt_len": 4890,
+        "system_prompt_sha": "4010746547102bad9a1b62162b999f7a59cb8044b830bbe3d5c44c9a4541d6db",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "send it"
+      },
+      {
+        "format": "project_manager_phase2_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "481c93c6013cdc3882a717292063a81f361bb46c5cd04833a8d1638b9cf407c3",
+        "seed": null,
+        "system_prompt_len": 5705,
+        "system_prompt_sha": "3401938da4eaba355037f5fcdb883cfee6d8b963954a4e6662390910f3061668",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.SYSTEM: 'system'>), type=Type(value=<Types.ANALYSIS: 'analysis'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'available_mcp_servers': [{'name': 'aws_microservice', 'tools': []}]}"
+      },
+      {
+        "format": "<text>",
+        "intent": "Intent(primary='clarification_request', secondary=(), confidence=1.0)",
+        "max_tokens": 2000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "seed": null,
+        "system_prompt_len": 172,
+        "system_prompt_sha": "4500b960fd9681097d6d1adca2e5d17d7fe28725d8020d6cf19f4cc3cb85f89c",
+        "temperature": 0.7,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "The following information is required from the user:\n- who is the recipient?\n- recipient"
+      }
+    ],
+    "metrics": {
+      "by_model": {
+        "gpt-4.1": {
+          "completion": 10,
+          "prompt": 20,
+          "requests": 2,
+          "total": 30
+        },
+        "gpt-4.1-mini": {
+          "completion": 5,
+          "prompt": 10,
+          "requests": 1,
+          "total": 15
+        }
+      },
+      "by_phase": {
+        "project_manager": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "triage_specialist": {
+          "gpt-4.1-mini": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "user_clarification": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        }
+      },
+      "request_log": [
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1-mini",
+          "phase_id": 1,
+          "phase_name": "triage_specialist",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 2,
+          "phase_name": "project_manager",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 99,
+          "phase_name": "user_clarification",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        }
+      ],
+      "total_completion_tokens": 15,
+      "total_prompt_tokens": 30,
+      "total_requests": 3,
+      "total_tokens": 45
+    },
+    "reply": "Please tell me the missing details."
+  },
+  "pause_after_triage": {
+    "calls": [
+      {
+        "format": "triage_specialist_phase1_response_format",
+        "intent": "Intent(primary='clarification_request', secondary=('information_request',), confidence=1.0)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1-mini",
+        "reasoning": "None",
+        "schema_sha": "d60114adf287fa1d4d00bf0c1b475dc80f589b725304bd96fff596872a5cb243",
+        "seed": null,
+        "system_prompt_len": 4890,
+        "system_prompt_sha": "4010746547102bad9a1b62162b999f7a59cb8044b830bbe3d5c44c9a4541d6db",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "do the thing"
+      },
+      {
+        "format": "<text>",
+        "intent": "Intent(primary='clarification_request', secondary=(), confidence=1.0)",
+        "max_tokens": 2000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "seed": null,
+        "system_prompt_len": 172,
+        "system_prompt_sha": "4500b960fd9681097d6d1adca2e5d17d7fe28725d8020d6cf19f4cc3cb85f89c",
+        "temperature": 0.7,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "The following information is required from the user:\n- What do you want me to do?"
+      }
+    ],
+    "metrics": {
+      "by_model": {
+        "gpt-4.1": {
+          "completion": 5,
+          "prompt": 10,
+          "requests": 1,
+          "total": 15
+        },
+        "gpt-4.1-mini": {
+          "completion": 5,
+          "prompt": 10,
+          "requests": 1,
+          "total": 15
+        }
+      },
+      "by_phase": {
+        "triage_specialist": {
+          "gpt-4.1-mini": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "user_clarification": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        }
+      },
+      "request_log": [
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1-mini",
+          "phase_id": 1,
+          "phase_name": "triage_specialist",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 99,
+          "phase_name": "user_clarification",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        }
+      ],
+      "total_completion_tokens": 10,
+      "total_prompt_tokens": 20,
+      "total_requests": 2,
+      "total_tokens": 30
+    },
+    "reply": "Please tell me the missing details."
+  },
+  "pause_without_details": {
+    "calls": [
+      {
+        "format": "triage_specialist_phase1_response_format",
+        "intent": "Intent(primary='clarification_request', secondary=('information_request',), confidence=1.0)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1-mini",
+        "reasoning": "None",
+        "schema_sha": "d60114adf287fa1d4d00bf0c1b475dc80f589b725304bd96fff596872a5cb243",
+        "seed": null,
+        "system_prompt_len": 4890,
+        "system_prompt_sha": "4010746547102bad9a1b62162b999f7a59cb8044b830bbe3d5c44c9a4541d6db",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "do the thing"
+      },
+      {
+        "format": "project_manager_phase2_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "481c93c6013cdc3882a717292063a81f361bb46c5cd04833a8d1638b9cf407c3",
+        "seed": null,
+        "system_prompt_len": 5705,
+        "system_prompt_sha": "3401938da4eaba355037f5fcdb883cfee6d8b963954a4e6662390910f3061668",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.SYSTEM: 'system'>), type=Type(value=<Types.ANALYSIS: 'analysis'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'available_mcp_servers': [{'name': 'aws_microservice', 'tools': []}]}"
+      }
+    ],
+    "metrics": {
+      "by_model": {
+        "gpt-4.1": {
+          "completion": 5,
+          "prompt": 10,
+          "requests": 1,
+          "total": 15
+        },
+        "gpt-4.1-mini": {
+          "completion": 5,
+          "prompt": 10,
+          "requests": 1,
+          "total": 15
+        }
+      },
+      "by_phase": {
+        "project_manager": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "triage_specialist": {
+          "gpt-4.1-mini": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        }
+      },
+      "request_log": [
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1-mini",
+          "phase_id": 1,
+          "phase_name": "triage_specialist",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 2,
+          "phase_name": "project_manager",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        }
+      ],
+      "total_completion_tokens": 10,
+      "total_prompt_tokens": 20,
+      "total_requests": 2,
+      "total_tokens": 30
+    },
+    "reply": "Additional information is required to proceed. Please provide more details."
+  },
+  "unknown_and_circular_dependencies": {
+    "calls": [
+      {
+        "format": "triage_specialist_phase1_response_format",
+        "intent": "Intent(primary='clarification_request', secondary=('information_request',), confidence=1.0)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1-mini",
+        "reasoning": "None",
+        "schema_sha": "d60114adf287fa1d4d00bf0c1b475dc80f589b725304bd96fff596872a5cb243",
+        "seed": null,
+        "system_prompt_len": 4890,
+        "system_prompt_sha": "4010746547102bad9a1b62162b999f7a59cb8044b830bbe3d5c44c9a4541d6db",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "do it"
+      },
+      {
+        "format": "project_manager_phase2_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "481c93c6013cdc3882a717292063a81f361bb46c5cd04833a8d1638b9cf407c3",
+        "seed": null,
+        "system_prompt_len": 5705,
+        "system_prompt_sha": "3401938da4eaba355037f5fcdb883cfee6d8b963954a4e6662390910f3061668",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.SYSTEM: 'system'>), type=Type(value=<Types.ANALYSIS: 'analysis'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'available_mcp_servers': [{'name': 'aws_microservice', 'tools': []}]}"
+      },
+      {
+        "format": "safety_quality_gatekeeper_phase3_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "60be9fff021c79ce230339ae0da57527504778cf03aa4285241483b61f01070e",
+        "seed": null,
+        "system_prompt_len": 4001,
+        "system_prompt_sha": "6ea351479b113f9404364a5b32c20499b7bc699500122675cd44999fd46a3faa",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'actions': [Action(id=Id(value='1'), description=Description(value='step 1'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=Dependencies(value=['9']), required_inputs=None, output=None, error=None, subactions=None), Action(id=Id(value='2'), description=Description(value='step 2'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=Dependencies(value=['3']), required_inputs=None, output=None, error=None, subactions=None), Action(id=Id(value='3'), description=Description(value='step 3'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=Dependencies(value=['2']), required_inputs=None, output=None, error=None, subactions=None), Action(id=Id(value='4'), description=Description(value='step 4'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=None, required_inputs=None, output=None, error=None, subactions=None)], 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=None, blocking_reason=None, requested_user_input=None)}"
+      },
+      {
+        "format": "phase4_single_action_response_format",
+        "intent": "Intent(primary='decision_support', secondary=(), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "18fe8573d8a9f260a671fa2eab4371f1b17ff98341a9883e54c560f3932cf271",
+        "seed": null,
+        "system_prompt_len": 3683,
+        "system_prompt_sha": "e89f981f26517f475917924759ab4a826ff30b57ccdfed70d61edd561098b370",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'action': Action(id=Id(value='4'), description=Description(value='step 4'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=None, required_inputs=None, output=None, error=None, subactions=None), 'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'dependency_outputs': {}}"
+      },
+      {
+        "format": "draft_writer_phase7_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "bbe08f1c92d789b4ce521e7fc8786fd56a525623386354344d4ebdfc612eebc9",
+        "seed": null,
+        "system_prompt_len": 3087,
+        "system_prompt_sha": "8a6c7db5f753553fc4cda140ef65966743d80b058cf0f9b8603dfcb44e7b27a8",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.SYSTEM: 'system'>), type=Type(value=<Types.ANALYSIS: 'analysis'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'actions': [Action(id=Id(value='1'), description=Description(value='step 1'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=Dependencies(value=['9']), required_inputs=None, output=None, error=Error(value='The step depends on unknown steps: 9.'), subactions=None), Action(id=Id(value='2'), description=Description(value='step 2'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=Dependencies(value=['3']), required_inputs=None, output=None, error=Error(value='The step could not run: circular or unknown dependencies.'), subactions=None), Action(id=Id(value='3'), description=Description(value='step 3'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=Dependencies(value=['2']), required_inputs=None, output=None, error=Error(value='The step could not run: circular or unknown dependencies.'), subactions=None), Action(id=Id(value='4'), description=Description(value='step 4'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=None, required_inputs=None, output=Output(value='out-p4-4'), error=None, subactions=None)], 'constraints': None}"
+      },
+      {
+        "format": "editor_in_chief_phase8_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "5cb5aad982bc0d9e94c099fa2ec75d6b1d4340a7fa8c7881ad499298b95daccb",
+        "seed": null,
+        "system_prompt_len": 3567,
+        "system_prompt_sha": "a26e668b5f3e1d8feadcaabf19d3665a4ffb805822c76d527b1255c6e71d6d32",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_goal': UserGoal(summary=Summary(value='s'), expected_outcome=ExpectedOutcome(value='draft answer')), 'constraints': None, 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=RecommendedAction(value='run'), blocking_reason=None, requested_user_input=None)}"
+      }
+    ],
+    "metrics": {
+      "by_model": {
+        "gpt-4.1": {
+          "completion": 25,
+          "prompt": 50,
+          "requests": 5,
+          "total": 75
+        },
+        "gpt-4.1-mini": {
+          "completion": 5,
+          "prompt": 10,
+          "requests": 1,
+          "total": 15
+        }
+      },
+      "by_phase": {
+        "cognitive_worker": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "draft_writer": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "editor_in_chief": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "project_manager": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "safety_quality_gatekeeper": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "triage_specialist": {
+          "gpt-4.1-mini": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        }
+      },
+      "request_log": [
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1-mini",
+          "phase_id": 1,
+          "phase_name": "triage_specialist",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 2,
+          "phase_name": "project_manager",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 3,
+          "phase_name": "safety_quality_gatekeeper",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": "4",
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 4,
+          "phase_name": "cognitive_worker",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 7,
+          "phase_name": "draft_writer",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 8,
+          "phase_name": "editor_in_chief",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        }
+      ],
+      "total_completion_tokens": 30,
+      "total_prompt_tokens": 60,
+      "total_requests": 6,
+      "total_tokens": 90
+    },
+    "reply": "final answer"
+  }
+}

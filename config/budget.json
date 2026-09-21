@@ -1,0 +1,10 @@
+{
+  "_help": "The monthly budget the model choice must fit. Used by tests/manual/show_models.py --budget to write docs/models_per_step_budget.md.",
+  "eur_per_month": 50,
+  "messages_per_month": 1000,
+  "usd_per_eur": 1.149,
+  "rate_date": "2026-09-21",
+  "rate_source": "ECB euro reference exchange rate (1 EUR = 1.1490 USD on 2026-09-21; it moved between 1.146 and 1.170 in the last 30 days)",
+  "big_plan": {"actions": 5, "subactions": 5, "tools": 5},
+  "small_plan": {"actions": 2, "subactions": 0, "tools": 0}
+}

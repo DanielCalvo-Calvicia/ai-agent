@@ -1,10 +1,8 @@
 
 from dataclasses import dataclass
-import json
 
 ErrActionTypeEmpty = ValueError("Action type cannot be empty")
 
-schema_path = "schema/response/basic/actions/actions.action_type.schema.json"
 
 @dataclass(frozen=True)
 class ActionType:
@@ -21,9 +19,3 @@ def create_action_type(value: str):
     action_type = ActionType(value)
     action_type.validate()
     return action_type
-
-def get_schema():
-    # Load the schema from your local file
-    with open(schema_path, 'r') as f:
-        schema_dic = json.load(f)
-    return schema_dic

@@ -54,8 +54,7 @@
           "properties": {
             "server_id": {
               "type": "string",
-              "enum": [],
-              "description": "Target MCP server identifier. Must remain empty or placeholder unless explicitly defined."
+              "description": "Name of the MCP server that offers the tool. Empty string unless action_type is 'mcp_tool_call'. The allowed names are added to this schema for every request."
             },
             "tool_name": {
               "type": "string",
@@ -84,6 +83,7 @@
         },
         "subactions": {
           "type": "array",
+          "maxItems": 10,
           "description": "Optional nested subactions to further decompose this action. Each subaction follows the exact same schema as a top-level action. Use this to break complex actions into smaller, manageable steps.",
           "items": {
             "$ref": "#/$defs/action"

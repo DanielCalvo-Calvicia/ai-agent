@@ -14,6 +14,7 @@ from application.service.session_service import SessionService
 from infrastructure.inbound.http.fastapi import SessionFastAPI
 from domain.entities.payload import Payload
 from domain.entities.response import Response
+from domain.value_objects.user_goal.user_goal import create_user_goal
 
 
 # ===============================================
@@ -30,9 +31,11 @@ class MockLLMAdapter(LLMOutboundPort):
         self._started = True
 
     def ask(self, Payload: Payload) -> Response:
+        # Every phase gets the same answer: a user goal whose expected outcome is the reply.
+        # The flow ends with "Mock LLM response" as the final text.
         return Response(
                 intent=None,
-                user_goal=None,
+                user_goal=create_user_goal(summary_value="summary", expected_outcome_value="Mock LLM response"),
                 mcp_routing=None,
                 task_category=None,
                 actions=None,

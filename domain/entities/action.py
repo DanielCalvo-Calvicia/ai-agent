@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-import json
 from typing import Dict, List, Optional
 
 from domain.value_objects.action.id import Id as ActionId, create_id
@@ -14,10 +13,6 @@ from domain.value_objects.action.error import Error as ActionError, create_error
 ErrActionCantMarkSuccessWhenHasError = RuntimeError("Cannot mark success when action has error.")
 ErrActionOutputEmptyWhenSuccess = ValueError("output cannot be empty on success.")
 
-schema_full_path = "schema/response/advanced/actions/actions.schema.json"
-schema_base_path = "schema/response/advanced/actions/actions.base.schema.json"
-schema_items_path = "schema/response/advanced/actions/actions.item.schema.json" 
-
 
 @dataclass
 class Action:
@@ -29,7 +24,7 @@ class Action:
     required_inputs: Optional[ActionRequiredInputs]
     output: Optional[ActionOutput]
     error: Optional[ActionError]
-    subtasks: Optional[Dict[str, Action]] = None
+    subactions: Optional[Dict[str, Action]] = None
 
 
     # ---------------------------
@@ -168,21 +163,3 @@ def create_action(
         output=output,
         error=error
     )
-
-def get_schema():
-    # Load the schema from your local file
-    with open(schema_full_path, 'r') as f:
-        schema_dic = json.load(f)
-    return schema_dic
-
-def get_base_schema():
-    # Load the base schema from your local file
-    with open(schema_base_path, 'r') as f:
-        schema_dic = json.load(f)
-    return schema_dic
-
-def get_items_schema():
-    # Load the confidence schema from your local file
-    with open(schema_items_path, 'r') as f:
-        schema_dic = json.load(f)
-    return schema_dic

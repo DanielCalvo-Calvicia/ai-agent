@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-import json
 from typing import Any, Dict, List
 
 MinConfidence = 0.0
@@ -10,12 +9,6 @@ DefaultThresholdConfidence = 0.75
 ErrConfidencePrimaryEmpty = ValueError("Primary intent cannot be empty.")
 ErrConfidenceNotNumber = lambda confidence: ValueError(f"Confidence {confidence} must be a number.")
 ErrConfidenceBetweenMinMax = lambda confidence: ValueError(f"Confidence {confidence} must be between {MinConfidence} and {MaxConfidence}.")
-
-schema_full_path = "schema/response/advanced/intent/intent.schema.json"
-schema_base_path = "schema/response/advanced/intent/intent.base.schema.json"
-schema_confidence_path = "schema/response/advanced/intent/intent.confidence.schema.json"
-schema_primary_path = "schema/response/advanced/intent/intent.primary.schema.json"
-schema_secondary_path = "schema/response/advanced/intent/intent.secondary.schema.json"
 
 
 @dataclass(frozen=True)
@@ -52,34 +45,3 @@ def create_intent(primary: str, secondary: List[str], confidence: float):
     intent = Intent(primary, secondary, confidence)
     intent.validate()
     return intent
-
-def get_schema():
-    # Load the schema from your local file
-    with open(schema_full_path, 'r') as f:
-        schema_dic = json.load(f)
-    return schema_dic
-
-def get_base_schema():
-    # Load the base schema from your local file
-    with open(schema_base_path, 'r') as f:
-        schema_dic = json.load(f)
-    return schema_dic
-
-def get_confidence_schema():
-    # Load the confidence schema from your local file
-    with open(schema_confidence_path, 'r') as f:
-        schema_dic = json.load(f)
-    return schema_dic
-
-def get_primary_schema():
-    # Load the primary schema from your local file
-    with open(schema_primary_path, 'r') as f:
-        schema_dic = json.load(f)
-    return schema_dic
-
-def get_secondary_schema():
-    # Load the secondary schema from your local file
-    with open(schema_secondary_path, 'r') as f:
-        schema_dic = json.load(f)
-    return schema_dic
-
