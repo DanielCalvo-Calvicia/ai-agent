@@ -29,12 +29,19 @@ Every phase gets, before its own instructions: the generic rules, `prompts/capab
 | Method | Path | Purpose |
 |---|---|---|
 | POST | `/session/start` | Create a session (`username`, optional `email`) and get a `session_id` |
-| POST | `/session/message` | Send `session_id` + `message`, get the reply in `data.response` |
+| POST | `/session/message` | Send `session_id` + `message`, get the reply in `data.response` and, when the plan included an arm movement, a `data.directive` (`{arm, degrees, direction}`) |
 | POST | `/session/end` | End the session |
 | GET | `/health` | Liveness (does not call any LLM) |
+| GET | `/available` | Whether a provider key (or `OLLAMA_URL`) is configured (does not call any LLM) |
 | GET | `/docs` | Swagger UI |
 
 Responses use the envelope `action / status / status_code / message / data / timestamp`. When a message is not processed (unknown session, LLM failure), `status` is `"error"`, `data.success` is `false`, `data.response` is an apology that says what happened, in which step and why (it can be spoken), and the technical reason is in `data.message`.
+
+## Session lifecycle
+
+Sessions (`SessionService.sessions`) are held **in process memory only** — nothing is persisted, so every session is lost when ai-agent restarts. The intended usage for a caller like Brain is one session per *conversation*, reused across many separate voice-pipeline runs (not one session per utterance), so the per-session history (`AI_AGENT_HISTORY_TURNS`) actually means something. Nothing here evicts or expires a session on its own: it lives until `/session/end` is called or the process restarts.
+
+Because of that, a caller holding a session id across ai-agent restarts must be ready for it to vanish. `/session/message` and `/session/end` report this the same way: `data.success = false` and `data.error_code = "SESSION_NOT_FOUND"` (`data.response` is still a speakable apology). That combination specifically means "this session no longer exists here" — the caller's own move is to call `/session/start` again and, for a failed `/session/message`, resend the same message once against the new session id. Any other `error_code` (a classified failure, e.g. `"CONNECTION"`, `"TIMEOUT"`, `"AUTH"`, `"UNKNOWN"`; see `application/orchestration/failure.py:classify`) is a real failure of that one message, not a reason to start a new session.
 
 ## How each part works
 
@@ -125,10 +132,11 @@ Checked and not a bug: `AnthropicModel` in `ai_sdk` is an OpenAI-client provider
 
 Still open:
 1. **No real LLM call has been made since these changes.** Whether GitHub Models accepts the `json_schema` `response_format` sent by the adapter, and whether the model returns bare JSON without code fences, is unverified. Do one real call first (`tests/manual/full_flow_real_llm.py`; it costs money).
-2. **Latency and cost for a voice robot.** 5 to 6 sequential LLM calls per message. Consider a fast path for simple chit-chat (skip phases 2 to 6). That changes behavior, so it is a decision.
+2. Fixed 2026-09-22 (unmeasured): 5 to 6 sequential LLM calls per message is a lot for a voice robot. `AI_AGENT_FAST_PATH_ENABLED` (default on) skips project manager, the safety gate and action execution for a message triage classifies as pure information/conversation (`intent.primary` in `information_request`/`clarification_request` **and** `task_category` `generation`/`low`; both are checked because `generation`/`low` alone also covers real multi-step writing tasks like "make a table of my family", which still need a plan) — see `application/orchestration/fast_path.py`. This was designed from the pipeline's own structure, not from a real measured voice-loop latency (Brain does not call ai-agent yet), so the actual win is unverified; revisit the trigger condition once real numbers exist.
 3. **stdio MCP servers** (`fetch`, `filesystem`) are not supported, but the project manager is still told they exist, so it may plan actions that cannot run. `filesystem.json` mounts a hardcoded folder.
 4. `SessionService` still builds a `MessageFlowService` (and its pipeline) per message. It is cheap, but it is not "once".
-5. The session API is a candidate for `contracts.api`. Not changed.
+5. Fixed 2026-09-22: the session API now answers through `contracts.api` (`ApiEnvelope`, `data` built from `contracts.api.microservices.ai_agent.session.*`), like every other OBLIVION service, and `GET /available` exists (checks that a provider key or `OLLAMA_URL` is configured; makes no LLM call, so it cannot confirm the key actually works).
+6. A movement request is planned as a `robot_action` action and comes back as `data.directive` on `/session/message` (see `application/orchestration/robot_directive.py`, exercised end to end in `tests/test_robot_directive.py` with a scripted LLM). It has never been tried against a real LLM (whether GPT-4.1 reliably answers the exact `arm=<left|right> degrees=<number> direction=<forward|reverse>` format the cognitive worker prompt asks for is unverified — a malformed answer is silently treated as "no movement", never an error) or against Brain, which does not call ai-agent yet.
 
 ## Configuration
 

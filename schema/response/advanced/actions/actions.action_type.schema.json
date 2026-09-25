@@ -8,7 +8,8 @@
             "decision",
             "retrieval",
             "clarification",
-            "mcp_tool_call"
+            "mcp_tool_call",
+            "robot_action"
         ],
         "description": "Canonical action category used by the orchestrator to determine execution strategy"
     }

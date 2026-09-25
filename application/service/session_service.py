@@ -8,7 +8,7 @@ import uuid
 from typing import Any, Dict, List, Optional
 
 from application.inbound.dto.message import TextRequestDTO
-from application.orchestration.failure import UNKNOWN_SESSION_APOLOGY, apology_for_unexpected
+from application.orchestration.failure import UNKNOWN_SESSION_APOLOGY, apology_for_unexpected, classify
 from application.inbound.dto.session import (
     EndSessionRequestDTO,
     EndSessionResponseDTO,
@@ -70,29 +70,32 @@ class SessionService(SessionInboundPort):
             return StartSessionResponseDTO(
                 session_id="",
                 message=f"Failed to start session: {str(e)}",
-                success=False
+                success=False,
+                error_code=classify(e).upper(),
             )
 
     def end_session(self, request: EndSessionRequestDTO) -> EndSessionResponseDTO:
         if self.sessions.pop(request.session_id, None) is None:
-            return EndSessionResponseDTO(success=False, message="Session ID not found.")
+            return EndSessionResponseDTO(success=False, message="Session ID not found.",
+                                          error_code="SESSION_NOT_FOUND")
 
         return EndSessionResponseDTO(success=True, message="Session ended successfully.")
 
     def message_received(self, request: MessageReceivedRequestDTO) -> MessageReceivedResponseDTO:
         user_session = self.sessions.get(request.session_id)
         if user_session is None:
-            return self._failed("Session ID not found.", UNKNOWN_SESSION_APOLOGY)
+            return self._failed("Session ID not found.", UNKNOWN_SESSION_APOLOGY, "SESSION_NOT_FOUND")
 
         try:
-            reply = self._run_agent(request, user_session)
-            user_session.remember(request.message, reply, self.history_turns)
-            return MessageReceivedResponseDTO(response=reply, success=True)
+            result = self._run_agent(request, user_session)
+            user_session.remember(request.message, result.content, self.history_turns)
+            return MessageReceivedResponseDTO(response=result.content, directive=result.directive, success=True)
         except Exception as e:
             logger.exception("Failed to process message", session_id=request.session_id)
-            return self._failed(f"Failed to process message: {str(e)}", apology_for_unexpected(e))
+            return self._failed(f"Failed to process message: {str(e)}", apology_for_unexpected(e),
+                                 classify(e).upper())
 
-    def _run_agent(self, request: MessageReceivedRequestDTO, user_session: UserSession) -> str:
+    def _run_agent(self, request: MessageReceivedRequestDTO, user_session: UserSession):
         extra = {"usage_reporter": self.usage_reporter} if self.usage_reporter is not None else {}
         agent: MessageInboundPort = self.message_service_type(
             outbound_port=self.llm_adapter,
@@ -113,12 +116,15 @@ class SessionService(SessionInboundPort):
             content=request.message,
             session_name=user_session.name,
         )
-        reply = agent.text(text_request).content
+        result = agent.text(text_request)
         user_session.paused = getattr(agent, "paused_run", None)   # only when the message was processed: a failure keeps the old one
-        return reply
+        return result
+
+    def is_available(self) -> bool:
+        return self.llm_adapter.is_available()
 
     @staticmethod
-    def _failed(reason: str, apology: str) -> MessageReceivedResponseDTO:
+    def _failed(reason: str, apology: str, error_code: Optional[str] = None) -> MessageReceivedResponseDTO:
         # `response` is an apology that says what happened and why, so it can be spoken.
         # `message` is the technical reason.
-        return MessageReceivedResponseDTO(response=apology, message=reason, success=False)
+        return MessageReceivedResponseDTO(response=apology, message=reason, success=False, error_code=error_code)

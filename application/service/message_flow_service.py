@@ -44,12 +44,13 @@ class MessageFlowService(MessageInboundPort):
         self.metrics.begin_message(request.request_id, request.session_name or request.session_id, request.content)
         result = self.main_flow(request.content)
         return TextResponseDTO(
-            content=result,
+            content=result.reply,
+            directive=result.directive,
             is_final=True,
             success=True
         )
 
-    def main_flow(self, message: str) -> str:
+    def main_flow(self, message: str):
         result = self.pipeline.run(message, self.history, self.paused)
         self.paused_run = result.paused
-        return result.reply
+        return result

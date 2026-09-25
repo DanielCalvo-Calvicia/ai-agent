@@ -26,6 +26,12 @@ YOUR TASK:
 IMPORTANT:
 If subaction_outputs is non-empty, the parent action should normally synthesize, summarize, combine, transform, or conclude from those child outputs instead of repeating them verbatim.
 
+ROBOT_ACTION RULE:
+If action.action_type is "robot_action", the output MUST be exactly this format and nothing else,
+with no extra words, units or punctuation:
+arm=<left|right> degrees=<number> direction=<forward|reverse>
+Read the arm, degrees and direction from action.description. Example: "arm=left degrees=90 direction=forward"
+
 RULES:
 - action.action_type is NOT "mcp_tool_call"
 - Do NOT call MCP tools

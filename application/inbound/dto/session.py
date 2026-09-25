@@ -5,6 +5,7 @@ from datetime import datetime
 import uuid
 
 from application.inbound.dto.base_request import BaseRequestDTO, BaseResponseDTO
+from application.orchestration.robot_directive import RobotDirective
 
 class StartSessionRequestDTO(BaseRequestDTO):
     username: str
@@ -27,3 +28,4 @@ class MessageReceivedRequestDTO(BaseRequestDTO):
 
 class MessageReceivedResponseDTO(BaseResponseDTO):
     response: str
+    directive: Optional[RobotDirective] = None

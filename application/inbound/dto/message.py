@@ -5,6 +5,7 @@ from datetime import datetime
 import uuid
 
 from application.inbound.dto.base_request import BaseRequestDTO, BaseResponseDTO
+from application.orchestration.robot_directive import RobotDirective
 
 class MessageType(str, Enum):
     TEXT = "text"
@@ -42,6 +43,7 @@ class TextRequestDTO(BaseRequestDTO):
 class TextResponseDTO(BaseResponseDTO):
     content: str
     is_final: bool = False
+    directive: Optional[RobotDirective] = None
 
 class AudioRequestDTO(BaseRequestDTO):
     data: str  # Base64

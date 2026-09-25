@@ -25,6 +25,7 @@ from domain.value_objects.model import GithubModels, get_selected_model
 from domain.value_objects.tool import ToolDefinition
 from infrastructure.inbound.http.fastapi import SessionFastAPI
 from infrastructure.outbound.llm.config import VercelAIConfig
+from infrastructure.outbound.llm.vercel import VercelAIAdapter
 from infrastructure.outbound.llm.provider_models import ErrProviderNotSupported, resolve_provider_model
 from infrastructure.outbound.llm.tools import resolve_tools
 from infrastructure.outbound.mcp.config import load_mcp_configs
@@ -77,6 +78,26 @@ class TestConfigFromEnv:
     def test_passes_the_tool_executor_through(self):
         marker = object()
         assert VercelAIConfig.from_env(tool_executor=marker).tool_executor is marker
+
+
+class TestVercelAdapterAvailability:
+    def test_unavailable_with_no_provider_configured(self):
+        assert VercelAIAdapter(Config=VercelAIConfig()).is_available() is False
+
+    @pytest.mark.parametrize("field", [
+        "openai_api_key", "anthropic_api_key", "google_api_key", "mistral_api_key",
+        "groq_api_key", "cohere_api_key", "github_api_key", "OLLAMA_URL",
+    ])
+    def test_available_when_any_single_provider_setting_is_present(self, field):
+        config = VercelAIConfig(**{field: "set"})
+        assert VercelAIAdapter(Config=config).is_available() is True
+
+    def test_no_network_call_is_made(self, monkeypatch):
+        def _fail(*args, **kwargs):
+            raise AssertionError("is_available must not call the LLM")
+
+        monkeypatch.setattr("infrastructure.outbound.llm.vercel.generate_text", _fail)
+        VercelAIAdapter(Config=VercelAIConfig(openai_api_key="k")).is_available()
 
 
 # ===============================================
@@ -223,6 +244,11 @@ def _start(client: TestClient) -> str:
     return response.json()["data"]["session_id"]
 
 
+class _UnavailableLLM(ScriptedLLM):
+    def is_available(self) -> bool:
+        return False
+
+
 class TestHttp:
     def test_health(self):
         response = _client(ScriptedLLM()).get("/health")
@@ -230,7 +256,22 @@ class TestHttp:
         assert response.status_code == 200
         assert body["action"] == "health"
         assert body["status"] == "success"
-        assert body["data"]["service"] == "ai-agent"
+        assert body["data"]["healthy"] is True
+
+    def test_available_when_a_provider_is_configured(self):
+        response = _client(ScriptedLLM()).get("/available")
+        body = response.json()
+        assert response.status_code == 200
+        assert body["action"] == "check_availability"
+        assert body["status"] == "success"
+        assert body["data"] == {"is_available": True, "reason": None}
+
+    def test_available_when_no_provider_is_configured(self):
+        response = _client(_UnavailableLLM()).get("/available")
+        body = response.json()
+        assert response.status_code == 200
+        assert body["data"]["is_available"] is False
+        assert body["data"]["reason"]
 
     def test_message_flow_runs_off_the_event_loop_thread(self):
         llm = ThreadRecordingLLM()

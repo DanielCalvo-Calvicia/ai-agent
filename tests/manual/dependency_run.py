@@ -113,6 +113,9 @@ class ScriptedPlanner(LLMOutboundPort):
         self.failing_id = failing_id
         self.failing_marker = f"'action': Action(id=Id(value='{failing_id}')" if failing_id else None
 
+    def is_available(self) -> bool:
+        return self.inner.is_available()
+
     def ask(self, payload):
         name = payload.response_format.name if payload.response_format else ""
         if name == PLANNER_FORMAT:

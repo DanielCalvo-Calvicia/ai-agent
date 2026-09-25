@@ -50,6 +50,15 @@ class VercelAIAdapter(LLMOutboundPort):
             logger.exception("Vercel AI SDK error")
             raise
 
+    def is_available(self) -> bool:
+        """True when at least one provider is configured (a key, or Ollama's URL). No network call."""
+        config = self.config
+        return bool(
+            config.openai_api_key or config.anthropic_api_key or config.google_api_key
+            or config.mistral_api_key or config.groq_api_key or config.cohere_api_key
+            or config.github_api_key or config.OLLAMA_URL
+        )
+
 
 def _build_messages(payload: Payload) -> List[Any]:
     messages: List[Any] = []

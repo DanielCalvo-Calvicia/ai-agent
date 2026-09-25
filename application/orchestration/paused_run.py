@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from typing import List, Optional
 
 from application.orchestration.flow_state import FlowState
+from application.orchestration.robot_directive import RobotDirective
 
 INPUT = "input"                  # the assistant asked for information
 CONFIRMATION = "confirmation"    # the assistant asked to confirm an action
@@ -25,6 +26,8 @@ class PausedRun:
 
 @dataclass
 class FlowResult:
-    """The reply for the user, and the run that is still waiting for them (if any)."""
+    """The reply for the user, the run that is still waiting for them (if any), and a movement
+    request when the plan included one (only set once a full plan has actually executed)."""
     reply: str
     paused: Optional[PausedRun] = None
+    directive: Optional[RobotDirective] = None

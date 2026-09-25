@@ -12,6 +12,7 @@ from application.orchestration.action_executor import ActionExecutor
 from application.orchestration.answer_check import ANSWERED, CONFIRMED, DECLINED, STOP, AnswerChecker
 from application.orchestration.clarification import Clarifier
 from application.orchestration.failure import AgentFailure, max_attempts
+from application.orchestration.fast_path import applies as fast_path_applies
 from application.orchestration.flow_state import FlowState
 from application.orchestration.mcp_servers import server_names
 from application.orchestration.metrics import SessionMetrics
@@ -23,6 +24,7 @@ from application.orchestration.phases.editor_in_chief import EDITOR_IN_CHIEF
 from application.orchestration.phases.project_manager import make_project_manager
 from application.orchestration.phases.safety_gate import SAFETY_GATE
 from application.orchestration.phases.triage import TRIAGE
+from application.orchestration.robot_directive import find_directive
 from application.outbound.ports.llm_ports import LLMOutboundPort
 from application.outbound.ports.mcp_ports import McpToolsPort
 from domain.value_objects.message import Message
@@ -32,6 +34,9 @@ logger = get_logger(__name__)
 
 STOPPED_TEXT = "Okay, I stopped that. What would you like to do next?"
 DECLINED_TEXT = "Okay, I will not do that."
+
+TRIAGE_STEP_NAME = "triage_specialist"
+DRAFT_WRITER_STEP_NAME = "draft_writer"
 
 
 def _needs_user_input(state: FlowState) -> bool:
@@ -46,7 +51,7 @@ def build_steps(runner: PhaseRunner, executor: ActionExecutor, mcp_list: list, m
 
     return [
         # 1 - Classifies intent, extracts user goal and task category.
-        Step("triage_specialist", llm_phase(TRIAGE), pause_if=_needs_user_input, phase_id=1, retry_on_status=True),
+        Step(TRIAGE_STEP_NAME, llm_phase(TRIAGE), pause_if=_needs_user_input, phase_id=1, retry_on_status=True),
         # 2 - Decomposes the goal into actions and identifies required inputs per action.
         Step("project_manager", llm_phase(make_project_manager(mcp_list, mcp_tools)), pause_if=_needs_user_input,
              phase_id=2, retry_on_status=True),
@@ -57,7 +62,9 @@ def build_steps(runner: PhaseRunner, executor: ActionExecutor, mcp_list: list, m
         #           the worker (4), the MCP operator (5) and, for MCP results, the data engineer (6).
         Step("action_executor", executor.run),
         # 7 - Synthesizes all action outputs into a first draft of the user response.
-        Step("draft_writer", llm_phase(DRAFT_WRITER)),
+        # The fast path (below) jumps straight here from triage for a plain, simple reply, skipping
+        # 2/3/4-6: nothing was planned, so there is nothing to validate or execute.
+        Step(DRAFT_WRITER_STEP_NAME, llm_phase(DRAFT_WRITER)),
         # 8 - Polishes the draft and produces the final response for the user.
         Step("editor_in_chief", llm_phase(EDITOR_IN_CHIEF), phase_id=8, retry_on_status=True),
     ]
@@ -74,6 +81,7 @@ class Pipeline:
         runner = PhaseRunner(outbound_port, metrics, server_names(mcp_list))
         executor = ActionExecutor(runner, mcp_list, mcp_tools)
         self.steps = build_steps(runner, executor, mcp_list, mcp_tools)
+        self._draft_writer_index = next(i for i, s in enumerate(self.steps) if s.name == DRAFT_WRITER_STEP_NAME)
         self.clarifier = Clarifier(runner)
         self.answer_checker = AnswerChecker(runner)
 
@@ -97,7 +105,8 @@ class Pipeline:
     # -----------------------------------------------
 
     def _run_from(self, start: int, state: FlowState) -> FlowResult:
-        for index in range(start, len(self.steps)):
+        index = start
+        while index < len(self.steps):
             step = self.steps[index]
             self._run_step(step, state)
 
@@ -109,7 +118,14 @@ class Pipeline:
                     paused=PausedRun(state, index, kind, question, self.clarifier.required_inputs(state)),
                 )
 
-        return FlowResult(reply=state.final_text())
+            if step.name == TRIAGE_STEP_NAME and fast_path_applies(state):
+                logger.info("Fast path: skipping planning and action execution for a simple reply")
+                index = self._draft_writer_index
+                continue
+
+            index += 1
+
+        return FlowResult(reply=state.final_text(), directive=find_directive(state.actions))
 
     # -----------------------------------------------
     #  RESUME

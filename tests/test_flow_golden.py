@@ -67,6 +67,9 @@ class ScriptedLLM(LLMOutboundPort):
         self.post = post or {}
         self.calls: List[Dict[str, Any]] = []
 
+    def is_available(self) -> bool:
+        return True
+
     def ask(self, Payload: Payload) -> Response:
         rf = Payload.response_format
         name = rf.name if rf else "<text>"

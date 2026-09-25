@@ -74,6 +74,9 @@ class Recorder(LLMOutboundPort):
         self.inner = inner
         self.calls = []
 
+    def is_available(self) -> bool:
+        return self.inner.is_available()
+
     def ask(self, Payload):
         name = Payload.response_format.name if Payload.response_format else "text"
         started = time.time()

@@ -1,38 +1,28 @@
-import time
-from typing import Any, Optional
+"""The JSON shape of every answer is the project contract ``ApiEnvelope``; ``data`` is the
+endpoint's contract dataclass (``contracts.api.microservices.ai_agent``), matching every other
+OBLIVION service.
+"""
+
+from typing import Any
 
 from fastapi import status
-from pydantic import BaseModel, Field
+from fastapi.responses import JSONResponse
+
+from contracts.api.common.envelope import ApiEnvelope
 
 
-class StandardResponse(BaseModel):
-    """Unified API response wrapper for all endpoints: action / status / status_code / message / data / timestamp."""
-    action: str = Field(..., description="The action that was performed", examples=["start_session"])
-    status: str = Field(..., description="Result status", examples=["success", "error"])
-    status_code: int = Field(..., description="HTTP status code", examples=[200, 500])
-    message: Optional[str] = Field(None, description="Human-readable result message")
-    data: Optional[Any] = Field(None, description="Response payload")
-    timestamp: float = Field(..., description="Unix epoch timestamp of the response")
+def success(action: str, message: str, data: Any = None, *, ok: bool = True,
+            code: int = status.HTTP_200_OK) -> JSONResponse:
+    """``ok=False`` reports an error status for a request that was understood but not carried out.
+
+    Both cases answer HTTP 200 (``code``): callers must read the envelope's ``status`` /
+    ``data.success``, not the transport status code, for this family of outcomes.
+    """
+    envelope = ApiEnvelope.success(action, message, data, status_code=code) if ok \
+        else ApiEnvelope.failure(action, message, code, data)
+    return JSONResponse(status_code=code, content=envelope.to_dict())
 
 
-def success(action: str, message: Optional[str], data: Any, ok: bool = True) -> StandardResponse:
-    """`ok=False` reports an error status for a request that was understood but not carried out."""
-    return StandardResponse(
-        action=action,
-        status="success" if ok else "error",
-        status_code=status.HTTP_200_OK,
-        message=message,
-        data=data,
-        timestamp=time.time(),
-    )
-
-
-def failure(action: str, message: str) -> StandardResponse:
-    return StandardResponse(
-        action=action,
-        status="error",
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        message=message,
-        data=None,
-        timestamp=time.time(),
-    )
+def failure(action: str, message: str) -> JSONResponse:
+    code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    return JSONResponse(status_code=code, content=ApiEnvelope.failure(action, message, code).to_dict())

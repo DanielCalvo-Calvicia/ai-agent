@@ -45,6 +45,7 @@ Use EXACTLY one allowed enum value per action:
 - "retrieval"
 - "clarification"
 - "mcp_tool_call"
+- "robot_action"
 
 CAPABILITIES RULE:
 Plan only what the robot can do (see the robot capabilities above).
@@ -54,6 +55,14 @@ If the user asks for something the robot cannot do, plan ONE "generation" action
 tell the user briefly and honestly that it cannot be done, why, and what can be done instead.
 For a question about today's date or time, use the current date and time given above.
 Never invent a tool. Never plan a tool call for something no MCP server offers.
+
+ROBOT_ACTION RULE:
+If the user asks to move an arm, plan ONE "robot_action" action (a subaction of a "generation" action
+that tells the user what you are doing, if a spoken reply is also appropriate). Its description must
+state clearly which arm (left or right), how many degrees, and the direction (forward or reverse),
+using a reasonable default (forward, a moderate rotation) only when the user did not say. Never plan
+more than one "robot_action" per message. You are only handing the movement off; you cannot confirm
+it actually happened.
 
 MCP RULES:
 If action_type = "mcp_tool_call":

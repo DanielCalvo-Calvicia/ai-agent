@@ -22,3 +22,8 @@ class SessionInboundPort(ABC):
     def message_received(self, request: MessageReceivedRequestDTO) -> MessageReceivedResponseDTO:
         raise NotImplementedError
 
+    @abstractmethod
+    def is_available(self) -> bool:
+        """True if the agent is configured well enough to attempt a message. No LLM call is made."""
+        raise NotImplementedError
+
