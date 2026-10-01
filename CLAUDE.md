@@ -2,7 +2,7 @@
 
 Port **7998** (`AI_AGENT_PORT`; changed from 8000, which clashed with microphone). Python/FastAPI. The "mind" of OBLIVION: it receives what the user said and **decides what to do**. Status: prototype. See `README.md` and `../CLAUDE.md`.
 
-Current state (2026-10-01): branch `feature_ai_claude_2` (tracks `origin/feature_ai_claude_2`, in sync), last commit `2c9d707` "Host several agents (flows): conversation-flow and motion-flow; reorganise orchestration". Uncommitted: 78 `__pycache__/*.pyc` entries (noise; the repo tracks bytecode) and docs only (`CLAUDE.md`, `README.md`, `docs/flows_refactor_plan.md`, plus historical banners on six other docs). Tests: `604 passed`. No real LLM call since the flows split (see `README.md`, Known problems). Check `git status` before editing.
+Current state (2026-10-01): branch `feature_ai_claude_2` (tracks `origin/feature_ai_claude_2`, in sync), last feature commit `ede87f8` "Bundle contracts 0.10.0; refresh README and CLAUDE.md; mark historical docs" (pushed; the flows work is `2c9d707`). Uncommitted: only `__pycache__/*.pyc` noise (the repo tracks bytecode). Tests: `604 passed`. No real LLM call since the flows split (see `README.md`, Known problems). Check `git status` before editing.
 
 ## Role
 
