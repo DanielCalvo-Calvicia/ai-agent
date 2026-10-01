@@ -411,7 +411,7 @@ class TestMarkdownFiles:
 
 from flow_trace import (compare_runs, load_state, problems_of, save_step_inputs, step_names,  # noqa: E402
                         trace_step, write_compare)
-from application.orchestration.schemas import object_schema, property_schema  # noqa: E402
+from application.orchestration.support.schemas import object_schema, property_schema  # noqa: E402
 
 NEXT_STEP_SCHEMA = object_schema(["next_step"], {"next_step": property_schema("next_step")})
 GOOD_STEP = {"next_step": {"ready_to_execute": True, "status": "proceed", "recommended_action": ""}}
@@ -674,8 +674,8 @@ class TestStops:
             run_with_stops("hi", ScriptedLLM(), MCP_LIST, at=("middle",), stop=Stops())
 
     def test_the_real_code_is_left_as_it_was(self):
-        from application.orchestration.action_executor import ActionExecutor
-        from application.orchestration.phase_runner import PhaseRunner
+        from application.orchestration.flows.action_executor import ActionExecutor
+        from application.orchestration.engine.phase_runner import PhaseRunner
         send, succeed = PhaseRunner.send, ActionExecutor.__dict__["_succeed"]
         run_stops(at=("start", "response", "loaded"))
         assert PhaseRunner.send is send and ActionExecutor.__dict__["_succeed"] is succeed

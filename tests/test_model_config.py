@@ -9,8 +9,8 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.orchestration.metrics import PHASE_NAMES
-from application.orchestration.model_selection import (
+from application.orchestration.support.metrics import PHASE_NAMES
+from application.orchestration.support.model_selection import (
     MODELS_FILE_VARIABLE, STEP_NAMES, choose, effective_models, load_config, model_for_phase, models_file,
 )
 from domain.value_objects.model import GithubModels, get_selected_model

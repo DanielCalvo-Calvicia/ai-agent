@@ -15,9 +15,8 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.orchestration import fast_path
-from application.orchestration.flow_state import FlowState
-from application.orchestration.robot_directive import RobotDirective
+from application.orchestration.flows import fast_path
+from application.orchestration.state.flow_state import FlowState
 from application.service.message_flow_service import MessageFlowService
 from domain.value_objects.intent.intent import create_intent
 from domain.value_objects.task_category.task_category import create_task_category
@@ -118,7 +117,6 @@ class TestPipelineFastPath:
             "editor_in_chief_phase8_response_format",
         ]
         assert result.reply == "final answer"
-        assert result.directive is None
 
     def test_a_real_task_classified_generation_low_still_gets_a_plan(self):
         # Same task_category as the chit-chat case; only intent differs. Must NOT fast-path.
@@ -134,9 +132,9 @@ class TestPipelineFastPath:
         assert "safety_quality_gatekeeper_phase3_response_format" in _formats(llm)
         assert result.reply == "final answer"
 
-    def test_a_movement_request_is_never_fast_pathed(self):
-        # task_execution + generation/low, like the table example: must go through the project
-        # manager (the only phase that can plan a robot_action) and still produce a directive.
+    def test_a_task_about_moving_is_not_fast_pathed_either(self):
+        # task_execution + generation/low, like the table example: it must go through the project manager.
+        # Arm movements are motion-flow's job: conversation-flow only plans what to say about it.
         movement_triage = {
             "intent": {"primary": "task_execution", "secondary": [], "confidence": 0.9},
             "user_goal": {"summary": "move the left arm", "expected_outcome": "the arm moves"},
@@ -144,26 +142,14 @@ class TestPipelineFastPath:
             "next_step": {"ready_to_execute": True, "status": "proceed",
                           "recommended_action": "", "blocking_reason": "", "requested_user_input": []},
         }
-
-        def _worker_output(_payload):
-            return {"actions": [{"id": "1", "description": "d", "action_type": "robot_action",
-                                 "dependencies": [], "required_inputs": [], "error": "",
-                                 "mcp_context": {"server_id": "", "tool_name": "", "parameters": {}},
-                                 "output": "arm=left degrees=90 direction=forward"}]}
-
-        llm = ScriptedLLM(overrides={
-            TRIAGE: movement_triage,
-            PM: _plan(_action("1", "robot_action")),
-            "phase4_single_action_response_format": _worker_output,
-        })
+        llm = ScriptedLLM(overrides={TRIAGE: movement_triage, PM: _plan(_action("1", "generation"))})
         service = MessageFlowService(outbound_port=llm, mcp_list=[])
 
         result = service.main_flow("move your left arm 90 degrees")
 
         assert "project_manager_phase2_response_format" in _formats(llm)
         assert "safety_quality_gatekeeper_phase3_response_format" in _formats(llm)
-        assert result.directive == RobotDirective(arm="left", degrees=90.0, direction="forward")
-
+        assert result.movements == ()
     def test_disabling_the_fast_path_forces_the_full_pipeline(self, monkeypatch):
         monkeypatch.setenv(fast_path.ENABLED_VARIABLE, "0")
         llm = ScriptedLLM(overrides={TRIAGE: _CHITCHAT_TRIAGE})

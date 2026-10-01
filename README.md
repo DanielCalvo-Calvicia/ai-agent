@@ -1,8 +1,8 @@
 # ai-agent
 
-The "mind" of OBLIVION. It receives what the user said (text) and runs it through a chain of LLM calls that plan, check, execute and write a reply. It never controls hardware. `brain_microservice` is meant to call it and then act on the answer (speak it, move an arm).
+The "mind" of OBLIVION. It receives what the user said (text) and runs it through a chain of LLM calls that plan, check, execute and write a reply. It never controls hardware. `brain_microservice` calls it and then acts on the answer (speaks it, moves the arms). It hosts several agents, called **flows**: **conversation-flow** writes the reply and **motion-flow** decides the arm movements (an ordered list). They never call each other: Brain asks motion-flow first, then conversation-flow with what motion-flow decided.
 
-Status: **prototype. Tried with a real LLM (Gemini) end to end on a simple request. The default provider, GitHub Models, is retired, so set the models with `AI_AGENT_MODEL_PHASE_<n>` (see `docs/orchestrator_decisions.md`).** Not connected to Brain yet (planned: Brain calls `POST /session/message` between STT and TTS). Read [Known problems and decisions](#known-problems-and-decisions) before wiring it in.
+Status: **prototype. Tried with a real LLM (Gemini) end to end on a simple request. The default provider, GitHub Models, is retired, so set the models with `AI_AGENT_MODEL_PHASE_<n>` (see `docs/orchestrator_decisions.md`).** Read [Known problems and decisions](#known-problems-and-decisions) before wiring it in.
 
 - Port: `7998` (`AI_AGENT_PORT`)
 - Stack: Python, FastAPI, hexagonal layout, LLM access through `ai_sdk`, MCP client
@@ -11,14 +11,19 @@ Status: **prototype. Tried with a real LLM (Gemini) end to end on a simple reque
 ## What it does, in one picture
 
 ```text
-POST /session/message  ->  SessionService  ->  MessageFlowService  ->  Pipeline.run()
-                                                   |
+POST /<flow>/session/message  ->  SessionService  ->  MessageFlowService  ->  Pipeline.run()  (one Flow per agent)
+
+conversation-flow:
    1 Triage -> 2 Project manager -> 3 Safety gate -> 4/5/6 Action executor -> 7 Draft writer -> 8 Editor -> reply text
        |                |                    |
        +-- needs user input? (after 1, 2 or 3) --> ask the user, stop here
+
+motion-flow:
+   1 Triage (shared) -> 20 Motion planner -> 21 Motion validator (plain code) -> list of movements
+                              +-- a detail is missing? --> ask the user, stop here
 ```
 
-Every phase is one (or several) LLM calls through `LLMOutboundPort`. Each phase has a system prompt (`prompts/advanced/`) and a JSON Schema for its answer (`schema/response/advanced/`). Today the service returns **a plain text reply** (`user_goal.expected_outcome` after phase 8), not the full structured decision.
+Every phase is one (or several) LLM calls through `LLMOutboundPort`. Each phase has a system prompt (`prompts/<id>_<name>.txt`, named in the phase's own file) and a JSON Schema for its answer (`schema/response/advanced/`). Today the service returns **a plain text reply** (`user_goal.expected_outcome` after phase 8), not the full structured decision.
 
 ## What the agent knows
 
@@ -28,9 +33,11 @@ Every phase gets, before its own instructions: the generic rules, `prompts/capab
 
 | Method | Path | Purpose |
 |---|---|---|
-| POST | `/session/start` | Create a session (`username`, optional `email`) and get a `session_id` |
-| POST | `/session/message` | Send `session_id` + `message`, get the reply in `data.response` and, when the plan included an arm movement, a `data.directive` (`{arm, degrees, direction}`) |
-| POST | `/session/end` | End the session |
+| POST | `/conversation-flow/session/start` | Create a session (`username`, optional `email`) and get a `session_id` |
+| POST | `/conversation-flow/session/message` | Send `session_id` + `message` (optionally `robot_context`, what motion-flow decided), get the reply in `data.response` |
+| POST | `/conversation-flow/session/end` | End the session |
+| POST | `/motion-flow/session/start` \| `message` \| `end` | The same three routes for motion-flow. `message` answers `data.directives` (`[{arm, degrees, direction}]` in execution order), `data.response` (a refusal or a question, to be spoken) and `data.awaiting_user_input` |
+| POST | `/session/start` \| `message` \| `end` | **Deprecated** alias of conversation-flow's routes (same sessions), kept until no caller uses it |
 | GET | `/health` | Liveness (does not call any LLM) |
 | GET | `/available` | Whether a provider key (or `OLLAMA_URL`) is configured (does not call any LLM) |
 | GET | `/docs` | Swagger UI |
@@ -59,31 +66,47 @@ Changes to the project root, loads `.env` (`python-dotenv`; variables already se
 - `application/service/session_service.py`: starts and ends sessions. `message_received` builds a `MessageFlowService` per message with the session's history, then remembers the exchange (last `AI_AGENT_HISTORY_TURNS` turns). `user_session.py` holds one session and its history.
 - `application/service/message_flow_service.py`: thin adapter. `text()` runs the pipeline and keeps the per-message `metrics`.
 - `application/orchestration/`: the agent itself (below).
-- `application/system_prompts/advanced.py`: loads `prompts/advanced/N_*.txt` (UTF-8, path resolved from the file). Every phase gets `0_generic_prompt.txt` followed by its own prompt.
+- `application/system_prompts/advanced.py`: loads the prompt files (UTF-8, path resolved from the file). Every phase gets `0_generic_prompt.txt`, `capabilities.txt`, the date and then its own prompt (its `PROMPT_FILE`).
 
 ### Orchestration: `application/orchestration/`
 
+Five folders, each with one job. The dependencies go one way (`tests/test_orchestration_layout.py` keeps it so): `flows` use everything below; `engine` never imports a flow; `phases` never imports the engine; `state` and `support` are the base.
+
+```text
+flows/     WHAT each agent is     one file per agent, plus the registry of the agents
+phases/    the steps              one phase per file, constants first; the catalog; the shape of a phase
+engine/    HOW any flow runs      knows no particular agent
+state/     WHAT travels through a run
+support/   shared helpers         model choice, metrics, failures, schemas, the action tree...
+```
+
 | File | Job |
 |---|---|
-| `pipeline.py` | The orchestrator. `build_steps` lists the 8 steps in order. `Pipeline.run(message, history)` runs them and stops to ask the user when a step leaves the flow waiting. |
-| `flow_state.py` | `FlowState`: everything the phases read and write for one message (intent, user goal, actions, next step, safety, history). |
-| `phase.py` | `PhaseSpec` (model, intent, schema fields, what the phase reads, how it writes back) and `Step`. |
-| `phase_runner.py` | The only place an LLM `Payload` is built and sent. Records token usage. |
-| `model_selection.py` | Which model answers a phase: its default or `AI_AGENT_MODEL_PHASE_<n>`. |
-| `schemas.py` | Loads the response JSON Schemas by name (cached, independent of the working directory). |
-| `action_executor.py` | Runs the planned actions in dependency order (subactions and dependencies first), one LLM call each. Picks the worker (phase 4) or the MCP operator (phase 5) by type. Cleans MCP results (phase 6). |
-| `action_tree.py` | Helpers to look inside the action tree (subactions, execution order). |
-| `mcp_servers.py` | How MCP servers are shown to the planner (name and tools, no connection settings). |
-| `clarification.py` | Phase 99: turns the missing inputs into a question for the user. |
-| `answer_check.py` | Phase 9: when a run is waiting for the user, decides if the next message is the answer, a yes or no, not an answer, or a request to stop. |
-| `paused_run.py` | `PausedRun` (the saved run) and `FlowResult` (the reply plus the run that still waits). |
-| `clock.py` | The current date and time shown to every phase. |
-| `failure.py` | `AgentFailure`, the attempts setting, and the apology that says what happened and why. |
-| `metrics.py` | `SessionMetrics`: tokens per phase and per model. |
-| `phases/*.py` | One small file per whole-response phase: triage, project manager, safety gate, draft writer, editor in chief. |
+| `flows/conversation_flow.py` | The conversation agent: triage, project manager, safety gate, action executor, draft writer, editor. Its fast path and the `robot_context` jump after triage. |
+| `flows/motion_flow.py` | The movement agent: triage, motion planner, motion validator. |
+| `flows/action_executor.py` | conversation-flow's step that runs the planned actions in dependency order (subactions and dependencies first), one LLM call each: the worker (phase 4) or the MCP operator (phase 5) by type, then the data engineer (phase 6) for MCP results. |
+| `flows/fast_path.py` | Lets conversation-flow skip planning for a plain reply. |
+| `flows/registry.py` | `FlowRegistry`: the flows this service hosts, by name. |
+| `phases/{common,conversation_flow,motion_flow}/*.py` | **One phase per file**, constants first (`PHASE_ID`, `STEP_NAME`, `MODEL_ENV_VAR`, `DEFAULT_MODEL`, `PROMPT_FILE`, `FORMAT_NAME`, `INTENT`, `SCHEMAS`). `common` holds what several flows share (triage, answer checker, clarification). |
+| `phases/phase.py` | `PhaseSpec` / `ActionPhaseSpec` (prompt file, model, intent, schema, what the phase reads, how it writes back) and `Step`. |
+| `phases/catalog.py` | Every phase of every flow, read from the constants at the top of its file (id, name, prompt, default model, env variable). |
+| `engine/pipeline.py` | The orchestrator of any flow: runs its steps in order, follows its jumps and stops to ask the user when a step leaves the flow waiting. `Pipeline(..., flow=...)`, then `run(message, history, paused, robot_context)`. |
+| `engine/flow.py` | `Flow` (name, steps, jump after a step, result, starting state) and `FlowContext`. |
+| `engine/phase_runner.py` | The only place an LLM `Payload` is built and sent. Records token usage. |
+| `engine/clarification.py` | Phase 99: turns the missing inputs into a question for the user. |
+| `engine/answer_check.py` | Phase 9: when a run is waiting for the user, decides if the next message is the answer, a yes or no, not an answer, or a request to stop. |
+| `state/flow_state.py` | `FlowState`: everything the phases read and write for one message (intent, user goal, actions, next step, safety, history). |
+| `state/motion_state.py` | `MotionFlowState`: `FlowState` plus motion-flow's movements and refusal. |
+| `state/paused_run.py` | `PausedRun` (the saved run) and `FlowResult` (the reply plus the run that still waits). |
+| `support/model_selection.py` | Which model answers a phase: its default or `AI_AGENT_MODEL_PHASE_<n>`. |
+| `support/metrics.py` | `SessionMetrics`: tokens per phase and per model. |
+| `support/failure.py` | `AgentFailure`, the attempts setting, and the apology that says what happened and why. |
+| `support/schemas.py` | Loads the response JSON Schemas (cached, independent of the working directory). |
+| `support/action_tree.py` | Helpers to look inside the action tree (subactions, execution order). |
+| `support/mcp_servers.py` | How MCP servers are shown to the planner (name and tools, no connection settings). |
+| `support/clock.py` | The current date and time shown to every phase. |
 
-Adding a phase means one new `PhaseSpec` file and one line in `build_steps`.
-
+Adding a phase means its file, one line in `phases/catalog.py` and a step in its flow. Adding an agent means a file in `flows/` and one line in `flows/registry.py`; it gets its own routes and sessions.
 ### The pipeline
 
 | Phase | Role | Model (default) | What it does |
@@ -99,13 +122,15 @@ Adding a phase means one new `PhaseSpec` file and one line in `build_steps`.
 | 99 | User clarification | `gpt-4.1` | Not in the chain. When `next_step.status` is `awaiting_user_input` or `awaiting_confirmation` after phase 1, 2 or 3, the flow stops and this call writes the question. The run is saved in the session. |
 | 9 | Answer checker | `gpt-4.1-mini` | Not in the chain. Reads the next message of a session with a saved run: answer (the waiting step runs again with it and the flow continues), yes or no (confirmation), not an answer (a message asks again, the run keeps waiting), or stop (the run is forgotten). |
 
+Phases 1 to 9 and 99 are conversation-flow's. motion-flow adds phase 20 (motion planner, `gpt-4.1`: which arm, how many degrees, which direction, as an ordered list; it asks the user when one is missing) and phase 21 (motion validator, **no LLM call**: valid arm and direction, degrees within limits, at most 10 movements and 1440 degrees in total, and one bad movement refuses the whole sequence).
+
 A simple question therefore costs 5 to 6 sequential LLM calls, more with many actions (one per action, plus one per MCP result).
 
 ### Domain: `domain/`
 Pure data, no file or network access. `entities/` holds `Action`, `Response`, `Payload` and token usage. `value_objects/` has one file per concept (intent, user_goal, task_category, next_step, safety_and_validation, constraints, mcp_routing...) and the model catalog (`model_catalog.py` lists the model ids, `model.py` has `SelectedModel`).
 
 ### Prompts and schemas: `prompts/`, `schema/`
-`prompts/advanced/` has the instructions of each phase. `schema/response/advanced/` has the JSON Schemas passed as `response_format` (`basic/` holds the complexity schema and older files). **Prompts, schemas and `domain/` must stay in sync**: changing a field means editing all three.
+`prompts/` (flat, `<id>_<name>.txt`) has the instructions of each phase; the phase file says which one it uses. `schema/response/advanced/` has the JSON Schemas passed as `response_format` (`basic/` holds the complexity schema and older files). **Prompts, schemas and `domain/` must stay in sync**: changing a field means editing all three.
 
 ### Outbound LLM adapter: `infrastructure/outbound/llm/`
 One module per job: `vercel.py` (`VercelAIAdapter.ask`: one stateless call, messages in, `Response` out), `config.py` (`VercelAIConfig`, keys and URLs), `provider_models.py` (domain model to `ai_sdk` model; a table of OpenAI-compatible routes, add a provider by adding a row), `tools.py` (`resolve_tools`: turns the MCP server list of phase 5 into real tools), `response_mapper.py` (LLM JSON to `Response`, one function per section). Native OpenAI and Anthropic; every other provider goes through its OpenAI-compatible base URL. History is put in the message text by the phases, not sent as chat turns.
@@ -132,11 +157,11 @@ Checked and not a bug: `AnthropicModel` in `ai_sdk` is an OpenAI-client provider
 
 Still open:
 1. **No real LLM call has been made since these changes.** Whether GitHub Models accepts the `json_schema` `response_format` sent by the adapter, and whether the model returns bare JSON without code fences, is unverified. Do one real call first (`tests/manual/full_flow_real_llm.py`; it costs money).
-2. Fixed 2026-09-22 (unmeasured): 5 to 6 sequential LLM calls per message is a lot for a voice robot. `AI_AGENT_FAST_PATH_ENABLED` (default on) skips project manager, the safety gate and action execution for a message triage classifies as pure information/conversation (`intent.primary` in `information_request`/`clarification_request` **and** `task_category` `generation`/`low`; both are checked because `generation`/`low` alone also covers real multi-step writing tasks like "make a table of my family", which still need a plan) — see `application/orchestration/fast_path.py`. This was designed from the pipeline's own structure, not from a real measured voice-loop latency (Brain does not call ai-agent yet), so the actual win is unverified; revisit the trigger condition once real numbers exist.
+2. Fixed 2026-09-22 (unmeasured): 5 to 6 sequential LLM calls per message is a lot for a voice robot. `AI_AGENT_FAST_PATH_ENABLED` (default on) skips project manager, the safety gate and action execution for a message triage classifies as pure information/conversation (`intent.primary` in `information_request`/`clarification_request` **and** `task_category` `generation`/`low`; both are checked because `generation`/`low` alone also covers real multi-step writing tasks like "make a table of my family", which still need a plan) — see `application/orchestration/flows/fast_path.py`. This was designed from the pipeline's own structure, not from a real measured voice-loop latency (measured with scripted LLMs only), so the actual win is unverified; revisit the trigger condition once real numbers exist.
 3. **stdio MCP servers** (`fetch`, `filesystem`) are not supported, but the project manager is still told they exist, so it may plan actions that cannot run. `filesystem.json` mounts a hardcoded folder.
 4. `SessionService` still builds a `MessageFlowService` (and its pipeline) per message. It is cheap, but it is not "once".
 5. Fixed 2026-09-22: the session API now answers through `contracts.api` (`ApiEnvelope`, `data` built from `contracts.api.microservices.ai_agent.session.*`), like every other OBLIVION service, and `GET /available` exists (checks that a provider key or `OLLAMA_URL` is configured; makes no LLM call, so it cannot confirm the key actually works).
-6. A movement request is planned as a `robot_action` action and comes back as `data.directive` on `/session/message` (see `application/orchestration/robot_directive.py`, exercised end to end in `tests/test_robot_directive.py` with a scripted LLM). It has never been tried against a real LLM (whether GPT-4.1 reliably answers the exact `arm=<left|right> degrees=<number> direction=<forward|reverse>` format the cognitive worker prompt asks for is unverified — a malformed answer is silently treated as "no movement", never an error) or against Brain, which does not call ai-agent yet.
+6. Arm movements are motion-flow's job (an ordered list of `{arm, degrees, direction}`, `data.directives` on `/motion-flow/session/message`), exercised end to end in `tests/test_motion_flow.py` with a scripted LLM. It has never been tried against a real LLM (whether the planner reliably writes a correct list, for example "left 90 and then back", is unverified) or against real stepper hardware.
 
 ## Configuration
 

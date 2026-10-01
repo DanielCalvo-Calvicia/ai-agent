@@ -25,7 +25,7 @@ os.chdir(PROJECT_ROOT)
 load_dotenv(os.path.join(PROJECT_ROOT, ".env"), override=False)
 
 from application.inbound.dto.session import MessageReceivedRequestDTO, StartSessionRequestDTO
-from application.orchestration.model_selection import effective_models
+from application.orchestration.support.model_selection import effective_models
 from application.service.session_service import SessionService
 from budget_run import Collector, usd
 from infrastructure.outbound.llm.config import VercelAIConfig

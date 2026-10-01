@@ -8,15 +8,16 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.orchestration.action_tree import (
+from application.orchestration.support.action_tree import (
     BLOCKED_BY_CONFIRMATION,
     action_type_of,
     mark_mcp_actions_blocked,
     subactions_of,
 )
-from application.orchestration.mcp_servers import describe_servers
-from application.orchestration.phases.project_manager import make_project_manager
-from application.orchestration.schemas import actions_schema, load_schema, object_schema, property_schema
+from application.orchestration.support.mcp_servers import describe_servers
+from application.orchestration.phases.conversation_flow.cognitive_worker import COGNITIVE_WORKER
+from application.orchestration.phases.conversation_flow.project_manager import make_project_manager
+from application.orchestration.support.schemas import actions_schema, load_schema, object_schema, property_schema
 from application.outbound.ports.mcp_ports import McpToolsPort
 from application.service.user_session import UserSession
 from domain.entities.action import create_action
@@ -296,7 +297,7 @@ class TestMcpServersInSchema:
         assert describe_servers(SERVERS, None) == [{"name": "mail", "tools": []}]
 
     def test_planner_input_carries_the_described_servers(self):
-        from application.orchestration.flow_state import FlowState
+        from application.orchestration.state.flow_state import FlowState
         spec = make_project_manager(SERVERS, FakeTools())
         text = str(spec.build_input(FlowState(message="hi")))
         assert "count_emails" in text and "http://x" not in text
@@ -362,12 +363,12 @@ class TestObjectSchema:
                 sent.append(payload.response_format.schema)
                 return build_response({"actions": [_plain_action("1")]}, USAGE)
 
-        from application.orchestration.flow_state import FlowState
-        from application.orchestration.metrics import SessionMetrics
-        from application.orchestration.phase_runner import PhaseRunner
+        from application.orchestration.state.flow_state import FlowState
+        from application.orchestration.support.metrics import SessionMetrics
+        from application.orchestration.engine.phase_runner import PhaseRunner
         runner = PhaseRunner(Spy(), SessionMetrics(), ["mail"])
         runner.run_phase(make_project_manager(SERVERS), FlowState(message="hi"))
-        runner.run_action(create_action(id_value="1", description_value="d", action_type_value="analysis"), 4, {})
+        runner.run_action(create_action(id_value="1", description_value="d", action_type_value="analysis"), COGNITIVE_WORKER, {})
 
         assert len(sent) == 2
         for schema in sent:

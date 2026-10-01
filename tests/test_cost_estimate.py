@@ -8,7 +8,7 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.orchestration.model_selection import STEP_NAMES
+from application.orchestration.support.model_selection import STEP_NAMES
 from cost_estimate import (ACTION_REPR, ANSWER_TOKENS, PARENT_ANSWER_TOKENS, PROMPT, THINKING, THINKING_FACTOR,
                            choice_single, choice_strongest, markdown, price, rows_for, total_row, usage)
 from model_table import load_models

@@ -29,9 +29,10 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.orchestration.flow_state import FlowState
-from application.orchestration.metrics import SessionMetrics
-from application.orchestration.pipeline import Pipeline
+from application.orchestration.state.flow_state import FlowState
+from application.orchestration.support.metrics import SessionMetrics
+from application.orchestration.engine.pipeline import Pipeline
+from application.orchestration.flows.conversation_flow import CONVERSATION_FLOW
 from domain.entities.response import Response
 
 # Every field of FlowState that holds the result of a phase (the message and the history are inputs).
@@ -328,7 +329,7 @@ def trace_flow(
     If the flow fails, the trace up to the failure is kept, and the exception goes to `failures` (if given).
     """
     recorder = _Recorder(llm)
-    pipeline = Pipeline(recorder, mcp_list or [], SessionMetrics())
+    pipeline = Pipeline(recorder, mcp_list or [], SessionMetrics(), flow=CONVERSATION_FLOW)
     traces: List[StepTrace] = []
     previous = {name: None for name in STATE_FIELDS}
     seen = {"calls": 0}
@@ -566,7 +567,7 @@ def trace_to_markdown(message: str, llm, out_dir: str, mcp_list: Optional[list] 
 
 def step_names(mcp_list: Optional[list] = None) -> List[str]:
     """The names of the steps of the real pipeline."""
-    return [step.name for step in Pipeline(_Recorder(None), mcp_list or [], SessionMetrics()).steps]
+    return [step.name for step in Pipeline(_Recorder(None), mcp_list or [], SessionMetrics(), flow=CONVERSATION_FLOW).steps]
 
 
 def save_step_inputs(traces: List[StepTrace], out_dir: str) -> List[str]:
@@ -600,7 +601,7 @@ def trace_step(step_name: str, state: FlowState, llm, mcp_list: Optional[list] =
     Returns (modifications, state after the step, whether the step leaves the flow waiting for the user).
     """
     recorder = _Recorder(llm)
-    pipeline = Pipeline(recorder, mcp_list or [], SessionMetrics())
+    pipeline = Pipeline(recorder, mcp_list or [], SessionMetrics(), flow=CONVERSATION_FLOW)
     step = next((s for s in pipeline.steps if s.name == step_name), None)
     if step is None:
         raise KeyError(f"unknown step {step_name!r}; the steps are: {', '.join(s.name for s in pipeline.steps)}")
@@ -705,15 +706,15 @@ def run_with_stops(
     Returns the FlowResult of the pipeline.
     """
     from unittest.mock import patch
-    from application.orchestration.action_executor import ActionExecutor
-    from application.orchestration.phase_runner import PhaseRunner
+    from application.orchestration.flows.action_executor import ActionExecutor
+    from application.orchestration.engine.phase_runner import PhaseRunner
 
     stop = stop or _pause
     unknown = set(at) - set(STOP_POINTS)
     if unknown:
         raise ValueError(f"unknown stop points {sorted(unknown)}; use {STOP_POINTS}")
 
-    pipeline = Pipeline(llm, mcp_list or [], SessionMetrics())
+    pipeline = Pipeline(llm, mcp_list or [], SessionMetrics(), flow=CONVERSATION_FLOW)
     current = {"step": None, "state": None}
 
     def selected() -> bool:

@@ -9,7 +9,7 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.orchestration.metrics import SessionMetrics
+from application.orchestration.support.metrics import SessionMetrics
 from application.outbound.ports.usage_ports import CallDetails, UsageReporterPort
 from infrastructure.outbound.usage.langfuse import LangfuseUsageReporter
 from infrastructure.outbound.usage.prices import billed_output_tokens, cost_usd, load_prices

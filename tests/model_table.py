@@ -183,7 +183,7 @@ def read_config(path: str = CONFIG_PATH) -> Dict[str, Any]:
 def write_config(config: Dict[str, Any], path: str = CONFIG_PATH) -> None:
     """Checks the config (unknown step, model or profile fail) and only then writes it."""
     import tempfile
-    from application.orchestration.model_selection import _check
+    from application.orchestration.support.model_selection import _check
 
     _check(config, path)
     with tempfile.NamedTemporaryFile("w", encoding="utf-8", newline="\n", delete=False, dir=os.path.dirname(path),
@@ -194,7 +194,7 @@ def write_config(config: Dict[str, Any], path: str = CONFIG_PATH) -> None:
 
 def set_step(step: str, model_id: Optional[str], path: str = CONFIG_PATH) -> Dict[str, Any]:
     """Chooses `model_id` for `step` (None clears the choice, so the profile applies again)."""
-    from application.orchestration.model_selection import STEP_NAMES
+    from application.orchestration.support.model_selection import STEP_NAMES
 
     if step not in STEP_NAMES:
         raise ValueError(f"unknown step {step!r}. Steps: {', '.join(STEP_NAMES)}")

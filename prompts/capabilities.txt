@@ -7,11 +7,6 @@ The robot CAN:
 - answer questions and write text from your own knowledge
 - move each of its arms independently, by a number of degrees of rotation
 
-You can REQUEST an arm movement (plan a "robot_action"), but you never move anything yourself and you
-never get confirmation that the movement actually happened: Brain is the only part of the robot allowed
-to command the motors, and it decides on its own whether to carry the request out. When the user asks
-for a movement, say what you are doing, not that it is done.
-
 The robot CANNOT:
 - jump, walk, or move in any other way than its arms
 - see or hear anything beyond this conversation

@@ -34,13 +34,15 @@ from infrastructure.outbound.usage.langfuse import LangfuseUsageReporter
 #  APPLICATION SERVICES
 # -----------------------------------------------
 
+from application.orchestration.flows.registry import FLOWS
+from application.orchestration.flows.conversation_flow import CONVERSATION_FLOW
 from application.service.session_service import SessionService
 
 # -----------------------------------------------
 #  INBOUND ADAPTERS
 # -----------------------------------------------
 
-from infrastructure.inbound.http.fastapi import SessionFastAPI
+from infrastructure.inbound.http.fastapi import SessionFastAPI, message_data_for
 
 
 # ===============================================
@@ -52,8 +54,9 @@ def CreateApp() -> FastAPI:
     Wires all layers of the hexagonal architecture and returns
     the fully configured FastAPI application.
 
-    Dependency graph:
+    Dependency graph, for every flow in the registry:
         MCPToolExecutor + VercelAIAdapter (outbound) -> SessionService (application) -> SessionFastAPI (inbound)
+    Every flow has its own sessions and its own routes: /<flow-name>/session/*.
     """
 
     init_logging("ai-agent")
@@ -66,14 +69,19 @@ def CreateApp() -> FastAPI:
 
     llmAdapter = VercelAIAdapter(Config=llmConfig)
 
-    # Step 2: Application service — implements the inbound port
-    sessionService = SessionService(
-        outbound_port=llmAdapter,
-        mcp_list=mcpList,
-        mcp_tools=toolExecutor,
-        history_turns=int(os.environ.get("AI_AGENT_HISTORY_TURNS", "6")),
-        usage_reporter=LangfuseUsageReporter.from_env(),    # None unless the LANGFUSE_* keys are set
-    )
+    # Step 2: Application services — one per flow, each implements the inbound port
+    usageReporter = LangfuseUsageReporter.from_env()        # None unless the LANGFUSE_* keys are set
+    sessionServices = {
+        flow.name: SessionService(
+            outbound_port=llmAdapter,
+            mcp_list=mcpList,
+            mcp_tools=toolExecutor,
+            history_turns=int(os.environ.get("AI_AGENT_HISTORY_TURNS", "6")),
+            usage_reporter=usageReporter,
+            flow=flow,
+        )
+        for flow in FLOWS
+    }
 
     # Step 3: FastAPI application
     app = FastAPI(
@@ -91,8 +99,14 @@ def CreateApp() -> FastAPI:
         openapi_url="/openapi.json",
     )
 
-    # Step 4: Inbound adapter — HTTP routes wired to the service
-    SessionFastAPI(App=app, SessionPort=sessionService)
+    # Step 4: Inbound adapters — each flow's routes wired to its own service
+    for flowName, sessionService in sessionServices.items():
+        SessionFastAPI(App=app, SessionPort=sessionService, prefix=f"/{flowName}", tag=flowName,
+                       include_health=False, message_to_data=message_data_for(flowName))
+
+    # The original /session/* routes, /health and /available stay as an alias of the conversation flow
+    # until every caller (Brain) uses /conversation-flow/session/*.
+    SessionFastAPI(App=app, SessionPort=sessionServices[CONVERSATION_FLOW.name], deprecated=True)
     app.add_middleware(TracingMiddleware)
 
     return app

@@ -10,8 +10,9 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.orchestration.metrics import SessionMetrics
-from application.orchestration.pipeline import Pipeline
+from application.orchestration.support.metrics import SessionMetrics
+from application.orchestration.engine.pipeline import Pipeline
+from application.orchestration.flows.conversation_flow import CONVERSATION_FLOW
 from application.outbound.ports.usage_ports import UsageReporterPort
 from test_flow_golden import ScriptedLLM, _ACTION_ID, _action, _plan
 
@@ -64,7 +65,7 @@ def run(monkeypatch, parallel, reporter=None):
     llm, metrics = Slow(), SessionMetrics(reporter)
     started = time.time()
     result = Pipeline(llm, [{"name": "aws_microservice", "type": "sse", "config": {"type": "sse", "url": "http://x"}}],
-                      metrics).run("do it")
+                      metrics, flow=CONVERSATION_FLOW).run("do it")
     return llm, metrics, result, time.time() - started
 
 
@@ -122,7 +123,7 @@ class TestTiming:
         assert max((d.ended_ns - d.started_ns) for d in seen) >= DELAY * 1e9 * 0.9      # the slow worker calls
 
     def test_langfuse_gets_the_real_start_and_end(self):
-        from application.orchestration.metrics import SessionMetrics as M
+        from application.orchestration.support.metrics import SessionMetrics as M
         from application.outbound.ports.usage_ports import CallDetails
         from infrastructure.outbound.usage.langfuse import LangfuseUsageReporter
         r = LangfuseUsageReporter("pk", "sk", prices={}, background=False)

@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
 
-from application.orchestration.paused_run import PausedRun
+from application.orchestration.state.paused_run import PausedRun
 
 from domain.value_objects.message import Message, Role
 

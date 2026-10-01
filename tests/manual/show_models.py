@@ -29,7 +29,7 @@ from dotenv import load_dotenv
 
 load_dotenv(os.path.join(ROOT, ".env"), override=False)
 
-from application.orchestration.model_selection import STEP_NAMES, effective_models, models_file
+from application.orchestration.support.model_selection import STEP_NAMES, effective_models, models_file
 from budget_table import DOC_PATH as BUDGET_DOC_PATH
 from budget_table import combined, load_budget, markdown as budget_markdown, read as read_json, MEASURED_PATH
 from model_table import (CONFIG_PATH, DOC_PATH, blended, load_models, markdown, per_call, read_config, set_profile,
