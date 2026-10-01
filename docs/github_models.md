@@ -1,3 +1,5 @@
+> **REFERENCE (banner added 2026-10-01).** A list of GitHub Models ids. GitHub Models is retired (the old endpoint no longer resolves), so these models cannot be used today.
+
 | Model ID | Provider | Category | Notes |
 |---|---|---|---|
 

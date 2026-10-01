@@ -1,3 +1,5 @@
+> **HISTORICAL (banner added 2026-10-01).** The 2026-09-21 refactor plan, done. The `application/orchestration/` paths in it were reorganised afterwards into `flows/`, `phases/`, `engine/`, `state/`, `support/` (see `flows_refactor_plan.md` and `README.md`).
+
 # ai-agent: refactor plan
 
 Goal: reorganize the agent (mainly the orchestrator of the phases) **without changing what it does**, then fix the known bugs as separate, deliberate steps.

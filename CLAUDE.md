@@ -2,12 +2,12 @@
 
 Port **7998** (`AI_AGENT_PORT`; changed from 8000, which clashed with microphone). Python/FastAPI. The "mind" of OBLIVION: it receives what the user said and **decides what to do**. Status: prototype. See `README.md` and `../CLAUDE.md`.
 
-Current state (2026-09-22): branch `feature_ai_claude`, last commit "Refactor the agent orchestrator, add per-step models, budget profiles and Langfuse cost tracking". 79 uncommitted files, about 70 of them `__pycache__/*.pyc` noise. Check `git status` before editing.
+Current state (2026-10-01): branch `feature_ai_claude_2` (tracks `origin/feature_ai_claude_2`, in sync), last commit `2c9d707` "Host several agents (flows): conversation-flow and motion-flow; reorganise orchestration". Uncommitted: 78 `__pycache__/*.pyc` entries (noise; the repo tracks bytecode) and docs only (`CLAUDE.md`, `README.md`, `docs/flows_refactor_plan.md`, plus historical banners on six other docs). Tests: `604 passed`. No real LLM call since the flows split (see `README.md`, Known problems). Check `git status` before editing.
 
 ## Role
 
 - Only decides and returns a structured response. It **never controls hardware** and never calls stepper, TTS or speaker. **Brain** acts on its answer (speak, move an arm).
-- **Hosts several agents, called flows**, in one service and one venv. Today two: **`conversation-flow`** (writes the reply) and **`motion-flow`** (turns what the user said into an ordered list of arm movements). They never call each other: **Brain** asks motion-flow first, then conversation-flow with what motion-flow decided (`robot_context`). A new agent = a file in `orchestration/flows/`, its own phase files and one line in `flow_registry.py`.
+- **Hosts several agents, called flows**, in one service and one venv. Today two: **`conversation-flow`** (writes the reply) and **`motion-flow`** (turns what the user said into an ordered list of arm movements). They never call each other: **Brain** asks them one after the other, **conversation-flow first, then motion-flow once conversation-flow has ended**, in the order of Brain's `AI_AGENT_FLOWS` setting; a flow that asks the user a question stops the chain and gets the next utterance. conversation-flow can still be given a `robot_context` (what a movement decision was), but Brain does not send it today: motion-flow runs after it, so the reply cannot know the outcome (a refusal is spoken after the reply instead). A new agent = a file in `orchestration/flows/`, its own phase files and one line in `flow_registry.py`.
 - Brain calls it per utterance (see `../brain_microservice/CLAUDE.md`).
 - May later fetch content from `aws_microservice` through MCP (`mcps/aws_microservice.json` → `/mcp/sse` on port 8080). Nothing uses this yet.
 
@@ -40,7 +40,7 @@ Sessions are in-process memory only (`SessionService.sessions`), lost on restart
 ## Rules
 
 - `.env` holds many provider keys (OpenAI, Anthropic, Google, Mistral, Groq, Cohere, GitHub PAT). Never read the values out, print them or copy them. Use variable names only.
-- Uses `shared_logging` (`init_logging("ai-agent")`, `TracingMiddleware`, `-e ../shared-logging`). Since 2026-09-22 it also uses `contracts` (`./vendor/contracts_microservice-0.7.1-py3-none-any.whl`, bundled by `contracts/scripts/bundle.py` like the other services): `/health`, `/available`, `/session/start`, `/session/end` and `/session/message` answer with `contracts.api.common.envelope.ApiEnvelope`, `data` built from `contracts.api.microservices.ai_agent.session.*` / `contracts.api.microservices.common` (see `infrastructure/inbound/http/fastapi.py`). `/available` (`LLMOutboundPort.is_available()`, implemented on `VercelAIAdapter`) only checks that a provider key or `OLLAMA_URL` is configured; it never calls an LLM, so it cannot tell whether the configured provider is actually reachable or the key is valid.
+- Uses `shared_logging` (`init_logging("ai-agent")`, `TracingMiddleware`, `-e ../shared-logging`). It also uses `contracts` (`./vendor/contracts_microservice-0.10.0-py3-none-any.whl`, bundled by `contracts/scripts/bundle.py` like the other services): `/health`, `/available`, `/session/start`, `/session/end` and `/session/message` answer with `contracts.api.common.envelope.ApiEnvelope`, `data` built from `contracts.api.microservices.ai_agent.session.*` / `contracts.api.microservices.common` (see `infrastructure/inbound/http/fastapi.py`). `/available` (`LLMOutboundPort.is_available()`, implemented on `VercelAIAdapter`) only checks that a provider key or `OLLAMA_URL` is configured; it never calls an LLM, so it cannot tell whether the configured provider is actually reachable or the key is valid.
 - Keep the LLM adapter behind `LLMOutboundPort` so providers stay swappable.
 
 ## Config
@@ -48,7 +48,9 @@ Sessions are in-process memory only (`SessionService.sessions`), lost on restart
 - Models per step: `config/step_models.json` (profile, per-step `steps`); `AI_AGENT_MODEL_PHASE_<n>` wins over it.
 - Prices and plans: `config/{gemini_models,other_models,budget,measured_runs}.json`. `docs/gemini_models_per_step.md` and `docs/models_per_step_budget.md` are generated from them (`tests/manual/show_models.py --write` / `--budget`).
 - `AI_AGENT_PARALLEL_ACTIONS=<n>` runs independent actions of a plan together (default 1; tool calls stay sequential).
-- `AI_AGENT_FAST_PATH_ENABLED=0` disables the fast path (see `application/orchestration/fast_path.py`); default is on.
+- `AI_AGENT_FAST_PATH_ENABLED=0` disables the fast path (see `application/orchestration/flows/fast_path.py`); default is on.
+- `AI_AGENT_RELOAD` defaults to `1` (uvicorn auto-reload); set `0` for a stable run. Full variable table with defaults: `README.md`, Configuration.
+- The code defaults of the phases (`DEFAULT_MODEL`) are GitHub Models ids, which are retired. The models really used come from `config/step_models.json` (profile `budget50_groq` on 2026-10-01) or `AI_AGENT_MODEL_PHASE_<n>`. `mcps/aws_microservice.json` hardcodes `http://localhost:8080/mcp/sse` (a config file, not an env var).
 - Cost tracking: sends metadata only to Langfuse when `LANGFUSE_PUBLIC_KEY` and `LANGFUSE_SECRET_KEY` are set, via `UsageReporterPort`/`SessionMetrics`. It never breaks a call.
 
 ## Commands
@@ -58,4 +60,4 @@ Sessions are in-process memory only (`SessionService.sessions`), lost on restart
 & windows\Scripts\python.exe -m pytest tests
 ```
 
-`tests/` is all mock-based (no keys, no cost) and runs without the config file (`tests/conftest.py`). `tests/test_flow_golden.py` records every LLM call and compares with `tests/golden/flow_golden.json`: a refactor must keep it green. Regenerate it (`UPDATE_GOLDEN=1`) only for a deliberate change to prompts, models, schemas or message formats. `tests/manual/` scripts call real LLMs and MCP servers, are not collected by pytest, and cost money: ask first.
+`tests/` is all mock-based (no keys, no cost, 604 tests) and runs without the config file (`tests/conftest.py`). `tests/output/` holds generated reports of manual runs, not documentation. `tests/test_flow_golden.py` records every LLM call and compares with `tests/golden/flow_golden.json`: a refactor must keep it green. Regenerate it (`UPDATE_GOLDEN=1`) only for a deliberate change to prompts, models, schemas or message formats. `tests/manual/` scripts call real LLMs and MCP servers, are not collected by pytest, and cost money: ask first.

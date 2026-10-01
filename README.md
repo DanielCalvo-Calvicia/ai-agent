@@ -1,12 +1,12 @@
 # ai-agent
 
-The "mind" of OBLIVION. It receives what the user said (text) and runs it through a chain of LLM calls that plan, check, execute and write a reply. It never controls hardware. `brain_microservice` calls it and then acts on the answer (speaks it, moves the arms). It hosts several agents, called **flows**: **conversation-flow** writes the reply and **motion-flow** decides the arm movements (an ordered list). They never call each other: Brain asks motion-flow first, then conversation-flow with what motion-flow decided.
+The "mind" of OBLIVION. It receives what the user said (text) and runs it through a chain of LLM calls that plan, check, execute and write a reply. It never controls hardware. `brain_microservice` calls it and then acts on the answer (speaks it, moves the arms). It hosts several agents, called **flows**: **conversation-flow** writes the reply and **motion-flow** decides the arm movements (an ordered list). They never call each other: Brain asks them one after the other, conversation-flow first and motion-flow when it has ended (the flows Brain runs, and their order, are its `AI_AGENT_FLOWS` setting).
 
-Status: **prototype. Tried with a real LLM (Gemini) end to end on a simple request. The default provider, GitHub Models, is retired, so set the models with `AI_AGENT_MODEL_PHASE_<n>` (see `docs/orchestrator_decisions.md`).** Read [Known problems and decisions](#known-problems-and-decisions) before wiring it in.
+Status: **prototype.** It was tried end to end with a real LLM (`gemini-2.5-flash`, 2026-09-21, on a simple request; see `docs/orchestrator_decisions.md`). Nothing since the split into conversation-flow and motion-flow has run against a real LLM: the 604 tests use scripted LLMs. The code defaults of the phases are GitHub Models ids (`gpt-4.1`, `gpt-4.1-mini`), a provider that is retired, so the models actually used come from `config/step_models.json` (profile `budget50_groq` on 2026-10-01: Groq `openai/gpt-oss-120b` for planning, safety gate, worker, writer and editor, Google lite models elsewhere; untested as a combination) or from `AI_AGENT_MODEL_PHASE_<n>`. Read [Known problems and decisions](#known-problems-and-decisions) before wiring it in.
 
 - Port: `7998` (`AI_AGENT_PORT`)
 - Stack: Python, FastAPI, hexagonal layout, LLM access through `ai_sdk`, MCP client
-- Logging: `shared-logging`
+- Logging: `shared-logging`; contracts: the bundled `contracts` wheel (0.10.0, `vendor/`)
 
 ## What it does, in one picture
 
@@ -34,7 +34,7 @@ Every phase gets, before its own instructions: the generic rules, `prompts/capab
 | Method | Path | Purpose |
 |---|---|---|
 | POST | `/conversation-flow/session/start` | Create a session (`username`, optional `email`) and get a `session_id` |
-| POST | `/conversation-flow/session/message` | Send `session_id` + `message` (optionally `robot_context`, what motion-flow decided), get the reply in `data.response` |
+| POST | `/conversation-flow/session/message` | Send `session_id` + `message` (optionally `robot_context`, what a movement decision was; Brain does not send it today, since motion-flow now runs after conversation-flow), get the reply in `data.response` |
 | POST | `/conversation-flow/session/end` | End the session |
 | POST | `/motion-flow/session/start` \| `message` \| `end` | The same three routes for motion-flow. `message` answers `data.directives` (`[{arm, degrees, direction}]` in execution order), `data.response` (a refusal or a question, to be spoken) and `data.awaiting_user_input` |
 | POST | `/session/start` \| `message` \| `end` | **Deprecated** alias of conversation-flow's routes (same sessions), kept until no caller uses it |
@@ -48,12 +48,12 @@ Responses use the envelope `action / status / status_code / message / data / tim
 
 Sessions (`SessionService.sessions`) are held **in process memory only** — nothing is persisted, so every session is lost when ai-agent restarts. The intended usage for a caller like Brain is one session per *conversation*, reused across many separate voice-pipeline runs (not one session per utterance), so the per-session history (`AI_AGENT_HISTORY_TURNS`) actually means something. Nothing here evicts or expires a session on its own: it lives until `/session/end` is called or the process restarts.
 
-Because of that, a caller holding a session id across ai-agent restarts must be ready for it to vanish. `/session/message` and `/session/end` report this the same way: `data.success = false` and `data.error_code = "SESSION_NOT_FOUND"` (`data.response` is still a speakable apology). That combination specifically means "this session no longer exists here" — the caller's own move is to call `/session/start` again and, for a failed `/session/message`, resend the same message once against the new session id. Any other `error_code` (a classified failure, e.g. `"CONNECTION"`, `"TIMEOUT"`, `"AUTH"`, `"UNKNOWN"`; see `application/orchestration/failure.py:classify`) is a real failure of that one message, not a reason to start a new session.
+Because of that, a caller holding a session id across ai-agent restarts must be ready for it to vanish. `/session/message` and `/session/end` report this the same way: `data.success = false` and `data.error_code = "SESSION_NOT_FOUND"` (`data.response` is still a speakable apology). That combination specifically means "this session no longer exists here" — the caller's own move is to call `/session/start` again and, for a failed `/session/message`, resend the same message once against the new session id. Any other `error_code` (a classified failure, e.g. `"CONNECTION"`, `"TIMEOUT"`, `"AUTH"`, `"UNKNOWN"`; see `application/orchestration/support/failure.py`, `classify`) is a real failure of that one message, not a reason to start a new session.
 
 ## How each part works
 
 ### Composition root: `composition_root/main.py`
-Changes to the project root, loads `.env` (`python-dotenv`; variables already set in the environment win), builds the MCP tool executor from `mcps/*.json`, creates `VercelAIAdapter` from `VercelAIConfig.from_env(...)`, passes both to `SessionService`, registers the routes in `SessionFastAPI` and adds `TracingMiddleware`. Runs uvicorn on `AI_AGENT_HOST:AI_AGENT_PORT` (default `0.0.0.0:7998`).
+Changes to the project root, loads `.env` (`python-dotenv`; variables already set in the environment win), builds the MCP tool executor from `mcps/*.json`, creates `VercelAIAdapter` from `VercelAIConfig.from_env(...)` and the optional Langfuse reporter, then **one `SessionService` per flow** of the registry (each with its own sessions). For every flow it registers a `SessionFastAPI` under `/<flow-name>`, plus the deprecated un-prefixed `/session/*` routes, `/health` and `/available` as an alias of conversation-flow, and adds `TracingMiddleware`. Runs uvicorn on `AI_AGENT_HOST:AI_AGENT_PORT` (default `0.0.0.0:7998`; `AI_AGENT_RELOAD` defaults to `1`, auto-reload, so set `0` for a stable run).
 
 ### Inbound adapter: `infrastructure/inbound/http/fastapi.py`
 `SessionFastAPI` defines the session routes and `GET /health`, wraps every result in `StandardResponse` and calls the `SessionInboundPort`. `/session/message` runs the (synchronous) flow in a worker thread so the service stays responsive.
@@ -109,7 +109,7 @@ support/   shared helpers         model choice, metrics, failures, schemas, the 
 Adding a phase means its file, one line in `phases/catalog.py` and a step in its flow. Adding an agent means a file in `flows/` and one line in `flows/registry.py`; it gets its own routes and sessions.
 ### The pipeline
 
-| Phase | Role | Model (default) | What it does |
+| Phase | Role | Code default model (GitHub Models, retired) | What it does |
 |---|---|---|---|
 | 1 | Triage specialist | `gpt-4.1-mini` | Classifies intent, extracts `user_goal`, `task_category`, first `next_step`. Sees the earlier turns of the session. The flow pauses here if it needs the user. |
 | 2 | Project manager | `gpt-4.1` | Splits the goal into a tree of `actions` and sets `next_step`. Gets the MCP server list and the history. |
@@ -124,7 +124,7 @@ Adding a phase means its file, one line in `phases/catalog.py` and a step in its
 
 Phases 1 to 9 and 99 are conversation-flow's. motion-flow adds phase 20 (motion planner, `gpt-4.1`: which arm, how many degrees, which direction, as an ordered list; it asks the user when one is missing) and phase 21 (motion validator, **no LLM call**: valid arm and direction, degrees within limits, at most 10 movements and 1440 degrees in total, and one bad movement refuses the whole sequence).
 
-A simple question therefore costs 5 to 6 sequential LLM calls, more with many actions (one per action, plus one per MCP result).
+A simple question therefore costs 5 to 6 sequential LLM calls (fewer with the fast path), more with many actions (one per action, plus one per MCP result). The "code default" column is the `DEFAULT_MODEL` constant of each phase file; the model really used is chosen by `config/step_models.json` and `AI_AGENT_MODEL_PHASE_<n>` (see Configuration).
 
 ### Domain: `domain/`
 Pure data, no file or network access. `entities/` holds `Action`, `Response`, `Payload` and token usage. `value_objects/` has one file per concept (intent, user_goal, task_category, next_step, safety_and_validation, constraints, mcp_routing...) and the model catalog (`model_catalog.py` lists the model ids, `model.py` has `SelectedModel`).
@@ -156,19 +156,34 @@ Fixed (details in `docs/refactor_plan.md`): `.env` loading and key names, Ollama
 Checked and not a bug: `AnthropicModel` in `ai_sdk` is an OpenAI-client provider with a `base_url`, so using it for GitHub Models is correct.
 
 Still open:
-1. **No real LLM call has been made since these changes.** Whether GitHub Models accepts the `json_schema` `response_format` sent by the adapter, and whether the model returns bare JSON without code fences, is unverified. Do one real call first (`tests/manual/full_flow_real_llm.py`; it costs money).
+1. **No real LLM call has been made since the flows split.** The only real run was `gemini-2.5-flash` on 2026-09-21 (before motion-flow existed); the configured profile (`budget50_groq`) has never been run as a combination, and GitHub Models, the code default, is retired. Do one real call first (`tests/manual/full_flow_real_llm.py`; it costs money).
 2. Fixed 2026-09-22 (unmeasured): 5 to 6 sequential LLM calls per message is a lot for a voice robot. `AI_AGENT_FAST_PATH_ENABLED` (default on) skips project manager, the safety gate and action execution for a message triage classifies as pure information/conversation (`intent.primary` in `information_request`/`clarification_request` **and** `task_category` `generation`/`low`; both are checked because `generation`/`low` alone also covers real multi-step writing tasks like "make a table of my family", which still need a plan) — see `application/orchestration/flows/fast_path.py`. This was designed from the pipeline's own structure, not from a real measured voice-loop latency (measured with scripted LLMs only), so the actual win is unverified; revisit the trigger condition once real numbers exist.
-3. **stdio MCP servers** (`fetch`, `filesystem`) are not supported, but the project manager is still told they exist, so it may plan actions that cannot run. `filesystem.json` mounts a hardcoded folder.
+3. **stdio MCP servers** (`fetch`, `filesystem`) are not supported, but the project manager is still told they exist, so it may plan actions that cannot run. `filesystem.json` mounts a hardcoded folder, and `mcps/aws_microservice.json` hardcodes `http://localhost:8080/mcp/sse` (a config file, not an environment variable: edit it when `aws_microservice` runs elsewhere; the Go service is unused today).
 4. `SessionService` still builds a `MessageFlowService` (and its pipeline) per message. It is cheap, but it is not "once".
 5. Fixed 2026-09-22: the session API now answers through `contracts.api` (`ApiEnvelope`, `data` built from `contracts.api.microservices.ai_agent.session.*`), like every other OBLIVION service, and `GET /available` exists (checks that a provider key or `OLLAMA_URL` is configured; makes no LLM call, so it cannot confirm the key actually works).
 6. Arm movements are motion-flow's job (an ordered list of `{arm, degrees, direction}`, `data.directives` on `/motion-flow/session/message`), exercised end to end in `tests/test_motion_flow.py` with a scripted LLM. It has never been tried against a real LLM (whether the planner reliably writes a correct list, for example "left 90 and then back", is unverified) or against real stepper hardware.
 
 ## Configuration
 
-Copy `.env.example` to `.env` (never commit or share it). Variables:
-- Provider keys: `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`, `MISTRAL_API_KEY`, `GROQ_API_KEY`, `COHERE_API_KEY`, `GITHUB_PAT`.
-- Base URLs: `GOOGLE_URL`, `MISTRAL_URL`, `GROQ_URL`, `COHERE_URL`, `GITHUB_URL`, `OLLAMA_URL`.
-- Service: `AI_AGENT_HOST`, `AI_AGENT_PORT`, `AI_AGENT_RELOAD`, `AI_AGENT_HISTORY_TURNS`, `AI_AGENT_MAX_ATTEMPTS` (default 3: how many times a failed LLM call, an MCP tool or a `retry` answer is tried).
+Copy `.env.example` to `.env` (never commit or share it, never print its values). Every variable below is listed in `.env.example`; `.env.example` and the code agree.
+
+| Variable | Default (code) | Purpose |
+|---|---|---|
+| `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`, `MISTRAL_API_KEY`, `GROQ_API_KEY`, `COHERE_API_KEY`, `GITHUB_PAT` | *(empty)* | Provider keys; only the providers you use. `/available` is true when one of them or `OLLAMA_URL` is set |
+| `GOOGLE_URL`, `MISTRAL_URL`, `GROQ_URL`, `COHERE_URL`, `GITHUB_URL`, `OLLAMA_URL` | *(empty)* | OpenAI-compatible base URLs of those providers |
+| `AI_AGENT_HOST` | `0.0.0.0` | Bind address |
+| `AI_AGENT_PORT` | `7998` | Bind port |
+| `AI_AGENT_RELOAD` | `1` | `1` = auto-reload (development), `0` = stable run |
+| `AI_AGENT_HISTORY_TURNS` | `6` | Exchanges (user message + reply) remembered per session |
+| `AI_AGENT_PARALLEL_ACTIONS` | `1` | Independent actions of a plan run together (`1` = one by one; tool calls stay sequential) |
+| `AI_AGENT_MAX_ATTEMPTS` | `3` | Tries (the first included) of a failed LLM call, MCP tool or `retry` answer |
+| `AI_AGENT_FAST_PATH_ENABLED` | on (`1`) | `0` always runs the full pipeline (see `flows/fast_path.py`) |
+| `AI_AGENT_MODELS_FILE` | `config/step_models.json` | Another models file |
+| `AI_AGENT_MODEL_PHASE_<n>` (n = 1..9, 20, 99) | *(unset)* | Model id for one phase; wins over the file |
+| `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_HOST` | *(empty)* | Optional cost tracking in Langfuse (metadata only, never prompts or answers); empty host = the EU cloud |
+
+`LOG_LEVEL`, `LOG_FORMAT`, `TRACE_EXPORT_*` are read by the shared logging package ([`shared-logging/docs/logging.md`](../shared-logging/docs/logging.md)). Hosts and ports of Brain and the other services are not this service's business: it calls nobody except the LLM providers and MCP servers.
+
 - Models: which LLM each step uses is chosen in `config/step_models.json` (a `profile` for all steps, or one model per step in `steps`; see `docs/gemini_models_per_step.md` for the Gemini models, their prices and how each should perform on each step). `AI_AGENT_MODEL_PHASE_<n>` wins over the file. An unknown step or model fails at the first message. `tests/manual/show_models.py` shows what each step uses now (`--step=<step>` lists every model for that step with its cost per call and rating, `--set=<step>=<model id>` chooses one, `--profile=<name>` changes every step).
 
 ## Run
@@ -177,13 +192,15 @@ Copy `.env.example` to `.env` (never commit or share it). Variables:
 & windows\Scripts\python.exe composition_root\main.py
 ```
 
-It works from any folder (it changes to the project root). Then open <http://127.0.0.1:7998/docs> or call `GET /health`.
+It works from any folder (it changes to the project root). Then open `http://<host>:<AI_AGENT_PORT>/docs` or call `GET /health`.
 
 Tests (no keys, no cost):
 
 ```powershell
 & windows\Scripts\python.exe -m pytest tests
 ```
+
+Result on 2026-10-01: `604 passed` (494 warnings, mostly third-party deprecations) in 23 s. Besides the files above there are `test_flows.py`, `test_motion_flow.py`, `test_robot_context.py`, `test_resume.py`, `test_fast_path.py`, `test_failures.py`, `test_parallel_actions.py`, `test_model_config.py`, `test_usage_report.py`, `test_budget_table.py`, `test_cost_estimate.py`, `test_orchestration_layout.py` and `test_phase_structure.py`. `tests/output/` holds generated reports of manual runs (not documentation).
 
 ## Layout
 
@@ -192,9 +209,9 @@ composition_root/   app wiring (main.py)
 application/        ports, DTOs, services, orchestration (the agent), system prompts
 domain/             entities and value objects
 infrastructure/     FastAPI inbound adapter (routes + response envelope), LLM and MCP outbound adapters
-prompts/            prompt chain (0 generic + phases 1..8)
+prompts/            prompt chain (0 generic, capabilities, phases 1..9 and 20; flat `<id>_<name>.txt`)
 schema/             JSON Schemas of the structured response
 mcps/               MCP server configs
-docs/               GitHub Models notes, model per phase, refactor plan
+docs/               model and budget tables (generated), refactor plans and decisions (historical), debugging guide
 tests/              pytest tests; tests/manual has scripts that call real services
 ```

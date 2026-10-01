@@ -1,3 +1,5 @@
+> **HISTORICAL (banner added 2026-10-01).** Questions asked on 2026-09-21 before the orchestrator fixes. The answers and what was done are in `orchestrator_decisions.md`; the current design is in `README.md`.
+
 # Orchestrator questionnaire
 
 Questions I need answered before fixing the problems of `docs/orchestrator_report.md`. Each one has the finding it belongs to, why I cannot decide it alone, the options, and what I would pick. Answer with the number and a letter (for example "1A, 2B") or write your own answer. If you have no preference, "your pick" is fine and I will use the recommended option.

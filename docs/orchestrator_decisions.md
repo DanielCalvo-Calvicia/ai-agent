@@ -1,3 +1,5 @@
+> **HISTORICAL (banner added 2026-10-01).** Decisions of 2026-09-21 (including the one real LLM run with `gemini-2.5-flash`). Paths and the single-flow design predate the flows split; the current design is in `README.md` and `CLAUDE.md`.
+
 # Orchestrator decisions
 
 Your answers to `docs/orchestrator_questionnaire.md`, how I read each one, and what is done. Written 2026-09-21. The priority you chose (Q21 A) is: make a simple case work correctly (findings A, B, C, D), then try it with a real LLM (Q19).

@@ -1,3 +1,5 @@
+> **HISTORICAL (banner added 2026-10-01).** This report was written on 2026-09-21 from the code before the refactor, the flows split and the folder reorganisation: file paths, the single pipeline and the listed prompt/schema mismatches describe that earlier state. For the current design read `README.md` and `CLAUDE.md`.
+
 # Orchestrator report
 
 What the agent's orchestrator does today, phase by phase: what each phase receives, what it must answer, and what the code does with the answer. Written from the code, the prompts (`prompts/advanced/`) and the JSON Schemas (`schema/response/advanced/`) as of 2026-09-21. No real LLM was called, so "expects" means what the prompt, schema and code say, not what a model was seen to do.
