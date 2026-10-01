@@ -7,7 +7,7 @@
             "-i",
             "--rm",
             "--mount",
-            "type=bind,source=D:/Hobbys/IA/LLM/downloads,target=/data",
+            "type=bind,source=${MCP_FILESYSTEM_DIR},target=/data",
             "ghcr.io/modelcontextprotocol/servers/filesystem:latest",
             "/data"
         ]

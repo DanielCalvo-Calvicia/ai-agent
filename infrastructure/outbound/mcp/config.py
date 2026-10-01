@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from typing import Any, Dict, List, Optional
 
 from shared_logging import get_logger
@@ -11,6 +12,22 @@ DEFAULT_MCPS_DIR = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'mc
 
 # Protocols the MCP client can talk to. Servers of other types are ignored.
 SUPPORTED_TYPES = ("sse",)
+
+_ENV_REFERENCE = re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*)\}")
+
+
+def expand_env(value: Any) -> Any:
+    """``${NAME}`` in every string of a config becomes that environment variable (one that is not set stays as written).
+
+    Lets a config file name a machine-specific path or URL without hardcoding it (``source=${MCP_FILESYSTEM_DIR}``).
+    """
+    if isinstance(value, str):
+        return _ENV_REFERENCE.sub(lambda match: os.environ.get(match.group(1), match.group(0)), value)
+    if isinstance(value, list):
+        return [expand_env(item) for item in value]
+    if isinstance(value, dict):
+        return {key: expand_env(item) for key, item in value.items()}
+    return value
 
 
 def load_supported_mcp_configs(mcps_dir: Optional[str] = None) -> List[Dict[str, Any]]:
@@ -44,7 +61,7 @@ def load_mcp_configs(mcps_dir: Optional[str] = None) -> List[Dict[str, Any]]:
             continue
         try:
             with open(os.path.join(mcps_dir, filename), 'r', encoding='utf-8') as f:
-                data = json.load(f)
+                data = expand_env(json.load(f))
             for server_name, config in data.items():
                 mcp_configs.append({
                     "name": server_name,
