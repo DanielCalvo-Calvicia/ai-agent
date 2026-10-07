@@ -15,9 +15,9 @@ from application.orchestration.state.motion_state import as_motion
 LLM = False                              # no model, no prompt, no schema
 PHASE_ID = 21
 STEP_NAME = "motion_validator"
-MAX_MOVEMENTS = 10                       # movements in one sequence
+MAX_MOVEMENTS = 20                       # movements in one sequence
 MAX_DEGREES_PER_MOVEMENT = 360.0         # one movement, in either sign
-MAX_TOTAL_ROTATION = 1440.0              # the sum of |degrees| of the whole sequence
+MAX_TOTAL_ROTATION = 3600.0              # the sum of |degrees| of the whole sequence
 NO_MOVEMENT_UNDERSTOOD = "I did not understand which movement you want. Which arm, and how many degrees?"
 TOO_MANY_MOVEMENTS = f"That is too many movements in one go. I can do up to {MAX_MOVEMENTS} at a time."
 UNKNOWN_ARM = f"I can only move my {' or '.join(ARMS)} arm."

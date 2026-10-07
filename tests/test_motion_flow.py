@@ -207,7 +207,7 @@ class TestValidator:
         ([M("left", -90.0, "reverse")], validator.CONTRADICTORY),
         ([M("left", 361.0, "forward")], validator.TOO_FAR),
         ([M("left", -361.0, "forward")], validator.TOO_FAR),
-        ([M("left", 360.0, "forward")] * 5, validator.TOO_MUCH_IN_TOTAL),
+        ([M("left", 360.0, "forward")] * 11, validator.TOO_MUCH_IN_TOTAL),
     ])
     def test_a_bad_sequence_is_refused_with_a_reason(self, movements, reason):
         assert validator.refusal_for(movements) == reason
