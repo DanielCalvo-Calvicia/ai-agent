@@ -1,0 +1,26 @@
+{
+  "mcp_context": {
+    "type": "object",
+    "required": [
+      "server_id",
+      "tool_name",
+      "parameters"
+    ],
+    "additionalProperties": false,
+    "description": "Specific MCP tool invocation context. Only meaningfully used when action_type is 'mcp_tool_call'. Otherwise should still be present but not used.",
+    "properties": {
+      "server_id": {
+        "type": "string",
+        "description": "Name of the MCP server that offers the tool. Empty string unless action_type is 'mcp_tool_call'. The allowed names are added to this schema for every request."
+      },
+      "tool_name": {
+        "type": "string",
+        "description": "Specific tool to invoke on the MCP server."
+      },
+      "parameters": {
+        "type": "object",
+        "description": "Arguments to pass to the MCP tool. Must be a complete object when used."
+      }
+    }
+  }
+}

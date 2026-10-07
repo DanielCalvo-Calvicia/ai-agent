@@ -13,7 +13,7 @@ from typing import Any, Dict, Sequence
 SCHEMAS_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', 'schema', 'response')
 
 # The actions schema file. Every phase that plans or processes actions names it in its own constants.
-ACTIONS_SCHEMA_FILE = "advanced/actions/actions.schema.json"
+ACTIONS_SCHEMA_FILE = "general/actions/actions.schema.json"
 
 
 @dataclass(frozen=True)
@@ -26,12 +26,12 @@ class SchemaRef:
 # name -> file, relative to SCHEMAS_ROOT. Each file is { "<name>": {...} }, except actions.
 # Only for code that looks a schema up by name. Each phase lists the files it uses in its own constants.
 _SCHEMA_FILES: Dict[str, str] = {
-    "intent": "advanced/intent/intent.schema.json",
-    "user_goal": "advanced/user_goal/user_goal.schema.json",
-    "task_category": "advanced/task_category/task_category.schema.json",
-    "complexity": "basic/task_category/task_category.complexity.schema.json",
-    "next_step": "advanced/next_steps/next_step.schema.json",
-    "safety_and_validation": "advanced/safety_and_validation/safety_and_validation.schema.json",
+    "intent": "general/intent/intent.schema.json",
+    "user_goal": "general/user_goal/user_goal.schema.json",
+    "task_category": "general/task_category/task_category.schema.json",
+    "complexity": "general/task_category/task_category.complexity.schema.json",
+    "next_step": "general/next_steps/next_step.schema.json",
+    "safety_and_validation": "general/safety_and_validation/safety_and_validation.schema.json",
     "actions": ACTIONS_SCHEMA_FILE,
 }
 

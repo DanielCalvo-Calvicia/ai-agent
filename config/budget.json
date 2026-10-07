@@ -1,5 +1,5 @@
 {
-  "_help": "The monthly budget the model choice must fit. Used by tests/manual/show_models.py --budget to write docs/models_per_step_budget.md.",
+  "_help": "The monthly budget the model choice must fit. Used by tests/manual/show_models.py --budget to write docs/models/models_per_step_budget.md.",
   "eur_per_month": 50,
   "messages_per_month": 1000,
   "usd_per_eur": 1.149,

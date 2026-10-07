@@ -1,0 +1,6 @@
+{
+  "server_id": {
+    "type": "string",
+    "description": "Name of the MCP server that offers the tool. Empty string unless action_type is 'mcp_tool_call'. The allowed names are added to this schema for every request."
+  }
+}

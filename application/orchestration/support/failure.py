@@ -26,6 +26,7 @@ PHASE_ACTIVITIES = {
     7: "writing the answer",
     8: "polishing the answer",
     9: "reading your answer",
+    20: "working out the movement",
     99: "writing a question for you",
 }
 
@@ -95,7 +96,7 @@ class AgentFailure(Exception):
         self.category = category if category in _EXPLANATIONS else "unknown"
         self.phase_id = phase_id
         self.cause = cause
-        super().__init__(f"{self.category} while {PHASE_ACTIVITIES.get(phase_id, 'working')}"
+        super().__init__(f"{self.category} while {PHASE_ACTIVITIES.get(phase_id, 'working') if phase_id is not None else 'working'}"
                          + (f": {type(cause).__name__}" if cause else ""))
 
     def apology(self) -> str:

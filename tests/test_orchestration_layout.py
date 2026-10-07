@@ -50,8 +50,9 @@ class TestLayout:
         assert _offenders(folder, ("flows",)) == []
 
     def test_the_engine_uses_only_the_shared_phases(self):
-        # phases.phase (the shape of a phase) and phases.common (triage, answer checker, clarification)
-        assert _offenders("engine", ("phases.conversation_flow", "phases.motion_flow")) == []
+        # phases.phase (the shape of a phase) and phases.common (answer checker, clarification, and the writer and
+        # editor the conversation and special flows share); never the phases of one particular flow
+        assert _offenders("engine", ("phases.identification", "phases.special", "phases.movement")) == []
 
     def test_state_depends_on_nothing_else_of_the_orchestration(self):
         assert _offenders("state", ("engine", "phases", "support")) == []

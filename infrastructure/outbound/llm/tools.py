@@ -54,6 +54,7 @@ def _wrap(config: VercelAIConfig, definition) -> Tool:
 
 
 def _handler_for(config: VercelAIConfig, name: str):
-    if config.tool_executor:
-        return lambda **kwargs: config.tool_executor.execute(name, kwargs)
+    executor = config.tool_executor
+    if executor:
+        return lambda **kwargs: executor.execute(name, kwargs)
     return lambda **kwargs: {"status": "success", "tool": name, "args": kwargs}

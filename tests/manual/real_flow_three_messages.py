@@ -88,7 +88,7 @@ class Recorder(LLMOutboundPort):
             self.calls.append((name, seconds, 0, str(e)))
             raise
         seconds = time.time() - started
-        tokens = response.tokens_usage.total_tokens if response.tokens_usage else 0
+        tokens = response.tokens_usage.total_tokens if response.tokens_usage else 0  # pyright: ignore[reportAttributeAccessIssue]
         print(f"    {name:<52} {Payload.model.id:<13} {seconds:5.1f}s  {tokens:>6} tokens")
         self.calls.append((name, seconds, tokens, ""))
         self._show(response)

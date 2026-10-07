@@ -32,8 +32,19 @@ if PROJECT_ROOT not in sys.path:
 from application.orchestration.state.flow_state import FlowState
 from application.orchestration.support.metrics import SessionMetrics
 from application.orchestration.engine.pipeline import Pipeline
-from application.orchestration.flows.conversation_flow import CONVERSATION_FLOW
-from domain.entities.response import Response
+from application.orchestration.engine.flow import Flow
+from application.orchestration.flows.identification import IDENTIFICATION_FLOW
+from application.orchestration.flows.special import SPECIAL_FLOW
+from domain.entities.llm_response.response import Response
+
+# The identification flow and the special flow as ONE flow, the way the whole text chain ran before the router split it
+# (triage, plan, check, execute, write, polish). The tools below trace and re-run its steps one by one; the router has its
+# own tests (test_router.py).
+FULL_FLOW = Flow(
+    name="full",
+    build_steps=lambda context: IDENTIFICATION_FLOW.build_steps(context) + SPECIAL_FLOW.build_steps(context),
+    build_result=SPECIAL_FLOW.build_result,
+)
 
 # Every field of FlowState that holds the result of a phase (the message and the history are inputs).
 STATE_FIELDS = [f.name for f in fields(FlowState) if f.name not in ("message", "history")]
@@ -155,9 +166,10 @@ class CallTrace:
     @property
     def thinking_tokens(self) -> Optional[int]:
         """Tokens the model thought before answering: total - sent - answered (Gemini counts them only in the total)."""
-        if None in (self.prompt_tokens, self.completion_tokens, self.total_tokens):
+        prompt, completion, total = self.prompt_tokens, self.completion_tokens, self.total_tokens
+        if prompt is None or completion is None or total is None:
             return None
-        return max(0, self.total_tokens - self.prompt_tokens - self.completion_tokens)
+        return max(0, total - prompt - completion)
 
     @property
     def filled(self) -> List[str]:
@@ -261,7 +273,7 @@ class _Recorder:
             return
         after = snapshot(self.state)
         self.modifications.append(Modification(len(self.modifications) + 1, self._pending.step,
-                                               self._pending, self._before, after))
+                                               self._pending, self._before or {}, after))
         self._before, self._pending = after, None
 
     def _call(self, payload, raw, text, plain, ignored, error=None, usage=None) -> CallTrace:
@@ -329,7 +341,7 @@ def trace_flow(
     If the flow fails, the trace up to the failure is kept, and the exception goes to `failures` (if given).
     """
     recorder = _Recorder(llm)
-    pipeline = Pipeline(recorder, mcp_list or [], SessionMetrics(), flow=CONVERSATION_FLOW)
+    pipeline = Pipeline(recorder, mcp_list or [], SessionMetrics(), flow=FULL_FLOW)  # pyright: ignore[reportArgumentType]
     traces: List[StepTrace] = []
     previous = {name: None for name in STATE_FIELDS}
     seen = {"calls": 0}
@@ -567,7 +579,7 @@ def trace_to_markdown(message: str, llm, out_dir: str, mcp_list: Optional[list] 
 
 def step_names(mcp_list: Optional[list] = None) -> List[str]:
     """The names of the steps of the real pipeline."""
-    return [step.name for step in Pipeline(_Recorder(None), mcp_list or [], SessionMetrics(), flow=CONVERSATION_FLOW).steps]
+    return [step.name for step in Pipeline(_Recorder(None), mcp_list or [], SessionMetrics(), flow=FULL_FLOW).steps]  # pyright: ignore[reportArgumentType]
 
 
 def save_step_inputs(traces: List[StepTrace], out_dir: str) -> List[str]:
@@ -601,7 +613,7 @@ def trace_step(step_name: str, state: FlowState, llm, mcp_list: Optional[list] =
     Returns (modifications, state after the step, whether the step leaves the flow waiting for the user).
     """
     recorder = _Recorder(llm)
-    pipeline = Pipeline(recorder, mcp_list or [], SessionMetrics(), flow=CONVERSATION_FLOW)
+    pipeline = Pipeline(recorder, mcp_list or [], SessionMetrics(), flow=FULL_FLOW)  # pyright: ignore[reportArgumentType]
     step = next((s for s in pipeline.steps if s.name == step_name), None)
     if step is None:
         raise KeyError(f"unknown step {step_name!r}; the steps are: {', '.join(s.name for s in pipeline.steps)}")
@@ -714,8 +726,8 @@ def run_with_stops(
     if unknown:
         raise ValueError(f"unknown stop points {sorted(unknown)}; use {STOP_POINTS}")
 
-    pipeline = Pipeline(llm, mcp_list or [], SessionMetrics(), flow=CONVERSATION_FLOW)
-    current = {"step": None, "state": None}
+    pipeline = Pipeline(llm, mcp_list or [], SessionMetrics(), flow=FULL_FLOW)
+    current: Dict[str, Any] = {"step": None, "state": None}
 
     def selected() -> bool:
         return steps is None or current["step"] in steps

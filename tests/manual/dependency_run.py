@@ -116,7 +116,7 @@ class ScriptedPlanner(LLMOutboundPort):
     def is_available(self) -> bool:
         return self.inner.is_available()
 
-    def ask(self, payload):
+    def ask(self, payload):  # pyright: ignore[reportIncompatibleMethodOverride]
         name = payload.response_format.name if payload.response_format else ""
         if name == PLANNER_FORMAT:
             return build_response(plan_json(), {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0})

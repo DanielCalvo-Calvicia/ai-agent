@@ -1,3 +1,4 @@
+# pyright: reportOptionalMemberAccess=false, reportIncompatibleMethodOverride=false
 """Independent actions can run at the same time (AI_AGENT_PARALLEL_ACTIONS) without changing what the plan produces."""
 import os
 import sys
@@ -12,8 +13,8 @@ if PROJECT_ROOT not in sys.path:
 
 from application.orchestration.support.metrics import SessionMetrics
 from application.orchestration.engine.pipeline import Pipeline
-from application.orchestration.flows.conversation_flow import CONVERSATION_FLOW
 from application.outbound.ports.usage_ports import UsageReporterPort
+from flow_trace import FULL_FLOW
 from test_flow_golden import ScriptedLLM, _ACTION_ID, _action, _plan
 
 DELAY = 0.15
@@ -65,7 +66,7 @@ def run(monkeypatch, parallel, reporter=None):
     llm, metrics = Slow(), SessionMetrics(reporter)
     started = time.time()
     result = Pipeline(llm, [{"name": "aws_microservice", "type": "sse", "config": {"type": "sse", "url": "http://x"}}],
-                      metrics, flow=CONVERSATION_FLOW).run("do it")
+                      metrics, flow=FULL_FLOW).run("do it")
     return llm, metrics, result, time.time() - started
 
 

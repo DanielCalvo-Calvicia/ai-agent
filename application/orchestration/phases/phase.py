@@ -8,8 +8,8 @@ from dataclasses import dataclass
 from typing import Any, Callable, Dict, Optional, Tuple
 
 from application.orchestration.state.flow_state import FlowState
-from domain.entities.response import Response
-from domain.value_objects.model import GithubModels
+from domain.entities.llm_response.response import Response
+from domain.value_objects.llm_request.model import GithubModels
 
 # Values a phase feeds to the LLM as its user message. A str is sent as is,
 # a dict is sent as str(dict) (the format the prompts were written against).

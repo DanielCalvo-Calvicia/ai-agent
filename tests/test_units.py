@@ -1,3 +1,4 @@
+# pyright: reportOptionalMemberAccess=false, reportOptionalSubscript=false, reportOptionalIterable=false, reportGeneralTypeIssues=false, reportArgumentType=false, reportAttributeAccessIssue=false
 """Unit tests of the small modules: response mapper, schemas, provider routes, action tree, user session."""
 import os
 import sys
@@ -15,15 +16,15 @@ from application.orchestration.support.action_tree import (
     subactions_of,
 )
 from application.orchestration.support.mcp_servers import describe_servers
-from application.orchestration.phases.conversation_flow.cognitive_worker import COGNITIVE_WORKER
-from application.orchestration.phases.conversation_flow.project_manager import make_project_manager
+from application.orchestration.phases.special.cognitive_worker import COGNITIVE_WORKER
+from application.orchestration.phases.special.project_manager import make_project_manager
 from application.orchestration.support.schemas import actions_schema, load_schema, object_schema, property_schema
 from application.outbound.ports.mcp_ports import McpToolsPort
 from application.service.user_session import UserSession
-from domain.entities.action import create_action
-from domain.value_objects.message import Role
-from domain.value_objects.tool import ToolDefinition
-from domain.value_objects.model import GithubModels, get_selected_model
+from domain.entities.llm_response.action import create_action
+from domain.value_objects.llm_request.message import Role
+from domain.value_objects.llm_request.tool import ToolDefinition
+from domain.value_objects.llm_request.model import GithubModels, get_selected_model
 from infrastructure.outbound.llm.config import VercelAIConfig
 from infrastructure.outbound.llm.provider_models import resolve_provider_model
 from infrastructure.outbound.llm.response_mapper import build_response
@@ -85,6 +86,29 @@ class TestResponseMapper:
     def test_empty_missing_information_is_ignored(self):
         assert build_response({"missing_information": {}}, USAGE).missing_information is None
         assert build_response({"missing_information": None}, USAGE).missing_information is None
+
+    def test_missing_information_is_a_list_with_one_entry_per_item(self):
+        response = build_response({"missing_information": [
+            {"field": "arm", "why_needed": "which arm moves", "blocking": True},
+            {"field": "degrees", "why_needed": "how far", "blocking": False}]}, USAGE)
+        assert [m.get_field() for m in response.missing_information] == ["arm", "degrees"]
+        assert response.missing_information[0].get_blocking() is True
+        assert response.missing_information[1].get_why_needed() == "how far"
+
+    def test_a_single_missing_information_object_is_a_list_of_one(self):
+        response = build_response({"missing_information": {"field": "f", "why_needed": "w", "blocking": True}}, USAGE)
+        assert [m.get_field() for m in response.missing_information] == ["f"]
+
+    def test_an_empty_missing_information_list_is_ignored(self):
+        assert build_response({"missing_information": []}, USAGE).missing_information is None
+
+    def test_next_step_keeps_the_retry_action_id(self):
+        step = {"ready_to_execute": False, "status": "retry", "recommended_action": "retry", "retry_action_id": "a2"}
+        assert build_response({"next_step": step}, USAGE).next_step.retry_action_id.get_value() == "a2"
+
+    def test_next_step_without_a_retry_action_id_has_none(self):
+        step = {"ready_to_execute": True, "status": "proceed", "recommended_action": "go"}
+        assert build_response({"next_step": step}, USAGE).next_step.retry_action_id is None
 
     def test_missing_token_counts_are_an_error(self):
         with pytest.raises(KeyError):
@@ -354,7 +378,7 @@ class TestObjectSchema:
         assert schema["required"] == ["intent"]
 
     def test_the_planner_and_the_action_calls_send_valid_references(self):
-        from domain.entities.payload import Payload
+        from domain.entities.llm_request.payload import Payload
         from infrastructure.outbound.llm.response_mapper import build_response
         sent = []
 

@@ -1,6 +1,0 @@
-{
-    "description": {
-        "type": "string",
-        "description": "Human-readable explanation of what this action accomplishes"
-    }
-}

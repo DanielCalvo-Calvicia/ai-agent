@@ -10,11 +10,11 @@ from application.orchestration.state.flow_state import FlowState
 from application.orchestration.support.model_selection import model_for_phase
 from application.orchestration.engine.phase_runner import PhaseRunner
 from application.orchestration.phases.common import user_clarification as phase
-from domain.entities.payload import Payload
-from domain.value_objects.intent.intent import create_intent
-from domain.value_objects.max_tokens import create_max_tokens
-from domain.value_objects.message import Role, create_message
-from domain.value_objects.temperature import create_temperature
+from domain.entities.llm_request.payload import Payload
+from domain.value_objects.llm_response.intent.intent import create_intent
+from domain.value_objects.llm_request.max_tokens import create_max_tokens
+from domain.value_objects.llm_request.message import Role, create_message
+from domain.value_objects.llm_request.temperature import create_temperature
 
 
 class Clarifier:

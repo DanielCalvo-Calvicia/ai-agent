@@ -4,21 +4,20 @@
 #  user message travels through the pipeline.
 # ===============================================
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from typing import List, Optional, Tuple
 
-from domain.entities.action import Action
-from domain.entities.response import Response
-from domain.value_objects.constraints.constraints import Constraints
-from domain.value_objects.intent.intent import Intent
-from domain.value_objects.mcp_routing.mcp_routing import MCPRouting
-from domain.value_objects.message import Message
-from domain.value_objects.missing_information.missing_information import MissingInformation
-from domain.value_objects.motion.robot_context import RobotContext
-from domain.value_objects.next_step.next_step import NextStep, create_next_step
-from domain.value_objects.safety_and_validation.safety_and_validation import SafetyAndValidation, create_safety_and_validation
-from domain.value_objects.task_category.task_category import TaskCategory
-from domain.value_objects.user_goal.user_goal import UserGoal
+from domain.entities.llm_response.action import Action
+from domain.entities.llm_response.response import Response
+from domain.value_objects.llm_response.constraints.constraints import Constraints
+from domain.value_objects.llm_response.intent.intent import Intent
+from domain.value_objects.llm_response.mcp_routing.mcp_routing import MCPRouting
+from domain.value_objects.llm_request.message import Message
+from domain.value_objects.llm_response.missing_information.missing_information import MissingInformation
+from domain.value_objects.llm_response.next_step.next_step import NextStep, create_next_step
+from domain.value_objects.llm_response.safety_and_validation.safety_and_validation import SafetyAndValidation, create_safety_and_validation
+from domain.value_objects.llm_response.task_category.task_category import TaskCategory
+from domain.value_objects.llm_response.user_goal.user_goal import UserGoal
 
 
 @dataclass
@@ -29,7 +28,7 @@ class FlowState:
     mcp_routing: Optional[MCPRouting] = None
     task_category: Optional[TaskCategory] = None
     actions: Optional[List[Action]] = None
-    missing_information: Optional[MissingInformation] = None
+    missing_information: Optional[List[MissingInformation]] = None
     constraints: Optional[Constraints] = None
     safety_and_validation: Optional[SafetyAndValidation] = None
     next_step: Optional[NextStep] = None
@@ -37,8 +36,11 @@ class FlowState:
     history: List[Message] = field(default_factory=list)
     # What the user said when the flow stopped to ask: (question, answer), oldest first.
     answers: List[Tuple[str, str]] = field(default_factory=list)
-    # What motion-flow decided for this message, when Brain sent it along. The reply only says what the robot does.
-    robot_context: Optional[RobotContext] = None
+
+    def take_over(self, other: "FlowState") -> None:
+        """Starts from what an earlier flow found out (the identification flow's triage), every shared field."""
+        for shared in fields(FlowState):
+            setattr(self, shared.name, getattr(other, shared.name))
 
     def history_as_dicts(self) -> List[dict]:
         return [{"role": m.role.value, "content": m.content} for m in self.history]

@@ -15,12 +15,12 @@ from typing import Any, Dict, Optional, Tuple
 
 from application.orchestration.support.metrics import ALL_PHASE_NAMES, PHASE_NAMES
 from application.orchestration.phases.catalog import PHASES
-from domain.value_objects.model import GithubModels, SelectedModel, get_selected_model
+from domain.value_objects.llm_request.model import GithubModels, SelectedModel, get_selected_model
 
 MODELS_FILE_VARIABLE = "AI_AGENT_MODELS_FILE"
 DEFAULT_MODELS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', 'config', 'step_models.json')
 
-# The conversation-flow steps: what the cost, budget and ratings tables cover. A step of another flow
+# The steps of the text flows (identification, conversation, special): what the cost, budget and ratings tables cover. A step of the movement flow
 # (motion_planner) can be set in `steps` and in a profile too; it is only left out of those tables.
 STEP_NAMES = list(PHASE_NAMES.values())
 ALL_STEP_NAMES = list(ALL_PHASE_NAMES.values())
@@ -42,7 +42,7 @@ def _as_selected(model_id: str, where: str) -> SelectedModel:
     try:
         return get_selected_model(model_id)
     except (ValueError, TypeError):
-        raise ValueError(f"{where}: {model_id!r} is not a model of the catalog (domain/value_objects/model_catalog.py)")
+        raise ValueError(f"{where}: {model_id!r} is not a model of the catalog (domain/value_objects/llm_request/model_catalog.py)")
 
 
 def load_config() -> dict:
@@ -76,15 +76,17 @@ def _check(config: dict, path: str) -> None:
     steps = config.get("steps") or {}
     check_step_names(steps, "`steps`")
     for name, model in steps.items():
-        if not name.startswith("_") and _model(model):
-            _as_selected(_model(model), f"{path}: steps.{name}")
+        chosen = _model(model)
+        if not name.startswith("_") and chosen:
+            _as_selected(chosen, f"{path}: steps.{name}")
 
     profiles = config.get("profiles") or {}
     for profile_name, profile in profiles.items():
         check_step_names(profile, f"profile {profile_name!r}")
         for name, model in profile.items():
-            if not name.startswith("_") and _model(model):
-                _as_selected(_model(model), f"{path}: profiles.{profile_name}.{name}")
+            chosen = _model(model)
+            if not name.startswith("_") and chosen:
+                _as_selected(chosen, f"{path}: profiles.{profile_name}.{name}")
 
     active = _model(config.get("profile"))
     if active and active not in profiles:

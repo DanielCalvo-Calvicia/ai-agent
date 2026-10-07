@@ -1,6 +1,0 @@
-{
-    "id": {
-        "type": "string",
-        "description": "Stable unique identifier for this action, used for dependency resolution and retries"
-    }
-}

@@ -3,7 +3,7 @@ Estimates what one message costs, per step, for a plan of a given size.
 
     windows/Scripts/python.exe tests/manual/estimate_cost.py                       5 actions x 5 subactions, 5 tool actions
     windows/Scripts/python.exe tests/manual/estimate_cost.py --actions=3 --subactions=2 --tools=0
-    windows/Scripts/python.exe tests/manual/estimate_cost.py --write               save docs/cost_of_a_full_plan.md
+    windows/Scripts/python.exe tests/manual/estimate_cost.py --write               save docs/models/cost_of_a_full_plan.md
 
 Only the default size is saved by --write. The model per step comes from the table of the strongest models
 (config/gemini_models.json), and from gemini-3.1-pro-preview on every step, and from gemini-2.5-flash for comparison.
@@ -20,7 +20,7 @@ os.chdir(ROOT)
 from cost_estimate import markdown
 from model_table import load_models
 
-DOC_PATH = os.path.join(ROOT, "docs", "cost_of_a_full_plan.md")
+DOC_PATH = os.path.join(ROOT, "docs", "models", "cost_of_a_full_plan.md")
 
 
 def option(argv, name, default):

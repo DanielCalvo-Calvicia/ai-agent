@@ -22,8 +22,7 @@ from application.orchestration.phases.phase import Step
 from application.orchestration.engine.phase_runner import PhaseRunner
 from application.outbound.ports.llm_ports import LLMOutboundPort
 from application.outbound.ports.mcp_ports import McpToolsPort
-from domain.value_objects.message import Message
-from domain.value_objects.motion.robot_context import RobotContext
+from domain.value_objects.llm_request.message import Message
 from shared_logging import get_logger
 
 logger = get_logger(__name__)
@@ -53,18 +52,18 @@ class Pipeline:
         message: str,
         history: Optional[List[Message]] = None,
         paused: Optional[PausedRun] = None,
-        robot_context: Optional[RobotContext] = None,
+        state: Optional[FlowState] = None,
     ) -> FlowResult:
         """
         A new message runs through every step. When a run is waiting for the user, the message
-        is treated as the reply to its question instead. `robot_context` is what motion-flow decided
-        for this message (conversation-flow only).
+        is treated as the reply to its question instead. `state` is a state prepared by the caller (the router
+        hands over what the identification flow found out); without it the flow starts a fresh one.
         """
         if paused is not None:
-            return self._resume(paused, message, list(history or []), robot_context)
+            return self._resume(paused, message, list(history or []))
 
-        state = self.flow.new_state(message, list(history or []))
-        state.robot_context = robot_context
+        if state is None:
+            state = self.flow.new_state(message, list(history or []))
         return self._run_from(0, state)
 
     # -----------------------------------------------
@@ -80,10 +79,11 @@ class Pipeline:
             if step.pause_if and step.pause_if(state):
                 kind = CONFIRMATION if state.needs_confirmation() else INPUT
                 question = self.clarifier.ask(state)
-                return FlowResult(
+                return self._tag(FlowResult(
                     reply=question,
-                    paused=PausedRun(state, index, kind, question, self.clarifier.required_inputs(state)),
-                )
+                    paused=PausedRun(state, index, kind, question, self.clarifier.required_inputs(state),
+                                     flow=self.flow.name),
+                ), state)
 
             jump_to = self.flow.jump_after(step, state) if self.flow.jump_after else None
             if jump_to is not None:
@@ -92,7 +92,13 @@ class Pipeline:
 
             index += 1
 
-        return self.flow.build_result(state)
+        return self._tag(self.flow.build_result(state), state)
+
+    def _tag(self, result: FlowResult, state: FlowState) -> FlowResult:
+        """Says which flow produced the result and with which state."""
+        result.flow = self.flow.name
+        result.state = state
+        return result
 
     def _index_of(self, step_name: str) -> int:
         return next(i for i, step in enumerate(self.steps) if step.name == step_name)
@@ -101,16 +107,14 @@ class Pipeline:
     #  RESUME
     # -----------------------------------------------
 
-    def _resume(self, paused: PausedRun, message: str, history: List[Message],
-                robot_context: Optional[RobotContext] = None) -> FlowResult:
+    def _resume(self, paused: PausedRun, message: str, history: List[Message]) -> FlowResult:
         check = self.answer_checker.check(paused, message)
-        paused.state.robot_context = robot_context
 
         if check.verdict == STOP:
-            return FlowResult(STOPPED_TEXT)
+            return self._tag(FlowResult(STOPPED_TEXT, ended_early=True), paused.state)
 
         if check.verdict == DECLINED:
-            return FlowResult(DECLINED_TEXT)
+            return self._tag(FlowResult(DECLINED_TEXT, ended_early=True), paused.state)
 
         if check.verdict == ANSWERED:
             state = paused.state
@@ -124,7 +128,7 @@ class Pipeline:
             state.confirm()
             return self._run_from(paused.step_index + 1, state)         # the plan was accepted: go on after the safety gate
 
-        return FlowResult(check.message, paused)                        # not an answer: ask again, keep waiting
+        return self._tag(FlowResult(check.message, paused), paused.state)   # not an answer: ask again, keep waiting
 
     @staticmethod
     def _run_step(step: Step, state: FlowState) -> None:

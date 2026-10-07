@@ -12,8 +12,8 @@ from ai_sdk import generate_text
 from ai_sdk.types import CoreSystemMessage, CoreUserMessage
 
 from application.outbound.ports.llm_ports import LLMOutboundPort
-from domain.entities.payload import Payload
-from domain.entities.response import Response
+from domain.entities.llm_request.payload import Payload
+from domain.entities.llm_response.response import Response
 from infrastructure.outbound.llm.config import VercelAIConfig
 from infrastructure.outbound.llm.provider_models import create_model
 from infrastructure.outbound.llm.response_mapper import build_response

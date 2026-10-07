@@ -1,0 +1,6 @@
+{
+  "is_motion_request": {
+    "type": "boolean",
+    "description": "True when the user asked the robot to move an arm, even if a detail is still missing"
+  }
+}

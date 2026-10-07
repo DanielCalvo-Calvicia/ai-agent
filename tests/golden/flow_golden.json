@@ -7,10 +7,10 @@
         "max_tokens": 10000,
         "model": "gpt-4.1-mini",
         "reasoning": "None",
-        "schema_sha": "d60114adf287fa1d4d00bf0c1b475dc80f589b725304bd96fff596872a5cb243",
+        "schema_sha": "d6b3ecff99bbab3abfc35d5a58ccef96e90a296bab320f00520283454bafb161",
         "seed": null,
-        "system_prompt_len": 4685,
-        "system_prompt_sha": "b54030469cf80b333b609642decd04b488fec430c919242ba5084c4f8ff9ada4",
+        "system_prompt_len": 5567,
+        "system_prompt_sha": "3037a179f8579e61518133f734bea03b98a3b97466bdbfc60d51aeff8bb5be48",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -114,8 +114,8 @@
         "reasoning": "None",
         "schema_sha": "bbe08f1c92d789b4ce521e7fc8786fd56a525623386354344d4ebdfc612eebc9",
         "seed": null,
-        "system_prompt_len": 3704,
-        "system_prompt_sha": "fcb1dafcd9036e5bd3690213880cb36bc80702e3c579b5d0ec72e96624daaeca",
+        "system_prompt_len": 2882,
+        "system_prompt_sha": "8f9ed2e14a1eaef888148ba541a2230f28d23ae9604819ec62b92cf91858980e",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -292,6 +292,131 @@
     },
     "reply": "final answer"
   },
+  "communication_goes_to_the_conversation_flow": {
+    "calls": [
+      {
+        "format": "triage_specialist_phase1_response_format",
+        "intent": "Intent(primary='clarification_request', secondary=('information_request',), confidence=1.0)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1-mini",
+        "reasoning": "None",
+        "schema_sha": "d6b3ecff99bbab3abfc35d5a58ccef96e90a296bab320f00520283454bafb161",
+        "seed": null,
+        "system_prompt_len": 5567,
+        "system_prompt_sha": "3037a179f8579e61518133f734bea03b98a3b97466bdbfc60d51aeff8bb5be48",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "hello there"
+      },
+      {
+        "format": "draft_writer_phase7_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "bbe08f1c92d789b4ce521e7fc8786fd56a525623386354344d4ebdfc612eebc9",
+        "seed": null,
+        "system_prompt_len": 2882,
+        "system_prompt_sha": "8f9ed2e14a1eaef888148ba541a2230f28d23ae9604819ec62b92cf91858980e",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.COMUNICATION: 'communication'>), type=Type(value=<Types.GENERATION: 'generation'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'actions': None, 'constraints': None}"
+      },
+      {
+        "format": "editor_in_chief_phase8_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "5cb5aad982bc0d9e94c099fa2ec75d6b1d4340a7fa8c7881ad499298b95daccb",
+        "seed": null,
+        "system_prompt_len": 3362,
+        "system_prompt_sha": "c6325a4919439f9b3eabbf91382dec831a152507fb8a5bdd221c2bda4f2ec504",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_goal': UserGoal(summary=Summary(value='s'), expected_outcome=ExpectedOutcome(value='draft answer')), 'constraints': None, 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=None, blocking_reason=None, requested_user_input=None)}"
+      }
+    ],
+    "metrics": {
+      "by_model": {
+        "gpt-4.1": {
+          "completion": 10,
+          "prompt": 20,
+          "requests": 2,
+          "total": 30
+        },
+        "gpt-4.1-mini": {
+          "completion": 5,
+          "prompt": 10,
+          "requests": 1,
+          "total": 15
+        }
+      },
+      "by_phase": {
+        "draft_writer": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "editor_in_chief": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "triage_specialist": {
+          "gpt-4.1-mini": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        }
+      },
+      "request_log": [
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1-mini",
+          "phase_id": 1,
+          "phase_name": "triage_specialist",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 7,
+          "phase_name": "draft_writer",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 8,
+          "phase_name": "editor_in_chief",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        }
+      ],
+      "total_completion_tokens": 15,
+      "total_prompt_tokens": 30,
+      "total_requests": 3,
+      "total_tokens": 45
+    },
+    "reply": "final answer"
+  },
   "full_path_with_mcp": {
     "calls": [
       {
@@ -300,10 +425,10 @@
         "max_tokens": 10000,
         "model": "gpt-4.1-mini",
         "reasoning": "None",
-        "schema_sha": "d60114adf287fa1d4d00bf0c1b475dc80f589b725304bd96fff596872a5cb243",
+        "schema_sha": "d6b3ecff99bbab3abfc35d5a58ccef96e90a296bab320f00520283454bafb161",
         "seed": null,
-        "system_prompt_len": 4685,
-        "system_prompt_sha": "b54030469cf80b333b609642decd04b488fec430c919242ba5084c4f8ff9ada4",
+        "system_prompt_len": 5567,
+        "system_prompt_sha": "3037a179f8579e61518133f734bea03b98a3b97466bdbfc60d51aeff8bb5be48",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -392,8 +517,8 @@
         "reasoning": "None",
         "schema_sha": "bbe08f1c92d789b4ce521e7fc8786fd56a525623386354344d4ebdfc612eebc9",
         "seed": null,
-        "system_prompt_len": 3704,
-        "system_prompt_sha": "fcb1dafcd9036e5bd3690213880cb36bc80702e3c579b5d0ec72e96624daaeca",
+        "system_prompt_len": 2882,
+        "system_prompt_sha": "8f9ed2e14a1eaef888148ba541a2230f28d23ae9604819ec62b92cf91858980e",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -585,10 +710,10 @@
         "max_tokens": 10000,
         "model": "gpt-4.1-mini",
         "reasoning": "None",
-        "schema_sha": "d60114adf287fa1d4d00bf0c1b475dc80f589b725304bd96fff596872a5cb243",
+        "schema_sha": "d6b3ecff99bbab3abfc35d5a58ccef96e90a296bab320f00520283454bafb161",
         "seed": null,
-        "system_prompt_len": 4685,
-        "system_prompt_sha": "b54030469cf80b333b609642decd04b488fec430c919242ba5084c4f8ff9ada4",
+        "system_prompt_len": 5567,
+        "system_prompt_sha": "3037a179f8579e61518133f734bea03b98a3b97466bdbfc60d51aeff8bb5be48",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -647,8 +772,8 @@
         "reasoning": "None",
         "schema_sha": "bbe08f1c92d789b4ce521e7fc8786fd56a525623386354344d4ebdfc612eebc9",
         "seed": null,
-        "system_prompt_len": 3704,
-        "system_prompt_sha": "fcb1dafcd9036e5bd3690213880cb36bc80702e3c579b5d0ec72e96624daaeca",
+        "system_prompt_len": 2882,
+        "system_prompt_sha": "8f9ed2e14a1eaef888148ba541a2230f28d23ae9604819ec62b92cf91858980e",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -806,10 +931,10 @@
         "max_tokens": 10000,
         "model": "gpt-4.1-mini",
         "reasoning": "None",
-        "schema_sha": "d60114adf287fa1d4d00bf0c1b475dc80f589b725304bd96fff596872a5cb243",
+        "schema_sha": "d6b3ecff99bbab3abfc35d5a58ccef96e90a296bab320f00520283454bafb161",
         "seed": null,
-        "system_prompt_len": 4685,
-        "system_prompt_sha": "b54030469cf80b333b609642decd04b488fec430c919242ba5084c4f8ff9ada4",
+        "system_prompt_len": 5567,
+        "system_prompt_sha": "3037a179f8579e61518133f734bea03b98a3b97466bdbfc60d51aeff8bb5be48",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -898,8 +1023,8 @@
         "reasoning": "None",
         "schema_sha": "bbe08f1c92d789b4ce521e7fc8786fd56a525623386354344d4ebdfc612eebc9",
         "seed": null,
-        "system_prompt_len": 3704,
-        "system_prompt_sha": "fcb1dafcd9036e5bd3690213880cb36bc80702e3c579b5d0ec72e96624daaeca",
+        "system_prompt_len": 2882,
+        "system_prompt_sha": "8f9ed2e14a1eaef888148ba541a2230f28d23ae9604819ec62b92cf91858980e",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -1091,10 +1216,10 @@
         "max_tokens": 10000,
         "model": "gpt-4.1-mini",
         "reasoning": "None",
-        "schema_sha": "d60114adf287fa1d4d00bf0c1b475dc80f589b725304bd96fff596872a5cb243",
+        "schema_sha": "d6b3ecff99bbab3abfc35d5a58ccef96e90a296bab320f00520283454bafb161",
         "seed": null,
-        "system_prompt_len": 4685,
-        "system_prompt_sha": "b54030469cf80b333b609642decd04b488fec430c919242ba5084c4f8ff9ada4",
+        "system_prompt_len": 5567,
+        "system_prompt_sha": "3037a179f8579e61518133f734bea03b98a3b97466bdbfc60d51aeff8bb5be48",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -1198,8 +1323,8 @@
         "reasoning": "None",
         "schema_sha": "bbe08f1c92d789b4ce521e7fc8786fd56a525623386354344d4ebdfc612eebc9",
         "seed": null,
-        "system_prompt_len": 3704,
-        "system_prompt_sha": "fcb1dafcd9036e5bd3690213880cb36bc80702e3c579b5d0ec72e96624daaeca",
+        "system_prompt_len": 2882,
+        "system_prompt_sha": "8f9ed2e14a1eaef888148ba541a2230f28d23ae9604819ec62b92cf91858980e",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -1384,6 +1509,192 @@
     },
     "reply": "final answer"
   },
+  "movement_goes_to_the_movement_flow_and_is_announced": {
+    "calls": [
+      {
+        "format": "triage_specialist_phase1_response_format",
+        "intent": "Intent(primary='clarification_request', secondary=('information_request',), confidence=1.0)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1-mini",
+        "reasoning": "None",
+        "schema_sha": "d6b3ecff99bbab3abfc35d5a58ccef96e90a296bab320f00520283454bafb161",
+        "seed": null,
+        "system_prompt_len": 5567,
+        "system_prompt_sha": "3037a179f8579e61518133f734bea03b98a3b97466bdbfc60d51aeff8bb5be48",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "raise your left arm a quarter turn"
+      },
+      {
+        "format": "motion_planner_phase20_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "44d4859dcb6742b134af4eabe11eee8ad41252ba90aaf877c9cc15873556b34b",
+        "seed": null,
+        "system_prompt_len": 5237,
+        "system_prompt_sha": "e378db5d51d7054e668d4375ecd7393ab8f097a3f02bfcd97927216626e63191",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "raise your left arm a quarter turn"
+      }
+    ],
+    "metrics": {
+      "by_model": {
+        "gpt-4.1": {
+          "completion": 5,
+          "prompt": 10,
+          "requests": 1,
+          "total": 15
+        },
+        "gpt-4.1-mini": {
+          "completion": 5,
+          "prompt": 10,
+          "requests": 1,
+          "total": 15
+        }
+      },
+      "by_phase": {
+        "motion_planner": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "triage_specialist": {
+          "gpt-4.1-mini": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        }
+      },
+      "request_log": [
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1-mini",
+          "phase_id": 1,
+          "phase_name": "triage_specialist",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 20,
+          "phase_name": "motion_planner",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        }
+      ],
+      "total_completion_tokens": 10,
+      "total_prompt_tokens": 20,
+      "total_requests": 2,
+      "total_tokens": 30
+    },
+    "reply": "Turning my left arm 90 degrees."
+  },
+  "movement_that_brain_does_not_want_spoken": {
+    "calls": [
+      {
+        "format": "triage_specialist_phase1_response_format",
+        "intent": "Intent(primary='clarification_request', secondary=('information_request',), confidence=1.0)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1-mini",
+        "reasoning": "None",
+        "schema_sha": "d6b3ecff99bbab3abfc35d5a58ccef96e90a296bab320f00520283454bafb161",
+        "seed": null,
+        "system_prompt_len": 5567,
+        "system_prompt_sha": "3037a179f8579e61518133f734bea03b98a3b97466bdbfc60d51aeff8bb5be48",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "raise your left arm a quarter turn"
+      },
+      {
+        "format": "motion_planner_phase20_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gpt-4.1",
+        "reasoning": "None",
+        "schema_sha": "44d4859dcb6742b134af4eabe11eee8ad41252ba90aaf877c9cc15873556b34b",
+        "seed": null,
+        "system_prompt_len": 5237,
+        "system_prompt_sha": "e378db5d51d7054e668d4375ecd7393ab8f097a3f02bfcd97927216626e63191",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "raise your left arm a quarter turn"
+      }
+    ],
+    "metrics": {
+      "by_model": {
+        "gpt-4.1": {
+          "completion": 5,
+          "prompt": 10,
+          "requests": 1,
+          "total": 15
+        },
+        "gpt-4.1-mini": {
+          "completion": 5,
+          "prompt": 10,
+          "requests": 1,
+          "total": 15
+        }
+      },
+      "by_phase": {
+        "motion_planner": {
+          "gpt-4.1": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "triage_specialist": {
+          "gpt-4.1-mini": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        }
+      },
+      "request_log": [
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1-mini",
+          "phase_id": 1,
+          "phase_name": "triage_specialist",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gpt-4.1",
+          "phase_id": 20,
+          "phase_name": "motion_planner",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        }
+      ],
+      "total_completion_tokens": 10,
+      "total_prompt_tokens": 20,
+      "total_requests": 2,
+      "total_tokens": 30
+    },
+    "reply": ""
+  },
   "no_actions": {
     "calls": [
       {
@@ -1392,10 +1703,10 @@
         "max_tokens": 10000,
         "model": "gpt-4.1-mini",
         "reasoning": "None",
-        "schema_sha": "d60114adf287fa1d4d00bf0c1b475dc80f589b725304bd96fff596872a5cb243",
+        "schema_sha": "d6b3ecff99bbab3abfc35d5a58ccef96e90a296bab320f00520283454bafb161",
         "seed": null,
-        "system_prompt_len": 4685,
-        "system_prompt_sha": "b54030469cf80b333b609642decd04b488fec430c919242ba5084c4f8ff9ada4",
+        "system_prompt_len": 5567,
+        "system_prompt_sha": "3037a179f8579e61518133f734bea03b98a3b97466bdbfc60d51aeff8bb5be48",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -1439,8 +1750,8 @@
         "reasoning": "None",
         "schema_sha": "bbe08f1c92d789b4ce521e7fc8786fd56a525623386354344d4ebdfc612eebc9",
         "seed": null,
-        "system_prompt_len": 3704,
-        "system_prompt_sha": "fcb1dafcd9036e5bd3690213880cb36bc80702e3c579b5d0ec72e96624daaeca",
+        "system_prompt_len": 2882,
+        "system_prompt_sha": "8f9ed2e14a1eaef888148ba541a2230f28d23ae9604819ec62b92cf91858980e",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -1581,10 +1892,10 @@
         "max_tokens": 10000,
         "model": "gpt-4.1-mini",
         "reasoning": "None",
-        "schema_sha": "d60114adf287fa1d4d00bf0c1b475dc80f589b725304bd96fff596872a5cb243",
+        "schema_sha": "d6b3ecff99bbab3abfc35d5a58ccef96e90a296bab320f00520283454bafb161",
         "seed": null,
-        "system_prompt_len": 4685,
-        "system_prompt_sha": "b54030469cf80b333b609642decd04b488fec430c919242ba5084c4f8ff9ada4",
+        "system_prompt_len": 5567,
+        "system_prompt_sha": "3037a179f8579e61518133f734bea03b98a3b97466bdbfc60d51aeff8bb5be48",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -1738,10 +2049,10 @@
         "max_tokens": 10000,
         "model": "gpt-4.1-mini",
         "reasoning": "None",
-        "schema_sha": "d60114adf287fa1d4d00bf0c1b475dc80f589b725304bd96fff596872a5cb243",
+        "schema_sha": "d6b3ecff99bbab3abfc35d5a58ccef96e90a296bab320f00520283454bafb161",
         "seed": null,
-        "system_prompt_len": 4685,
-        "system_prompt_sha": "b54030469cf80b333b609642decd04b488fec430c919242ba5084c4f8ff9ada4",
+        "system_prompt_len": 5567,
+        "system_prompt_sha": "3037a179f8579e61518133f734bea03b98a3b97466bdbfc60d51aeff8bb5be48",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -1863,10 +2174,10 @@
         "max_tokens": 10000,
         "model": "gpt-4.1-mini",
         "reasoning": "None",
-        "schema_sha": "d60114adf287fa1d4d00bf0c1b475dc80f589b725304bd96fff596872a5cb243",
+        "schema_sha": "d6b3ecff99bbab3abfc35d5a58ccef96e90a296bab320f00520283454bafb161",
         "seed": null,
-        "system_prompt_len": 4685,
-        "system_prompt_sha": "b54030469cf80b333b609642decd04b488fec430c919242ba5084c4f8ff9ada4",
+        "system_prompt_len": 5567,
+        "system_prompt_sha": "3037a179f8579e61518133f734bea03b98a3b97466bdbfc60d51aeff8bb5be48",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -1956,10 +2267,10 @@
         "max_tokens": 10000,
         "model": "gpt-4.1-mini",
         "reasoning": "None",
-        "schema_sha": "d60114adf287fa1d4d00bf0c1b475dc80f589b725304bd96fff596872a5cb243",
+        "schema_sha": "d6b3ecff99bbab3abfc35d5a58ccef96e90a296bab320f00520283454bafb161",
         "seed": null,
-        "system_prompt_len": 4685,
-        "system_prompt_sha": "b54030469cf80b333b609642decd04b488fec430c919242ba5084c4f8ff9ada4",
+        "system_prompt_len": 5567,
+        "system_prompt_sha": "3037a179f8579e61518133f734bea03b98a3b97466bdbfc60d51aeff8bb5be48",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -2049,10 +2360,10 @@
         "max_tokens": 10000,
         "model": "gpt-4.1-mini",
         "reasoning": "None",
-        "schema_sha": "d60114adf287fa1d4d00bf0c1b475dc80f589b725304bd96fff596872a5cb243",
+        "schema_sha": "d6b3ecff99bbab3abfc35d5a58ccef96e90a296bab320f00520283454bafb161",
         "seed": null,
-        "system_prompt_len": 4685,
-        "system_prompt_sha": "b54030469cf80b333b609642decd04b488fec430c919242ba5084c4f8ff9ada4",
+        "system_prompt_len": 5567,
+        "system_prompt_sha": "3037a179f8579e61518133f734bea03b98a3b97466bdbfc60d51aeff8bb5be48",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -2111,8 +2422,8 @@
         "reasoning": "None",
         "schema_sha": "bbe08f1c92d789b4ce521e7fc8786fd56a525623386354344d4ebdfc612eebc9",
         "seed": null,
-        "system_prompt_len": 3704,
-        "system_prompt_sha": "fcb1dafcd9036e5bd3690213880cb36bc80702e3c579b5d0ec72e96624daaeca",
+        "system_prompt_len": 2882,
+        "system_prompt_sha": "8f9ed2e14a1eaef888148ba541a2230f28d23ae9604819ec62b92cf91858980e",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,

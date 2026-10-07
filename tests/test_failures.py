@@ -21,7 +21,7 @@ from application.orchestration.support.failure import (
 from application.orchestration.support.metrics import SessionMetrics
 from application.orchestration.engine.phase_runner import PhaseRunner
 from application.service.session_service import SessionService
-from domain.entities.payload import Payload
+from domain.entities.llm_request.payload import Payload
 from infrastructure.outbound.llm.response_mapper import build_response
 
 from test_flow_golden import (
@@ -140,7 +140,7 @@ class FlakyLLM(ScriptedLLM):
 
 
 def _send(llm):
-    from application.orchestration.phases.common.triage import TRIAGE
+    from application.orchestration.phases.identification.triage import TRIAGE
     from application.orchestration.state.flow_state import FlowState
     runner = PhaseRunner(llm, SessionMetrics())
     return runner.run_phase(TRIAGE, FlowState(message="hi"))
@@ -175,7 +175,7 @@ class TestCallRetries:
     def test_only_successful_calls_are_counted_in_the_metrics(self):
         llm = FlakyLLM(2, APIConnectionError("x"))
         runner = PhaseRunner(llm, SessionMetrics())
-        from application.orchestration.phases.common.triage import TRIAGE
+        from application.orchestration.phases.identification.triage import TRIAGE
         from application.orchestration.state.flow_state import FlowState
         runner.run_phase(TRIAGE, FlowState(message="hi"))
         assert runner.metrics.totals.requests == 1
@@ -197,7 +197,10 @@ class FailOnPhase(ScriptedLLM):
         return super().ask(Payload)
 
 
-def _say(llm, text="hi") -> "object":
+from application.inbound.dto.session import MessageReceivedResponseDTO  # noqa: E402
+
+
+def _say(llm, text="hi") -> MessageReceivedResponseDTO:
     from application.inbound.dto.session import MessageReceivedRequestDTO, StartSessionRequestDTO
     service = SessionService(outbound_port=llm, mcp_list=[])
     session_id = service.start_session(StartSessionRequestDTO(user_id="tester", username="t")).session_id

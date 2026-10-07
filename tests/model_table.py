@@ -1,5 +1,5 @@
 """
-Builds the tables of Gemini models (docs/gemini_models_per_step.md) from config/gemini_models.json, the one
+Builds the tables of Gemini models (docs/models/gemini_models_per_step.md) from config/gemini_models.json, the one
 place where prices and ratings are kept, and writes the choice of a model per step to config/step_models.json.
 `python tests/manual/show_models.py` shows and changes it.
 """
@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Optional
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 MODELS_PATH = os.path.join(PROJECT_ROOT, "config", "gemini_models.json")
 CONFIG_PATH = os.path.join(PROJECT_ROOT, "config", "step_models.json")
-DOC_PATH = os.path.join(PROJECT_ROOT, "docs", "gemini_models_per_step.md")
+DOC_PATH = os.path.join(PROJECT_ROOT, "docs", "models", "gemini_models_per_step.md")
 
 LEVELS = ["best", "good", "ok", "weak", "avoid"]
 OK_LEVELS = ("best", "good")

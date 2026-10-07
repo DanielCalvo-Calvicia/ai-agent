@@ -1,9 +1,0 @@
-{
-    "requested_user_input": {
-        "type": "array",
-        "items": {
-            "type": "string"
-        },
-        "description": "Specific information required from the user if status is awaiting_user_input"
-    }
-}

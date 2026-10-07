@@ -1,63 +1,84 @@
 # CLAUDE.md: ai-agent
 
-Port **7998** (`AI_AGENT_PORT`; changed from 8000, which clashed with microphone). Python/FastAPI. The "mind" of OBLIVION: it receives what the user said and **decides what to do**. Status: prototype. See `README.md` and `../CLAUDE.md`.
+Port **7998** (`AI_AGENT_PORT`). Python/FastAPI. The "mind" of OBLIVION: it receives what the user said and **decides what to do**.
+Status: prototype. Read `README.md` first, then `docs/guides/architecture.md` (how it works), `docs/guides/schemas_and_prompts.md`,
+`docs/guides/configuration.md` and `../CLAUDE.md` (workspace rules). Each doc says which parts are generated or historical (`docs/README.md`).
 
-Current state (2026-10-01): branch `feature_ai_claude_2` (tracks `origin/feature_ai_claude_2`, in sync), last feature commit `ede87f8` "Bundle contracts 0.10.0; refresh README and CLAUDE.md; mark historical docs" (pushed; the flows work is `2c9d707`). Uncommitted: only `__pycache__/*.pyc` noise (the repo tracks bytecode). Tests: `604 passed`. No real LLM call since the flows split (see `README.md`, Known problems). Check `git status` before editing.
+State (2026-10-06): branch `feature_ai_claude_2`; last pushed feature commit `ede87f8`. **Uncommitted: the four-flow redesign**
+(identification, conversation, special, movement behind one router; the schema tree split into one file per node; the `movement`
+domain; `domain/` grouped by what uses it; contracts 0.14.0; rebuilt docs). Tests: `636 passed`. No real LLM call since the redesign.
+Check `git status` before editing.
 
 ## Role
 
-- Only decides and returns a structured response. It **never controls hardware** and never calls stepper, TTS or speaker. **Brain** acts on its answer (speak, move an arm).
-- **Hosts several agents, called flows**, in one service and one venv. Today two: **`conversation-flow`** (writes the reply) and **`motion-flow`** (turns what the user said into an ordered list of arm movements). They never call each other: **Brain** asks them one after the other, **conversation-flow first, then motion-flow once conversation-flow has ended**, in the order of Brain's `AI_AGENT_FLOWS` setting; a flow that asks the user a question stops the chain and gets the next utterance. conversation-flow can still be given a `robot_context` (what a movement decision was), but Brain does not send it today: motion-flow runs after it, so the reply cannot know the outcome (a refusal is spoken after the reply instead). A new agent = a file in `orchestration/flows/`, its own phase files and one line in `flow_registry.py`.
-- Brain calls it per utterance (see `../brain_microservice/CLAUDE.md`).
-- May later fetch content from `aws_microservice` through MCP (`mcps/aws_microservice.json` → `/mcp/sse` on port 8080). Nothing uses this yet.
+- Only decides and returns a structured answer. It **never controls hardware** and never calls stepper, TTS or speaker; **Brain** acts on
+  its answer (speaks it, moves the arms). Brain makes **one call per utterance** (`../brain_microservice/CLAUDE.md`).
+- **Four flows** in one service and one venv: `identification` (triage), `conversation` (draft writer, editor), `special` (project manager,
+  safety gate, action executor, draft writer, editor) and `movement` (motion planner, motion validator). Every message goes through
+  identification; `task_category.domain` then picks ONE flow in `flows/router.py` (`FLOW_BY_DOMAIN`): `communication` -> conversation,
+  `movement` -> movement, anything else -> special.
+- The flows never call each other; only the router hands the identification state to the next one (nothing is classified twice). A flow that
+  asked the user a question is resumed by the next message (`PausedRun.flow`) without identifying it again.
+- May later fetch content from `aws_microservice` through MCP (`mcps/aws_microservice.json`). Nothing uses it yet.
 
 ## API
 
-Every flow has its own routes and its own sessions: `POST /conversation-flow/session/{start,message,end}` and `POST /motion-flow/session/{start,message,end}`, plus `GET /health`, `GET /available` and `/docs` once. The original `POST /session/{start,message,end}` stays as a deprecated alias of conversation-flow (same sessions) until nothing calls it. Responses use the standard envelope (`action / status / status_code / message / data / timestamp`).
+`POST /session/{start,message,end}`, `GET /health`, `GET /available`, `/docs`. Envelope `action / status / status_code / message / data / timestamp`,
+`data` built from `contracts.api.microservices.ai_agent.session.*` (`infrastructure/inbound/http/fastapi.py`).
 
-- conversation-flow `/message` answers `data.response` (the reply). Its request may carry `robot_context` (`{directives: [{arm, degrees, direction}], rejected_reason}`): what motion-flow decided. With one the flow skips planning (triage, draft writer, editor) and the reply only says what the robot is doing, or why it cannot; it never says a movement is done and never pauses to ask about it.
-- motion-flow `/message` answers `data.directives` (the movement sequence, in order; `degrees` is signed, so left 90 then left -90 returns the arm), `data.response` (a refusal to speak, or the question) and `data.awaiting_user_input` (true when `response` is a question: the flow is paused and the next message is its answer). Every message goes through it, not only movement requests; a message that asks for no movement comes back with no directives and an empty `response`.
+- `/message` takes `session_id`, `message`, `speak_movements` (default true, Brain's setting) and answers `response` (what to say; always speakable,
+  an apology on failure), `directives` (movements in order, only the movement flow; `degrees` is signed), `awaiting_user_input` and `flow`.
+  `response` is empty only for a movement that goes ahead with `speak_movements` off; a refusal or a question is always said.
+- Sessions are in-process memory only (`SessionService.sessions`), lost on restart. `error_code == "SESSION_NOT_FOUND"` means exactly that
+  (start a new session and retry the message once); any other `error_code` is a real failure, not a reconnect signal.
+- `/available` only checks that a provider key or `OLLAMA_URL` is configured; it never calls an LLM.
 
-Sessions are in-process memory only (`SessionService.sessions`), lost on restart. `data.error_code == "SESSION_NOT_FOUND"` on `/session/message` or `/session/end` means exactly that — the caller's move is to start a new session and (for a message) retry once — any other `error_code` is a real failure, not a reconnect signal. See README.md's "Session lifecycle" section.
+## Layout (details in `docs/guides/architecture.md`)
 
-## Layout
-
-- `composition_root/main.py`: builds the app (run this one). Wiring: `VercelAIAdapter` (outbound LLM) → `SessionService` → `SessionFastAPI` (inbound).
-- `application/`: inbound ports and DTOs, `service/` (`session_service` keeps per-session history, `message_flow_service` is a thin adapter), outbound `llm_ports`, `system_prompts/`.
-- `application/orchestration/`: the agents and their engine, in five folders. **Dependencies go one way** (`tests/test_orchestration_layout.py`): `flows` use everything below, `engine` never imports a flow, `phases` never imports the engine, `state` and `support` are the base.
-  - `flows/`: **what each agent is.** `conversation_flow.py` (triage, project manager, safety gate, action executor, draft writer, editor; its fast path and `robot_context` jumps after triage), `motion_flow.py` (triage, motion planner, motion validator), `action_executor.py` (conversation-flow's step that runs planned actions, phases 4-6), `fast_path.py` (`AI_AGENT_FAST_PATH_ENABLED`, default on: after triage, jump to `draft_writer` for a plain reply; the module docstring says why `task_category` alone is not a safe signal) and `registry.py` (the flows this service hosts). A new agent = a file here + its phase files + one line in the registry.
-  - `phases/`: **the steps, one phase per file**, in `common/` (triage, answer checker, user clarification: used by several flows), `conversation_flow/` and `motion_flow/`. Every phase file declares what it uses as constants at its top: `PHASE_ID`, `STEP_NAME`, `MODEL_ENV_VAR`, `DEFAULT_MODEL`, `PROMPT_FILE` (`prompts/<id>_<name>.txt`), `FORMAT_NAME`, `INTENT` and the schema files it reads (`SCHEMAS`). `catalog.py` reads them (the prompt loader, model selection and metrics take their tables from it), `phase.py` is the shape of a phase (`PhaseSpec`, `ActionPhaseSpec`, `Step`). `tests/test_phase_structure.py` enforces one phase per file, every constant, every file exists. A new phase = its file + one line in `catalog.py` + a step in its flow. motion-flow's validator (`phases/motion_flow/motion_validator.py`) is plain code, not an LLM call; its limits are constants at its top.
-  - `engine/`: **how any flow runs.** `pipeline.py` (`Pipeline(..., flow=...)` runs the steps of a flow, follows its jumps, pauses to ask the user and resumes; it has no default flow), `flow.py` (the `Flow` dataclass: name, `build_steps`, `jump_after`, `build_result`, `new_state`), `phase_runner.py` (the only place an LLM payload is built), `clarification.py` (phase 99) and `answer_check.py` (phase 9).
-  - `state/`: **what travels through a run.** `flow_state.py`, `motion_state.py` (adds motion-flow's fields), `paused_run.py` (`PausedRun`, `FlowResult`).
-  - `support/`: shared helpers. `model_selection.py`, `metrics.py`, `failure.py`, `schemas.py`, `action_tree.py`, `mcp_servers.py`, `clock.py`.
-  - conversation-flow no longer plans or parses movements (there is no `robot_action` any more): motion-flow does. Model steps: `motion_planner` (phase 20, `AI_AGENT_MODEL_PHASE_20`) can be set in `config/step_models.json` and in a profile like any other step; the cost and budget tables (`STEP_NAMES`) cover conversation-flow's steps only.
-- `domain/`: entities and value objects, one file per concept. Pure data (JSON schemas are loaded by `application/orchestration/support/schemas.py`).
-- `infrastructure/`: `inbound/http/` (`fastapi.py`, `responses.py`), `outbound/llm/` (`vercel.py`, `config.py`, `provider_models.py`, `tools.py`, `response_mapper.py`), `outbound/mcp/`, `outbound/usage/langfuse.py`.
-- `prompts/<id>_<name>.txt` (flat): `0_generic_prompt.txt` (rules of every phase), `capabilities.txt` (what the robot can and cannot do), `1..9_*` the conversation chain (triage → PM → safety gatekeeper → worker → MCP operator → data engineer → writer → editor, answer checker) and `20_motion_planner.txt`. Which phase uses which prompt is the `PROMPT_FILE` constant of the phase file.
-- `schema/response/advanced/`: JSON Schemas of the structured LLM response. **Keep prompts, schemas and `domain/` in sync.**
-- `mcps/*.json`: MCP server configs (`aws_microservice` SSE, `fetch` via Docker, `filesystem`).
+- `composition_root/main.py` builds the app (run this one): `VercelAIAdapter` -> one `SessionService` -> `SessionFastAPI`. Each message builds a
+  `MessageFlowService` with an `AgentRouter`.
+- `application/orchestration/` in five folders; **dependencies go one way** (`tests/test_orchestration_layout.py`): `flows` use everything below,
+  `engine` never imports a flow, `phases` never import the engine, `state` and `support` are the base.
+  - `flows/`: one file per flow, `router.py`, `registry.py`, `action_executor.py` (the special flow's step for phases 4-6).
+  - `phases/`: one phase per file in `identification/`, `common/` (draft writer, editor, answer checker, clarification), `special/`, `movement/`.
+    Every phase file declares its constants at the top (`PHASE_ID`, `STEP_NAME`, `MODEL_ENV_VAR`, `DEFAULT_MODEL`, `PROMPT_FILE`, `FORMAT_NAME`,
+    `INTENT`, `SCHEMAS`); `catalog.py` reads them (`tests/test_phase_structure.py` enforces it). The motion validator is plain code (no LLM); its limits
+    are constants at its top.
+  - `engine/`: `pipeline.py`, `flow.py`, `phase_runner.py` (the only place an LLM payload is built), `clarification.py` (phase 99), `answer_check.py` (phase 9).
+  - `state/`: `flow_state.py`, `motion_state.py`, `paused_run.py` (`PausedRun`, `FlowResult`). `support/`: model selection, metrics, failures, schemas, action tree.
+- `domain/`: `entities/` and `value_objects/`, each with `llm_request/`, `llm_response/` and `movement/`. Pure data, one file per concept.
+- `infrastructure/`: inbound HTTP, outbound `llm/` (`vercel.py`, `provider_models.py`, `response_mapper.py`, `tools.py`), `mcp/`, `usage/` (Langfuse).
+- `prompts/<id>_<name>.txt` (flat) plus `0_generic_prompt.txt` and `capabilities.txt`; which phase uses which is its `PROMPT_FILE`.
+- `schema/response/general/` and `schema/response/motion/`: **`full.schema.json` is the one file you edit**; every other file is generated by
+  `scripts/split_schemas.py --write` (without the flag it only checks), and `tests/test_schema_tree.py` fails on drift. The files the phases load
+  must keep their content (`test_flow_golden.py`).
+- **Keep prompts, schemas and `domain/` in sync** (`docs/guides/schemas_and_prompts.md`, section 4).
 
 ## Rules
 
-- `.env` holds many provider keys (OpenAI, Anthropic, Google, Mistral, Groq, Cohere, GitHub PAT). Never read the values out, print them or copy them. Use variable names only.
-- Uses `shared_logging` (`init_logging("ai-agent")`, `TracingMiddleware`, `-e ../shared-logging`). It also uses `contracts` (`./vendor/contracts_microservice-0.10.0-py3-none-any.whl`, bundled by `contracts/scripts/bundle.py` like the other services): `/health`, `/available`, `/session/start`, `/session/end` and `/session/message` answer with `contracts.api.common.envelope.ApiEnvelope`, `data` built from `contracts.api.microservices.ai_agent.session.*` / `contracts.api.microservices.common` (see `infrastructure/inbound/http/fastapi.py`). `/available` (`LLMOutboundPort.is_available()`, implemented on `VercelAIAdapter`) only checks that a provider key or `OLLAMA_URL` is configured; it never calls an LLM, so it cannot tell whether the configured provider is actually reachable or the key is valid.
+- `.env` holds many provider keys. Never read the values out, print them or copy them; use variable names only.
+- Uses `shared_logging` (`init_logging("ai-agent")`, `TracingMiddleware`, `-e ../shared-logging`) and the bundled `contracts` wheel in `vendor/`
+  (refresh with `contracts/scripts/bundle.py`; the version is in `requirements.txt`).
 - Keep the LLM adapter behind `LLMOutboundPort` so providers stay swappable.
+- A change to a prompt, schema, model or message format changes the golden file: read the diff first, then regenerate on purpose (`UPDATE_GOLDEN=1`).
+- Do not hand-edit generated files: the schema tree, `docs/models/gemini_models_per_step.md`, `docs/models/models_per_step_budget.md`, `docs/models/cost_of_a_full_plan.md`.
 
-## Config
+## Config (details in `docs/guides/configuration.md`)
 
-- Models per step: `config/step_models.json` (profile, per-step `steps`); `AI_AGENT_MODEL_PHASE_<n>` wins over it.
-- Prices and plans: `config/{gemini_models,other_models,budget,measured_runs}.json`. `docs/gemini_models_per_step.md` and `docs/models_per_step_budget.md` are generated from them (`tests/manual/show_models.py --write` / `--budget`).
-- `AI_AGENT_PARALLEL_ACTIONS=<n>` runs independent actions of a plan together (default 1; tool calls stay sequential).
-- `AI_AGENT_FAST_PATH_ENABLED=0` disables the fast path (see `application/orchestration/flows/fast_path.py`); default is on.
-- `AI_AGENT_RELOAD` defaults to `1` (uvicorn auto-reload); set `0` for a stable run. Full variable table with defaults: `README.md`, Configuration.
-- The code defaults of the phases (`DEFAULT_MODEL`) are GitHub Models ids, which are retired. The models really used come from `config/step_models.json` (profile `budget50_groq` on 2026-10-01) or `AI_AGENT_MODEL_PHASE_<n>`. `mcps/aws_microservice.json` hardcodes `http://localhost:8080/mcp/sse` (a config file, not an env var).
-- Cost tracking: sends metadata only to Langfuse when `LANGFUSE_PUBLIC_KEY` and `LANGFUSE_SECRET_KEY` are set, via `UsageReporterPort`/`SessionMetrics`. It never breaks a call.
+- Models per step: `AI_AGENT_MODEL_PHASE_<n>` > `config/step_models.json` `steps` > the active profile > the code default (GitHub Models ids, retired,
+  so a real run always sets one of the first three). Prices and budget: `config/{gemini_models,other_models,budget,measured_runs}.json`.
+- `AI_AGENT_PARALLEL_ACTIONS` (default 1), `AI_AGENT_MAX_ATTEMPTS` (3), `AI_AGENT_HISTORY_TURNS` (6), `AI_AGENT_RELOAD` (defaults to `1`; `0` for a stable run).
+- Removed: `AI_AGENT_FAST_PATH_ENABLED` (the domain decides the flow now).
+- **Langfuse** (when its keys are set) receives the user's text and the prompts and answers of every call, not only metadata; it never breaks a call.
 
 ## Commands
 
 ```powershell
-& windows\Scripts\python.exe composition_root\main.py    # run from the ai-agent folder
-& windows\Scripts\python.exe -m pytest tests
+& windows\Scripts\python.exe composition_root\main.py          # run from the ai-agent folder
+& windows\Scripts\python.exe -m pytest tests                   # about 640 tests, no keys, no cost
+& windows\Scripts\python.exe scripts\split_schemas.py          # check the schema tree (--write to rebuild it)
 ```
 
-`tests/` is all mock-based (no keys, no cost, 604 tests) and runs without the config file (`tests/conftest.py`). `tests/output/` holds generated reports of manual runs, not documentation. `tests/test_flow_golden.py` records every LLM call and compares with `tests/golden/flow_golden.json`: a refactor must keep it green. Regenerate it (`UPDATE_GOLDEN=1`) only for a deliberate change to prompts, models, schemas or message formats. `tests/manual/` scripts call real LLMs and MCP servers, are not collected by pytest, and cost money: ask first.
+`tests/` is all mock-based and runs without the config file (`tests/conftest.py`). `tests/output/` holds generated reports of manual runs, not
+documentation. `tests/manual/` scripts call real LLMs and MCP servers, are not collected by pytest, were not re-run after the redesign, and cost
+money: ask first. The cross-service e2e tests are in `../contracts/tests/e2e/`.

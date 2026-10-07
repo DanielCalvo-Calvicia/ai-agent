@@ -13,7 +13,7 @@ from application.orchestration.state.paused_run import FlowResult
 from application.orchestration.phases.phase import Step
 from application.orchestration.engine.phase_runner import PhaseRunner
 from application.outbound.ports.mcp_ports import McpToolsPort
-from domain.value_objects.message import Message
+from domain.value_objects.llm_request.message import Message
 
 
 @dataclass(frozen=True)
@@ -26,7 +26,7 @@ class FlowContext:
 
 @dataclass(frozen=True)
 class Flow:
-    name: str                                                          # public name: "conversation-flow"
+    name: str                                                          # public name: "conversation"
     build_steps: Callable[[FlowContext], List[Step]]
     # Runs after every step: the name of the step to jump to next, or None to go on with the following one.
     jump_after: Optional[Callable[[Step, FlowState], Optional[str]]] = None

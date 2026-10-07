@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
-from domain.entities.response import Response
-from domain.entities.payload import Payload
+from domain.entities.llm_response.response import Response
+from domain.entities.llm_request.payload import Payload
 
 class LLMOutboundPort(ABC):
     @abstractmethod

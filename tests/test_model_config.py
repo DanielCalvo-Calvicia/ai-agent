@@ -1,3 +1,4 @@
+# pyright: reportOptionalSubscript=false
 """Which LLM each step uses: the config file, the profiles, the variables, and the table of Gemini models."""
 import json
 import os
@@ -13,7 +14,7 @@ from application.orchestration.support.metrics import PHASE_NAMES
 from application.orchestration.support.model_selection import (
     MODELS_FILE_VARIABLE, STEP_NAMES, choose, effective_models, load_config, model_for_phase, models_file,
 )
-from domain.value_objects.model import GithubModels, get_selected_model
+from domain.value_objects.llm_request.model import GithubModels, get_selected_model
 from model_table import (CONFIG_PATH, DOC_PATH, LEVELS, MODELS_PATH, best_options, blended, load_models, markdown,
                          per_call, per_message, read_config, set_profile, set_step)
 
@@ -31,11 +32,11 @@ def config(tmp_path, monkeypatch):
     def write(data):
         path.write_text(json.dumps(data), encoding="utf-8")
         monkeypatch.setenv(MODELS_FILE_VARIABLE, str(path))
-        os.utime(path, (os.path.getmtime(path) + write.calls, os.path.getmtime(path) + write.calls))   # a new mtime
-        write.calls += 1
+        os.utime(path, (os.path.getmtime(path) + counter[0], os.path.getmtime(path) + counter[0]))   # a new mtime
+        counter[0] += 1
         return path
 
-    write.calls = 1
+    counter = [1]
     return write
 
 

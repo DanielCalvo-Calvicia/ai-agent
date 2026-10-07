@@ -17,8 +17,8 @@ load_dotenv(os.path.join(project_root, ".env"), override=False)
     
 from application.service.message_flow_service import MessageFlowService
 from application.inbound.dto.message import TextRequestDTO
-from domain.entities.response import Response
-from domain.entities.payload import Payload
+from domain.entities.llm_response.response import Response
+from domain.entities.llm_request.payload import Payload
 
 from application.outbound.ports.llm_ports import LLMOutboundPort
 from infrastructure.outbound.llm.config import VercelAIConfig

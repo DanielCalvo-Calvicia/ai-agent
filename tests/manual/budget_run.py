@@ -101,7 +101,7 @@ def main():
                 delivery.append(f"{type(error).__name__}: {str(error)[:120]}")
                 raise
 
-        langfuse.send = checked
+        langfuse.send = checked  # pyright: ignore[reportAttributeAccessIssue]
     collector = Collector(langfuse)
 
     url = start_fake_mail_server()

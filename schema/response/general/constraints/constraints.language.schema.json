@@ -1,0 +1,6 @@
+{
+  "language": {
+    "type": "string",
+    "description": "Language to be used for the response"
+  }
+}

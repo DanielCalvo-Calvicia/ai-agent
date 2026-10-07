@@ -1,6 +1,6 @@
 {
   "_source": "Prices and status: Google's pages ai.google.dev/gemini-api/docs/pricing, /models and /thinking, read on 2026-09-21. Prices are USD per 1M tokens, text, standard paid tier, and the output price includes thinking tokens. Check the page before you rely on a number.",
-  "_ratings": "The ratings are estimates from the tier and Google's description, NOT measurements. Only gemini-2.5-flash was run end to end in this project. Measure a model on a step with: tests/manual/debug_flow.py --only=<step> --state=<file> --repeat=5 --real (see docs/debugging_the_flow.md).",
+  "_ratings": "The ratings are estimates from the tier and Google's description, NOT measurements. Only gemini-2.5-flash was run end to end in this project. Measure a model on a step with: tests/manual/debug_flow.py --only=<step> --state=<file> --repeat=5 --real (see docs/guides/debugging_the_flow.md).",
   "_levels": {
     "best": "the right model for this step",
     "good": "works well, a fair price for the job",

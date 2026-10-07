@@ -17,7 +17,7 @@ Only for one step: --step=project_manager   (see the names with: debug_flow.py -
 In the debugger (pdb): `pp snapshot(state)` shows the whole flow object, `pp response_plain(response)` the Response,
 `pp payload.message.content` the request, `c` continues to the next stop, `q` quits.
 In an IDE (VS Code, PyCharm): run this script under the debugger. `breakpoint()` stops there and you get the
-variable panel. To debug your own code instead of a stop, put breakpoints in the real code (see docs/debugging_the_flow.md).
+variable panel. To debug your own code instead of a stop, put breakpoints in the real code (see docs/guides/debugging_the_flow.md).
 Set PYTHONBREAKPOINT=0 to run without stopping.
 """
 import os

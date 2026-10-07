@@ -9,7 +9,7 @@ import pytest
 
 from application.orchestration.phases import catalog as phase_catalog
 from application.orchestration.support.schemas import SCHEMAS_ROOT
-from application.system_prompts.advanced import CAPABILITIES_FILE, GENERIC_PROMPT_FILE, PROJECT_ROOT
+from application.system_prompts.general import CAPABILITIES_FILE, GENERIC_PROMPT_FILE, PROJECT_ROOT
 
 PHASES_DIR = os.path.join(PROJECT_ROOT, "application", "orchestration", "phases")
 REQUIRED_CONSTANTS = ("PHASE_ID", "STEP_NAME", "MODEL_ENV_VAR", "DEFAULT_MODEL")

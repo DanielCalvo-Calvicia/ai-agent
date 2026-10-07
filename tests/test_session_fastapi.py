@@ -12,9 +12,9 @@ from fastapi.testclient import TestClient
 from application.outbound.ports.llm_ports import LLMOutboundPort
 from application.service.session_service import SessionService
 from infrastructure.inbound.http.fastapi import SessionFastAPI
-from domain.entities.payload import Payload
-from domain.entities.response import Response
-from domain.value_objects.user_goal.user_goal import create_user_goal
+from domain.entities.llm_request.payload import Payload
+from domain.entities.llm_response.response import Response
+from domain.value_objects.llm_response.user_goal.user_goal import create_user_goal
 
 
 # ===============================================

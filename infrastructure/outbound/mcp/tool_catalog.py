@@ -1,7 +1,7 @@
 import anyio
 from typing import Dict, List, Optional
 
-from domain.value_objects.tool import ToolDefinition
+from domain.value_objects.llm_request.tool import ToolDefinition
 from infrastructure.outbound.mcp.client_manager import MCPClientManager
 from shared_logging import get_logger
 

@@ -32,13 +32,13 @@ load_env(os.path.join(PROJECT_ROOT, '.env'))
 # -----------------------------------------------
 from infrastructure.outbound.llm.config import VercelAIConfig
 from infrastructure.outbound.llm.vercel import VercelAIAdapter
-from domain.entities.payload import Payload
-from domain.value_objects.message import Message, Role, create_message
-from domain.value_objects.model import SelectedModel, GithubModels, get_selected_model
-from domain.value_objects.tool import ToolDefinition
-from domain.value_objects.intent.intent import create_intent
-from domain.value_objects.temperature import create_temperature
-from domain.value_objects.max_tokens import create_max_tokens
+from domain.entities.llm_request.payload import Payload
+from domain.value_objects.llm_request.message import Message, Role, create_message
+from domain.value_objects.llm_request.model import SelectedModel, GithubModels, get_selected_model
+from domain.value_objects.llm_request.tool import ToolDefinition
+from domain.value_objects.llm_response.intent.intent import create_intent
+from domain.value_objects.llm_request.temperature import create_temperature
+from domain.value_objects.llm_request.max_tokens import create_max_tokens
 
 from mcp.client.session import ClientSession
 from mcp.client.sse import sse_client
@@ -122,7 +122,7 @@ def main():
     intent = create_intent(primary="information_request", secondary=[], confidence=1.0)
     
     # Try to use Groq model for fast and stable verification
-    from domain.value_objects.model import GroqModels
+    from domain.value_objects.llm_request.model import GroqModels
     model = get_selected_model(GroqModels.LLAMA3_3_70B)
     print(f"Using Groq model: {model.id}")
 

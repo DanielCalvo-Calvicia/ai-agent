@@ -2,7 +2,7 @@ import anyio
 from typing import Any, Dict, List, Optional
 
 from application.outbound.ports.mcp_ports import McpToolsPort
-from domain.value_objects.tool import ToolDefinition
+from domain.value_objects.llm_request.tool import ToolDefinition
 from infrastructure.outbound.mcp.client_manager import MCPClientManager
 from infrastructure.outbound.mcp.tool_catalog import SERVER_TIMEOUT_SECONDS, MCPToolCatalog
 

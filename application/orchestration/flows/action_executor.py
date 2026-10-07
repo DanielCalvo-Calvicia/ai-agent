@@ -24,13 +24,13 @@ from application.orchestration.support.failure import AgentFailure, max_attempts
 from application.orchestration.state.flow_state import FlowState
 from application.orchestration.phases.phase import ActionPhaseSpec
 from application.orchestration.engine.phase_runner import PhaseRunner
-from application.orchestration.phases.conversation_flow import cognitive_worker, mcp_operator
-from application.orchestration.phases.conversation_flow.cognitive_worker import COGNITIVE_WORKER
-from application.orchestration.phases.conversation_flow.data_engineer import DATA_ENGINEER
-from application.orchestration.phases.conversation_flow.mcp_operator import MCP_OPERATOR
+from application.orchestration.phases.special import cognitive_worker, mcp_operator
+from application.orchestration.phases.special.cognitive_worker import COGNITIVE_WORKER
+from application.orchestration.phases.special.data_engineer import DATA_ENGINEER
+from application.orchestration.phases.special.mcp_operator import MCP_OPERATOR
 from application.outbound.ports.mcp_ports import McpToolsPort
-from domain.entities.action import Action
-from domain.value_objects.action.output import create_output
+from domain.entities.llm_response.action import Action
+from domain.value_objects.llm_response.action.output import create_output
 from shared_logging import get_logger
 
 logger = get_logger(__name__)

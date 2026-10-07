@@ -1,6 +1,0 @@
-{
-    "error": {
-        "type": "string",
-        "description": "Error message or diagnostic information if the action fails"
-    }
-}

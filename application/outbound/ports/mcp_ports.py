@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from domain.value_objects.tool import ToolDefinition
+from domain.value_objects.llm_request.tool import ToolDefinition
 
 
 class McpToolsPort(ABC):

@@ -78,7 +78,7 @@ def main():
         total += cost
         steps = ", ".join(f"{n} x{r['calls']}" if r["calls"] > 1 else n for n, r in per_step.items())
 
-        lines += [f"**You:** {text}", "", f"**Agent:** {result.response if result.success else 'FAILED: ' + result.message}", "",
+        lines += [f"**You:** {text}", "", f"**Agent:** {result.response if result.success else 'FAILED: ' + (result.message or '')}", "",
                   f"> {seconds:.1f} s, {len(calls)} LLM calls, {sum(r['tokens'] for r in per_step.values()):,} tokens, {usd(cost)}"
                   f" ({steps or 'no calls'})", ""]
         print(f"{seconds:5.1f}s {len(calls):>2} calls {usd(cost):>8}  {text[:50]}")

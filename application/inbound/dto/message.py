@@ -5,8 +5,7 @@ from datetime import datetime
 import uuid
 
 from application.inbound.dto.base_request import BaseRequestDTO, BaseResponseDTO
-from application.inbound.dto.robot_context import RobotContextDTO
-from domain.value_objects.motion.movement import Movement
+from domain.value_objects.movement.movement import Movement
 
 class MessageType(str, Enum):
     TEXT = "text"
@@ -39,16 +38,19 @@ class TextRequestDTO(BaseRequestDTO):
     content: str
     metadata: Optional[Dict[str, Any]] = None
     session_name: Optional[str] = None
-    robot_context: Optional[RobotContextDTO] = None    # conversation-flow: what motion-flow decided for this message
+    # Whether the movement flow announces a movement that goes ahead (Brain's setting, sent with every message).
+    speak_movements: bool = True
 
 
 class TextResponseDTO(BaseResponseDTO):
     content: str
     is_final: bool = False
-    # motion-flow: the validated movement sequence, in execution order.
+    # The movement flow's validated movement sequence, in execution order.
     movements: List[Movement] = Field(default_factory=list)
     # True when `content` is a question for the user: the flow is paused until they answer.
     awaiting_user_input: bool = False
+    # The flow that produced the answer: identification, conversation, special or movement.
+    flow: str = ""
 
 class AudioRequestDTO(BaseRequestDTO):
     data: str  # Base64

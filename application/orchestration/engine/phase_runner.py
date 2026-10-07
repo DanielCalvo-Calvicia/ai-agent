@@ -15,17 +15,17 @@ from application.orchestration.phases.phase import ActionPhaseSpec, PhaseSpec
 from application.orchestration.support.schemas import actions_schema, object_schema
 from application.outbound.ports.llm_ports import LLMOutboundPort
 from application.orchestration.support.model_selection import model_for_phase
-from application.system_prompts.advanced import build_system_prompt_from_file
+from application.system_prompts.general import build_system_prompt_from_file
 
-from domain.entities.action import Action
-from domain.entities.payload import Payload
-from domain.entities.response import Response
-from domain.value_objects.intent.intent import create_intent
-from domain.value_objects.max_tokens import create_max_tokens
-from domain.value_objects.message import Role, create_message
-from domain.value_objects.model import SelectedModel
-from domain.value_objects.response_format import ResponseFormat
-from domain.value_objects.temperature import create_temperature
+from domain.entities.llm_response.action import Action
+from domain.entities.llm_request.payload import Payload
+from domain.entities.llm_response.response import Response
+from domain.value_objects.llm_response.intent.intent import create_intent
+from domain.value_objects.llm_request.max_tokens import create_max_tokens
+from domain.value_objects.llm_request.message import Role, create_message
+from domain.value_objects.llm_request.model import SelectedModel
+from domain.value_objects.llm_request.response_format import ResponseFormat
+from domain.value_objects.llm_request.temperature import create_temperature
 from shared_logging import get_logger
 
 logger = get_logger(__name__)
@@ -120,19 +120,20 @@ class PhaseRunner:
 
         for attempt in range(1, attempts + 1):
             try:
-                response = self.outbound_port.ask(payload)
-                if not isinstance(response, Response):
+                answer = self.outbound_port.ask(payload)
+                if not isinstance(answer, Response):
                     raise TypeError("Invalid response type")
-                break
             except Exception as error:
                 if attempt == attempts or not worth_retrying(error):
                     raise AgentFailure(classify(error), phase_id, error) from error
                 logger.warning("LLM call failed, trying again", phase_id=phase_id, attempt=attempt,
                                error_type=type(error).__name__)
+                continue
 
-        self._track(response, phase_id, model, action_id, payload, started_ns, time.time_ns())
+            self._track(answer, phase_id, model, action_id, payload, started_ns, time.time_ns())
+            return answer
 
-        return response
+        raise AgentFailure("unknown", phase_id)       # not reached: the last attempt either answers or raises
 
     def _track(
         self,

@@ -1,0 +1,6 @@
+{
+  "degrees": {
+    "type": "number",
+    "description": "Degrees of rotation, signed: 90 then -90 returns the arm"
+  }
+}

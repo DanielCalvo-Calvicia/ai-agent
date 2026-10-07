@@ -1,6 +1,0 @@
-{
-    "retry_action_id": {
-        "type": "string",
-        "description": "Action ID to retry if status is retry"
-    }
-}

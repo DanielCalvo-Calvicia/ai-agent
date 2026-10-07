@@ -1,0 +1,6 @@
+{
+  "spoken_reply": {
+    "type": "string",
+    "description": "One short sentence the robot says out loud, in the language of the user. When the movements are clear: what the robot is about to do. When no movement was asked or it cannot be done: a brief honest answer. When a detail is missing: an empty string, the question is asked separately"
+  }
+}

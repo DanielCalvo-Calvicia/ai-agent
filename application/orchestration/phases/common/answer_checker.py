@@ -5,7 +5,7 @@
 from application.orchestration.state.flow_state import FlowState
 from application.orchestration.state.paused_run import PausedRun
 from application.orchestration.phases.phase import PhaseSpec
-from domain.value_objects.model import GithubModels
+from domain.value_objects.llm_request.model import GithubModels
 
 # What the user's reply is.
 ANSWERED = "answered"

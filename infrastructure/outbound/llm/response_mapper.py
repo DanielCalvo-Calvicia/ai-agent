@@ -6,18 +6,18 @@
 
 from typing import Any, Dict, List, Optional
 
-from domain.entities.action import Action, create_action
+from domain.entities.llm_response.action import Action, create_action
 from shared_logging import get_logger
-from domain.entities.response import Response
-from domain.entities.tokens_usage import TokensUsage, create_tokens_usage
-from domain.value_objects.constraints.constraints import Constraints, create_constraints
-from domain.value_objects.intent.intent import Intent, create_intent
-from domain.value_objects.mcp_routing.mcp_routing import MCPRouting, create_mcp_routing
-from domain.value_objects.missing_information.missing_information import MissingInformation, create_missing_information
-from domain.value_objects.next_step.next_step import NextStep, create_next_step
-from domain.value_objects.safety_and_validation.safety_and_validation import SafetyAndValidation, create_safety_and_validation
-from domain.value_objects.task_category.task_category import TaskCategory, create_task_category
-from domain.value_objects.user_goal.user_goal import UserGoal, create_user_goal
+from domain.entities.llm_response.response import Response
+from domain.entities.llm_response.tokens_usage import TokensUsage, create_tokens_usage
+from domain.value_objects.llm_response.constraints.constraints import Constraints, create_constraints
+from domain.value_objects.llm_response.intent.intent import Intent, create_intent
+from domain.value_objects.llm_response.mcp_routing.mcp_routing import MCPRouting, create_mcp_routing
+from domain.value_objects.llm_response.missing_information.missing_information import MissingInformation, create_missing_information
+from domain.value_objects.llm_response.next_step.next_step import NextStep, create_next_step
+from domain.value_objects.llm_response.safety_and_validation.safety_and_validation import SafetyAndValidation, create_safety_and_validation
+from domain.value_objects.llm_response.task_category.task_category import TaskCategory, create_task_category
+from domain.value_objects.llm_response.user_goal.user_goal import UserGoal, create_user_goal
 
 JsonObject = Dict[str, Any]
 
@@ -129,15 +129,20 @@ def _map_action(action: JsonObject) -> Action:
     return mapped
 
 
-def _map_missing_information(data: JsonObject) -> Optional[MissingInformation]:
+def _map_missing_information(data: JsonObject) -> Optional[List[MissingInformation]]:
+    """The schema asks for a list (one entry per missing piece); a single object is accepted as a list of one."""
     info = data.get("missing_information")
-    if info is None or len(info) == 0:
+    if not info:
         return None
-    return create_missing_information(
-        field_value=info["field"],
-        why_needed_value=info["why_needed"],
-        blocking_value=info["blocking"],
-    )
+    entries = [info] if isinstance(info, dict) else info
+    return [
+        create_missing_information(
+            field_value=entry["field"],
+            why_needed_value=entry["why_needed"],
+            blocking_value=entry["blocking"],
+        )
+        for entry in entries
+    ]
 
 
 def _map_constraints(data: JsonObject) -> Optional[Constraints]:
@@ -172,6 +177,7 @@ def _map_next_step(data: JsonObject) -> Optional[NextStep]:
         recommended_action_value=step.get("recommended_action", ""),
         blocking_reason_value=step.get("blocking_reason", ""),
         requested_user_input_value=step.get("requested_user_input", []),
+        retry_action_id_value=step.get("retry_action_id", ""),
     )
 
 

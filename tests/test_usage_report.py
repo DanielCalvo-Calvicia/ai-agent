@@ -1,3 +1,4 @@
+# pyright: reportOptionalMemberAccess=false, reportArgumentType=false
 """The usage report of every LLM call (Langfuse): what is sent, what it costs, and that it never breaks the agent."""
 import json
 import os

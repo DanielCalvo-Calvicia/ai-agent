@@ -1,0 +1,13 @@
+{
+  "required_servers": {
+    "type": "array",
+    "items": {
+      "type": "string",
+      "enum": [
+        "filesystem",
+        "system_internal"
+      ]
+    },
+    "description": "MCP servers required to fulfill this request"
+  }
+}

@@ -1,5 +1,3 @@
-from typing import Callable, Optional
-
 import anyio.to_thread
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
@@ -11,7 +9,6 @@ from application.inbound.dto.session import (
 )
 from application.inbound.ports.session import SessionInboundPort
 from contracts.api.microservices.ai_agent.decision import MotorDirective
-from contracts.api.microservices.ai_agent.motion import AIAgentMotionMessageResponse
 from contracts.api.microservices.ai_agent.session import (
     AIAgentEndSessionResponse,
     AIAgentMessageResponse,
@@ -48,57 +45,25 @@ def _openapi_responses(action: str, outcome: str, message, data: dict) -> dict:
     }
 
 
-def _conversation_message_data(result) -> AIAgentMessageResponse:
-    # conversation-flow only talks: the movements are motion-flow's (AIAgentMessageResponse.directive stays empty).
+def message_data(result) -> AIAgentMessageResponse:
+    """The answer of /session/message: the reply, the movements to run (when the movement flow answered) and which flow answered."""
     return AIAgentMessageResponse(
         success=result.success, response=result.response,
         message=result.message, error_code=result.error_code,
-    )
-
-
-def _motion_message_data(result) -> AIAgentMotionMessageResponse:
-    return AIAgentMotionMessageResponse(
-        success=result.success, response=result.response,
         directives=tuple(MotorDirective(arm=m.arm, degrees=m.degrees, direction=m.direction)
                          for m in result.movements),
         awaiting_user_input=result.awaiting_user_input,
-        message=result.message, error_code=result.error_code,
+        flow=result.flow or None,
     )
 
 
-# flow name -> how the answer of its /session/message route is built. A flow that is not listed answers like conversation-flow.
-_MESSAGE_DATA_BY_FLOW = {"motion-flow": _motion_message_data}
-
-
-def message_data_for(flow_name: str) -> Callable:
-    return _MESSAGE_DATA_BY_FLOW.get(flow_name, _conversation_message_data)
-
-
 class SessionFastAPI:
-    """
-    HTTP routes of one flow. Only translates between HTTP and the SessionInboundPort.
-    Without a prefix it serves /session/* (the original routes, conversation-flow) and /health, /available.
-    With a prefix such as "/conversation-flow" it serves that flow's own /session/* routes.
-    """
+    """HTTP routes of the agent: /session/start, /session/message, /session/end, /health and /available. Only translates between HTTP and the SessionInboundPort."""
 
-    def __init__(
-        self,
-        App: FastAPI,
-        SessionPort: SessionInboundPort,
-        prefix: str = "",
-        tag: str = "Session",
-        include_health: bool = True,
-        deprecated: bool = False,
-        message_to_data: Callable = _conversation_message_data,
-    ):
+    def __init__(self, App: FastAPI, SessionPort: SessionInboundPort):
         self.app = App
         self.session_port = SessionPort
-        self.prefix = prefix
-        self.tag = tag
-        self.deprecated = deprecated
-        self.message_to_data = message_to_data
-        if include_health:
-            self.register_health_routes()
+        self.register_health_routes()
         self.register_routes()
 
     def register_health_routes(self):
@@ -129,9 +94,8 @@ class SessionFastAPI:
 
     def register_routes(self):
         @self.app.post(
-            f"{self.prefix}/session/start",
-            tags=[self.tag],
-            deprecated=self.deprecated,
+            "/session/start",
+            tags=["Session"],
             summary="Start a new session",
             description="Creates a new user session and returns a unique session ID. "
                         "The session must be started before sending messages.",
@@ -148,9 +112,8 @@ class SessionFastAPI:
             )
 
         @self.app.post(
-            f"{self.prefix}/session/end",
-            tags=[self.tag],
-            deprecated=self.deprecated,
+            "/session/end",
+            tags=["Session"],
             summary="End an existing session",
             description="Terminates a session by its ID. "
                         "After ending, the session ID can no longer be used to send messages.",
@@ -166,13 +129,13 @@ class SessionFastAPI:
             )
 
         @self.app.post(
-            f"{self.prefix}/session/message",
-            tags=[self.tag],
-            deprecated=self.deprecated,
+            "/session/message",
+            tags=["Session"],
             summary="Send a message to an active session",
             description="Sends a user message to the AI agent within an active session. "
-                        "The agent processes the message through the full orchestration flow "
-                        "and returns a response. When it could not be processed, status is "
+                        "The message is identified first and then answered by one flow (data.flow): "
+                        "conversation, special or movement. data.directives are the arm movements to run, "
+                        "in order. When it could not be processed, status is "
                         "'error', data.response is an apology and data.message tells why.",
             responses=_openapi_responses(
                 "message_received", "Message processed (check data.success for outcome)", None,
@@ -183,7 +146,7 @@ class SessionFastAPI:
             # It runs in a worker thread so the event loop keeps serving other requests.
             return await self._handle(
                 "message_received", self.session_port.message_received, Request,
-                to_data=self.message_to_data,
+                to_data=message_data,
                 in_thread=True, error_when_not_successful=True,
             )
 

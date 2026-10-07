@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "type": "array",
+    "items": {
+      "type": "string"
+    },
+    "description": "List of action IDs that must complete successfully before this action can run. Can reference both actions and subactions."
+  }
+}

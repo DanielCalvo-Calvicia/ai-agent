@@ -1,0 +1,10 @@
+{
+  "direction": {
+    "type": "string",
+    "enum": [
+      "forward",
+      "reverse"
+    ],
+    "description": "Direction of the rotation"
+  }
+}

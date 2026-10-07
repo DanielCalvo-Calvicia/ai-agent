@@ -13,8 +13,8 @@ from ai_sdk import anthropic as anthropic_provider
 from ai_sdk import openai as openai_provider
 from ai_sdk.providers.anthropic import AnthropicModel as OpenAICompatibleModel
 
-from domain.entities.payload import Payload
-from domain.value_objects.model import SelectedModel
+from domain.entities.llm_request.payload import Payload
+from domain.value_objects.llm_request.model import SelectedModel
 from infrastructure.outbound.llm.config import VercelAIConfig
 
 ErrProviderNotSupported = ValueError(

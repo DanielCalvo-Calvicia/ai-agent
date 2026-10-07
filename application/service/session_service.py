@@ -19,8 +19,6 @@ from application.inbound.dto.session import (
 )
 from application.inbound.ports.message_flow_ports import MessageInboundPort
 from application.inbound.ports.session import SessionInboundPort
-from application.orchestration.engine.flow import Flow
-from application.orchestration.flows.conversation_flow import CONVERSATION_FLOW
 from application.outbound.ports.llm_ports import LLMOutboundPort
 from application.outbound.ports.mcp_ports import McpToolsPort
 from application.outbound.ports.usage_ports import UsageReporterPort
@@ -45,9 +43,7 @@ class SessionService(SessionInboundPort):
         history_turns: int = 6,
         mcp_tools: Optional[McpToolsPort] = None,
         usage_reporter: Optional[UsageReporterPort] = None,
-        flow: Flow = CONVERSATION_FLOW,
     ) -> None:
-        self.flow = flow              # the agent this service's sessions talk to
         self.usage_reporter = usage_reporter
         self.llm_adapter = outbound_port
         self.message_service_type = message_service_type
@@ -94,7 +90,8 @@ class SessionService(SessionInboundPort):
             result = self._run_agent(request, user_session)
             user_session.remember(request.message, result.content, self.history_turns)
             return MessageReceivedResponseDTO(response=result.content, movements=list(result.movements),
-                                              awaiting_user_input=result.awaiting_user_input, success=True)
+                                              awaiting_user_input=result.awaiting_user_input, flow=result.flow,
+                                              success=True)
         except Exception as e:
             logger.exception("Failed to process message", session_id=request.session_id)
             return self._failed(f"Failed to process message: {str(e)}", apology_for_unexpected(e),
@@ -108,7 +105,6 @@ class SessionService(SessionInboundPort):
             history=user_session.history,
             mcp_tools=self.mcp_tools,
             paused=user_session.paused,
-            flow=self.flow,
             **extra,
         )
         text_request = TextRequestDTO(
@@ -121,7 +117,7 @@ class SessionService(SessionInboundPort):
             session_id=request.session_id,
             content=request.message,
             session_name=user_session.name,
-            robot_context=request.robot_context,
+            speak_movements=request.speak_movements,
         )
         result = agent.text(text_request)
         user_session.paused = getattr(agent, "paused_run", None)   # only when the message was processed: a failure keeps the old one

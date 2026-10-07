@@ -1,0 +1,14 @@
+{
+  "primary": {
+    "type": "string",
+    "enum": [
+      "information_request",
+      "task_execution",
+      "content_generation",
+      "decision_support",
+      "clarification_request",
+      "system_operation"
+    ],
+    "description": "Single dominant intent category that best represents the user's request"
+  }
+}

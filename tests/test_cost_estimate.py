@@ -13,7 +13,7 @@ from cost_estimate import (ACTION_REPR, ANSWER_TOKENS, PARENT_ANSWER_TOKENS, PRO
                            choice_single, choice_strongest, markdown, price, rows_for, total_row, usage)
 from model_table import load_models
 
-DOC = os.path.join(PROJECT_ROOT, "docs", "cost_of_a_full_plan.md")
+DOC = os.path.join(PROJECT_ROOT, "docs", "models", "cost_of_a_full_plan.md")
 
 
 def by_step(usages):

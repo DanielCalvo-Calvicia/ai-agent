@@ -1,3 +1,4 @@
+# pyright: reportOptionalMemberAccess=false, reportOperatorIssue=false
 """
 Pause and resume: the flow stops to ask the user, the next message is checked as the answer,
 and the flow continues from the step that was waiting (nothing is planned again).
@@ -112,7 +113,7 @@ class TestAnsweredQuestion:
         conversation, first = self._ask_family_table()
         assert first.success and first.response == "Please tell me the missing details."
         assert conversation.paused is not None and conversation.paused.kind == INPUT
-        assert conversation.paused.step_index == 0
+        assert conversation.paused.step_index == 0 and conversation.paused.flow == "identification"
         assert conversation.paused.requested_items == ["What are the names of your four family members?"]
 
     def test_a_correct_answer_continues_and_does_not_plan_again_from_the_start(self):
@@ -168,7 +169,7 @@ class TestAnsweredQuestion:
         })
         conversation = Conversation(llm)
         conversation.say("Write a note")
-        assert conversation.paused.step_index == 1
+        assert conversation.paused.step_index == 0 and conversation.paused.flow == "special"      # the project manager (identification ran before)
         before = len(llm.calls)
         conversation.say("Bob")
         assert conversation.formats(before) == [
@@ -272,7 +273,7 @@ class TestConfirmation:
     def test_the_run_waits_for_a_yes_or_a_no(self):
         conversation = self._waiting_for_confirmation(_verdict("confirmed"))
         assert conversation.paused.kind == CONFIRMATION
-        assert conversation.paused.step_index == 2                       # the safety gate
+        assert conversation.paused.step_index == 1 and conversation.paused.flow == "special"      # the safety gate
 
     def test_a_yes_continues_after_the_gate_without_planning_or_checking_again(self):
         conversation = self._waiting_for_confirmation(_verdict("confirmed"))
@@ -380,14 +381,14 @@ class TestContextOfEveryPhase:
         conversation.say("hello")
         assert llm.calls
         # the recorded calls carry only a hash of the system prompt, so read what is built for each phase
-        from application.system_prompts.advanced import build_system_prompt
+        from application.system_prompts.general import build_system_prompt
         for phase in range(1, 10):
             text = build_system_prompt(phase, clock=lambda: "Monday, 2026-01-05, 09:00 (UTC+00:00)").content
             assert "move each of its arms independently" in text
             assert "CURRENT DATE AND TIME: Monday, 2026-01-05, 09:00 (UTC+00:00)" in text
 
     def test_the_capabilities_come_before_the_phase_prompt(self):
-        from application.system_prompts.advanced import build_system_prompt
+        from application.system_prompts.general import build_system_prompt
         text = build_system_prompt(1, clock=lambda: "now").content
         assert text.index("WHO YOU SERVE") < text.index("You are the TRIAGE SPECIALIST")
 
@@ -397,7 +398,7 @@ class TestContextOfEveryPhase:
         assert re.fullmatch(r"[A-Z][a-z]+, \d{4}-\d{2}-\d{2}, \d{2}:\d{2} \(UTC[+-]\d{2}:\d{2}\)", now_text())
 
     def test_small_talk_and_refusals_do_not_pause_the_flow_by_prompt(self):
-        from application.system_prompts.advanced import LoadSystemPrompt
+        from application.system_prompts.general import LoadSystemPrompt
         triage = LoadSystemPrompt(1)
         assert "greeting, thanks, small talk" in triage and "cannot do" in triage
         assert "ONE \"generation\" action" in LoadSystemPrompt(2)

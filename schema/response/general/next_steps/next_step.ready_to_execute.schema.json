@@ -1,0 +1,6 @@
+{
+  "ready_to_execute": {
+    "type": "boolean",
+    "description": "Indicates whether execution can proceed immediately without external intervention"
+  }
+}

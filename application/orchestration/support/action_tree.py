@@ -5,7 +5,7 @@
 
 from typing import Any, Dict, List
 
-from domain.entities.action import Action
+from domain.entities.llm_response.action import Action
 
 MCP_ACTION_TYPE = "mcp_tool_call"
 

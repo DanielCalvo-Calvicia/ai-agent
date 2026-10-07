@@ -2,7 +2,7 @@
 # When a flow must pause, turns the missing inputs into a short message for the user.
 # It has no prompt file and no response schema: its prompt is the constant below and it answers with plain text.
 
-from domain.value_objects.model import GithubModels
+from domain.value_objects.llm_request.model import GithubModels
 
 # --- What this phase uses ---------------------------------------------------
 PHASE_ID = 99

@@ -19,6 +19,17 @@ YOUR TASK:
 7. Classify task_category.complexity
 8. Decide whether there is enough information to continue
 
+DOMAIN (task_category.domain) DECIDES WHICH AGENT ANSWERS, SO CHOOSE IT CAREFULLY:
+- "communication": greetings, thanks, small talk, opinions, and simple questions the robot can answer from its own
+  knowledge or from the conversation. Nothing has to be planned or carried out.
+- "movement": the user asks the robot to move an arm (left, right, both, degrees, forward, reverse, "again", "back").
+  Only arm movements. Walking, jumping or moving anything else is not a movement: classify it by what it is
+  (usually "communication", because the robot just has to say it cannot do it).
+- every other value (software, data, writing, design, research, operations, system): a task that needs a plan, several
+  steps, a table, a document or a tool.
+When in doubt between "communication" and another value, ask yourself: can one short spoken answer settle it? If so,
+use "communication".
+
 CAPABILITY CHECK (do this BEFORE deciding to ask anything):
 If the request needs something the robot cannot do (see the robot capabilities above: files, email, calendar,
 the internet, jumping or walking, seeing or hearing, or any external service), do NOT ask the user for details.

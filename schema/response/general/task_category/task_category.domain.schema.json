@@ -1,0 +1,17 @@
+{
+  "domain": {
+    "type": "string",
+    "enum": [
+      "software",
+      "data",
+      "writing",
+      "design",
+      "research",
+      "operations",
+      "communication",
+      "system",
+      "movement"
+    ],
+    "description": "Primary knowledge or work domain involved in the task. It also decides which agent flow answers: communication (greetings, small talk, simple questions) gets a plain conversation reply, movement (the user asks the robot to move an arm) goes to the movement flow, and every other domain goes to the special flow that plans and executes the task"
+  }
+}

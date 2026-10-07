@@ -1,0 +1,37 @@
+{
+  "movements": {
+    "type": "array",
+    "description": "The movements to run, in order. Empty when no movement was asked for or a detail is missing",
+    "items": {
+      "type": "object",
+      "required": [
+        "arm",
+        "degrees",
+        "direction"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "arm": {
+          "type": "string",
+          "enum": [
+            "left",
+            "right"
+          ],
+          "description": "Which arm moves"
+        },
+        "degrees": {
+          "type": "number",
+          "description": "Degrees of rotation, signed: 90 then -90 returns the arm"
+        },
+        "direction": {
+          "type": "string",
+          "enum": [
+            "forward",
+            "reverse"
+          ],
+          "description": "Direction of the rotation"
+        }
+      }
+    }
+  }
+}

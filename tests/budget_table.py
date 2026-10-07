@@ -1,5 +1,5 @@
 """
-Builds docs/models_per_step_budget.md: the models of every provider, per step, with what they cost against a monthly
+Builds docs/models/models_per_step_budget.md: the models of every provider, per step, with what they cost against a monthly
 budget (config/budget.json). Prices and ratings: config/gemini_models.json and config/other_models.json.
 `python tests/manual/show_models.py --budget` writes the document.
 """
@@ -13,7 +13,7 @@ from model_table import CONFIG_PATH, PROJECT_ROOT, blended, load_models
 OTHER_PATH = os.path.join(PROJECT_ROOT, "config", "other_models.json")
 BUDGET_PATH = os.path.join(PROJECT_ROOT, "config", "budget.json")
 MEASURED_PATH = os.path.join(PROJECT_ROOT, "config", "measured_runs.json")
-DOC_PATH = os.path.join(PROJECT_ROOT, "docs", "models_per_step_budget.md")
+DOC_PATH = os.path.join(PROJECT_ROOT, "docs", "models", "models_per_step_budget.md")
 
 LEVEL_WHY = {
     "best": "the right size and price for this step",
@@ -226,7 +226,7 @@ def markdown(data: Dict[str, Any], config: Dict[str, Any], budget: Dict[str, Any
               "1. One profile for every step: `windows\\Scripts\\python.exe tests\\manual\\show_models.py --profile=budget50`.",
               "2. One step: `windows\\Scripts\\python.exe tests\\manual\\show_models.py --set=project_manager=openai/gpt-oss-120b` "
               "(or write the line of the table in `steps` of `config/step_models.json`). Only models the agent's provider "
-              "table knows can be chosen (`domain/value_objects/model_catalog.py`).",
+              "table knows can be chosen (`domain/value_objects/llm_request/model_catalog.py`).",
               "3. See what is in use with its price: `windows\\Scripts\\python.exe tests\\manual\\show_models.py`.",
               "4. Before you trust a model on a step: `tests/manual/debug_flow.py --real`, then `--only=<step> --state=<file> "
               "--repeat=5`. The problems it finds and `compare.md` show if the model is steady.",

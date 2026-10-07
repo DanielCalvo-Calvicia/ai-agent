@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from application.outbound.ports.usage_ports import UsageReporterPort
 
 # phase id -> step name, read from the constants of each phase file (application/orchestration/phases).
-# PHASE_NAMES covers conversation-flow (what the cost and budget tables are about); ALL_PHASE_NAMES every flow.
+# PHASE_NAMES covers the text flows (identification, conversation, special: what the cost and budget tables are about); ALL_PHASE_NAMES every flow.
 PHASE_NAMES: Dict[int, str] = {phase_id: info.step_name for phase_id, info in CONVERSATION_PHASES.items()}
 ALL_PHASE_NAMES: Dict[int, str] = {phase_id: info.step_name for phase_id, info in PHASES.items()}
 

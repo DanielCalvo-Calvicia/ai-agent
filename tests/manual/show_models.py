@@ -8,9 +8,9 @@ Shows which LLM each step uses, the options and their cost, and lets you choose 
     windows/Scripts/python.exe tests/manual/show_models.py --set=project_manager=gemini-3.8-flash
     windows/Scripts/python.exe tests/manual/show_models.py --clear=project_manager     the profile decides again
     windows/Scripts/python.exe tests/manual/show_models.py --profile=budget           every step at once (proven, budget, balanced, quality)
-    windows/Scripts/python.exe tests/manual/show_models.py --write                    rewrite docs/gemini_models_per_step.md
+    windows/Scripts/python.exe tests/manual/show_models.py --write                    rewrite docs/models/gemini_models_per_step.md
     windows/Scripts/python.exe tests/manual/show_models.py --table                    print that document on the console
-    windows/Scripts/python.exe tests/manual/show_models.py --budget                   rewrite docs/models_per_step_budget.md
+    windows/Scripts/python.exe tests/manual/show_models.py --budget                   rewrite docs/models/models_per_step_budget.md
                                                                                        (all providers, against config/budget.json)
 
 --set, --clear and --profile change config/step_models.json (a typo in a step or a model is refused).
@@ -71,9 +71,10 @@ def main(argv):
         except ValueError as error:
             sys.exit(f"not changed: {error}")
         print(f"{step}: now {model}")
-    if option(argv, "--profile"):
+    profile = option(argv, "--profile")
+    if profile:
         try:
-            set_profile(option(argv, "--profile"))
+            set_profile(profile)
         except ValueError as error:
             sys.exit(f"not changed: {error}")
         print(f"profile: now {option(argv, '--profile')}")

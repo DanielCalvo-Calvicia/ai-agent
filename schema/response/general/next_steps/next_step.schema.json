@@ -1,0 +1,48 @@
+{
+  "next_step": {
+    "type": "object",
+    "required": [
+      "ready_to_execute",
+      "status",
+      "recommended_action"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "ready_to_execute": {
+        "type": "boolean",
+        "description": "Indicates whether execution can proceed immediately without external intervention"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "proceed",
+          "awaiting_user_input",
+          "awaiting_confirmation",
+          "retry",
+          "error",
+          "complete"
+        ],
+        "description": "Current execution state of the request lifecycle"
+      },
+      "recommended_action": {
+        "type": "string",
+        "description": "Machine-readable instruction indicating what the orchestrator should do next"
+      },
+      "blocking_reason": {
+        "type": "string",
+        "description": "Explanation of why execution cannot proceed if ready_to_execute is false"
+      },
+      "requested_user_input": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Specific information required from the user if status is awaiting_user_input"
+      },
+      "retry_action_id": {
+        "type": "string",
+        "description": "Action ID to retry if status is retry"
+      }
+    }
+  }
+}

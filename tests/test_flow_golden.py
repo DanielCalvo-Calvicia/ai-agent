@@ -1,3 +1,4 @@
+# pyright: reportOptionalMemberAccess=false, reportArgumentType=false
 """
 Characterization ("golden") test of the message flow.
 
@@ -5,7 +6,8 @@ A scripted LLM returns canned JSON per phase and every call it receives is recor
 (phase, model, system prompt, user message, response format, sampling, tools). The
 recorded sequence and the final reply are compared with tests/golden/flow_golden.json.
 
-The golden file was generated from the pre-refactor MessageFlowService. A refactor of
+The golden file was first generated from the pre-refactor MessageFlowService and regenerated on purpose
+when the four flows (identification, conversation, special, movement) replaced the two old ones. A refactor of
 the orchestration must keep this test green without regenerating the file.
 Regenerate on purpose with:  UPDATE_GOLDEN=1 python -m pytest tests/test_flow_golden.py
 """
@@ -25,8 +27,8 @@ if PROJECT_ROOT not in sys.path:
 from application.inbound.dto.message import TextRequestDTO
 from application.outbound.ports.llm_ports import LLMOutboundPort
 from application.service.message_flow_service import MessageFlowService
-from domain.entities.payload import Payload
-from domain.entities.response import Response
+from domain.entities.llm_request.payload import Payload
+from domain.entities.llm_response.response import Response
 from infrastructure.outbound.llm.response_mapper import build_response as _build_response
 
 GOLDEN_PATH = os.path.join(PROJECT_ROOT, "tests", "golden", "flow_golden.json")
@@ -151,6 +153,15 @@ class ScriptedLLM(LLMOutboundPort):
                                  "dependencies": [], "required_inputs": [], "error": "",
                                  "mcp_context": {"server_id": "", "tool_name": "", "parameters": {}},
                                  "output": f"out-p{phase}-{action_id}"}]}
+        if name == "motion_planner_phase20_response_format":
+            return {
+                "is_motion_request": True,
+                "movements": [{"arm": "left", "degrees": 90, "direction": "forward"}],
+                "spoken_reply": "Turning my left arm 90 degrees.",
+                "next_step": {"ready_to_execute": True, "status": "complete",
+                              "recommended_action": "", "blocking_reason": "",
+                              "requested_user_input": []},
+            }
         if name == "answer_checker_phase9_response_format":
             return {"verdict": "answered", "answer": "the answer of the user", "message_to_user": ""}
         if name == "draft_writer_phase7_response_format":
@@ -191,6 +202,17 @@ def _plan(*actions):
     return {"actions": list(actions), "task_category_complexity": "low",
             "next_step": {"ready_to_execute": True, "status": "proceed", "recommended_action": "",
                           "blocking_reason": "", "requested_user_input": []}}
+
+
+def _triage_for(domain):
+    """The triage answer that sends the message to the flow of this domain."""
+    return {
+        "intent": {"primary": "information_request", "secondary": [], "confidence": 0.9},
+        "user_goal": {"summary": "goal summary", "expected_outcome": "initial outcome"},
+        "task_category": {"domain": domain, "type": "generation", "complexity": "low"},
+        "next_step": {"ready_to_execute": True, "status": "proceed", "recommended_action": "",
+                      "blocking_reason": "", "requested_user_input": []},
+    }
 
 
 def _no_result(payload):
@@ -270,6 +292,19 @@ SCENARIOS: Dict[str, Dict[str, Any]] = {
             _action("3", dependencies=["2"]),
             _action("4"))}},
     },
+    "communication_goes_to_the_conversation_flow": {
+        "message": "hello there",
+        "llm": {"overrides": {TRIAGE: _triage_for("communication")}},
+    },
+    "movement_goes_to_the_movement_flow_and_is_announced": {
+        "message": "raise your left arm a quarter turn",
+        "llm": {"overrides": {TRIAGE: _triage_for("movement")}},
+    },
+    "movement_that_brain_does_not_want_spoken": {
+        "message": "raise your left arm a quarter turn",
+        "speak_movements": False,
+        "llm": {"overrides": {TRIAGE: _triage_for("movement")}},
+    },
     "pause_after_triage": {
         "message": "do the thing",
         "llm": {"overrides": {TRIAGE: {
@@ -287,8 +322,8 @@ SCENARIOS: Dict[str, Dict[str, Any]] = {
 def _run(scenario: Dict[str, Any]) -> Dict[str, Any]:
     llm = ScriptedLLM(**scenario["llm"])
     service = MessageFlowService(outbound_port=llm, mcp_list=MCP_LIST)
-    reply = service.text(TextRequestDTO(user_id="tester", session_id="s1",
-                                        content=scenario["message"])).content
+    reply = service.text(TextRequestDTO(user_id="tester", session_id="s1", content=scenario["message"],
+                                        speak_movements=scenario.get("speak_movements", True))).content
     metrics = service.metrics.summary()
     for record in metrics["request_log"]:
         record.pop("request_id")
@@ -303,7 +338,7 @@ def _project_cwd(monkeypatch):
     # Prompts, schemas and MCP configs are resolved relative to the working directory.
     monkeypatch.chdir(PROJECT_ROOT)
     # The system prompt carries the current date and time. Fix it so the recorded calls do not change.
-    monkeypatch.setattr("application.system_prompts.advanced.now_text", lambda: FIXED_NOW)
+    monkeypatch.setattr("application.system_prompts.general.now_text", lambda: FIXED_NOW)
 
 
 def _load_golden() -> Dict[str, Any]:

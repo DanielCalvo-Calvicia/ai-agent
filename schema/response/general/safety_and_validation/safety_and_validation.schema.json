@@ -1,0 +1,20 @@
+{
+  "safety_and_validation": {
+    "type": "object",
+    "required": [
+      "sensitive",
+      "requires_confirmation"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "sensitive": {
+        "type": "boolean",
+        "description": "Whether the request involves sensitive or restricted content"
+      },
+      "requires_confirmation": {
+        "type": "boolean",
+        "description": "Whether explicit user confirmation is required before execution"
+      }
+    }
+  }
+}

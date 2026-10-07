@@ -1,3 +1,4 @@
+# pyright: reportArgumentType=false, reportOperatorIssue=false
 """
 Behavior of the pieces around the flow: settings, provider resolution, MCP tools,
 the HTTP layer, session memory, per-phase models and prompt loading.
@@ -18,11 +19,11 @@ if PROJECT_ROOT not in sys.path:
 
 from application.orchestration.support.model_selection import model_for_phase
 from application.service.session_service import SessionService
-from application.system_prompts.advanced import LoadSystemPrompt
-from domain.entities.payload import Payload
-from domain.entities.response import Response
-from domain.value_objects.model import GithubModels, get_selected_model
-from domain.value_objects.tool import ToolDefinition
+from application.system_prompts.general import LoadSystemPrompt
+from domain.entities.llm_request.payload import Payload
+from domain.entities.llm_response.response import Response
+from domain.value_objects.llm_request.model import GithubModels, get_selected_model
+from domain.value_objects.llm_request.tool import ToolDefinition
 from infrastructure.inbound.http.fastapi import SessionFastAPI
 from infrastructure.outbound.llm.config import VercelAIConfig
 from infrastructure.outbound.llm.vercel import VercelAIAdapter
