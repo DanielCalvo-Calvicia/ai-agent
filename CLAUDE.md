@@ -19,6 +19,12 @@ Check `git status` before editing.
   `movement` -> movement, anything else -> special.
 - The flows never call each other; only the router hands the identification state to the next one (nothing is classified twice). A flow that
   asked the user a question is resumed by the next message (`PausedRun.flow`) without identifying it again.
+- **Gestures** (`AI_AGENT_EXPRESSION`, default on): after the conversation or special flow has written its reply, the router runs the
+  `expression` flow on it (`emotion_reader`, one cheap model call, then `gesture_builder`, plain code). The result is random arm
+  movements shaped by the emotion (`domain/operations/gesture.py`), with `pause_seconds` between them, about as long as the speech, every
+  arm back where it started; they go out as `directives` with `gesture: true`. The reply is never held back: if the expression flow fails
+  or the validator refuses the gesture, the reply goes out without one. A movement the user asked for (movement flow) gets no gesture.
+  Brain starts a gesture when the robot starts to speak.
 - May later fetch content from `aws_microservice` through MCP (`mcps/aws_microservice.json`). Nothing uses it yet.
 
 ## API

@@ -242,8 +242,8 @@ class TestHttp:
                            json={"session_id": self._session(client), "message": "there and back", **USER}).json()
         assert body["status"] == "success"
         assert body["data"]["directives"] == [
-            {"arm": "left", "degrees": 90.0, "direction": "forward"},
-            {"arm": "left", "degrees": -90.0, "direction": "forward"},
+            {"arm": "left", "degrees": 90.0, "direction": "forward", "pause_seconds": 0.0},
+            {"arm": "left", "degrees": -90.0, "direction": "forward", "pause_seconds": 0.0},
         ]
         assert body["data"]["success"] is True and body["data"]["response"] == "There and back."
         assert body["data"]["awaiting_user_input"] is False and body["data"]["flow"] == "movement"

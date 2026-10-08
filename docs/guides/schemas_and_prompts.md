@@ -21,6 +21,7 @@ file, never a table somewhere else.
 | `8_editor_in_chief.txt` | the editor |
 | `9_answer_checker.txt` | the answer checker |
 | `20_motion_planner.txt` | the motion planner (movements and `spoken_reply`) |
+| `30_emotion_reader.txt` | the emotion reader (the feeling of an exchange, for the arm gesture) |
 
 The system message of a phase is `0_generic_prompt` + `capabilities` + the current date and time + the phase prompt
 (`application/system_prompts/general.py`). Phase 99 (the question for the user) has its prompt inside its phase file.
@@ -32,11 +33,12 @@ domain class name changes what the model sees: that is why the golden test recor
 
 ## 2. The response schemas (`schema/response/`)
 
-Two trees, each generated from one file:
+Three trees, each generated from one file:
 
 | Tree | Source file | What it describes |
 |---|---|---|
 | `general/` | `general/full.schema.json` | the structured answer of the text flows: `intent`, `user_goal`, `task_category`, `actions`, `missing_information`, `constraints`, `safety_and_validation`, `next_step`, `mcp_routing` |
+| `expression/` | `expression/full.schema.json` | the emotion reader's fields: `emotion` (one of eight), `intensity` (1 to 5) and `improvised` (up to 3 movements) |
 | `motion/` | `motion/full.schema.json` | the movement flow's own fields: `is_motion_request`, `movements` (`arm`, `degrees`, `direction`), `spoken_reply`. Its `next_step` is the general one |
 
 **`full.schema.json` is the only file you edit.** Every other file is generated:

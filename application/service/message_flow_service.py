@@ -46,6 +46,7 @@ class MessageFlowService(MessageInboundPort):
         return TextResponseDTO(
             content=result.reply,
             movements=list(result.movements),
+            gesture=result.gesture,
             awaiting_user_input=result.paused is not None,
             flow=result.flow,
             is_final=True,

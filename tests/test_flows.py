@@ -45,7 +45,7 @@ class TestRegistry:
         assert FLOWS.get("conversation") is CONVERSATION_FLOW
         assert FLOWS.get("special") is SPECIAL_FLOW
         assert FLOWS.get("movement") is MOVEMENT_FLOW
-        assert FLOWS.names() == ["identification", "conversation", "special", "movement"]
+        assert FLOWS.names() == ["identification", "conversation", "special", "movement", "expression"]
 
     def test_an_unknown_flow_fails_loudly(self):
         with pytest.raises(KeyError, match="unknown flow"):

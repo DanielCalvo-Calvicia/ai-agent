@@ -39,3 +39,6 @@ class FlowResult:
     state: Optional[FlowState] = None
     # True when the user cut the run short (stop or decline): the reply is final, nothing more is to be run.
     ended_early: bool = False
+    # True when `movements` are an expressive gesture for the reply (the expression flow made them), not movements the
+    # user asked for.
+    gesture: bool = False

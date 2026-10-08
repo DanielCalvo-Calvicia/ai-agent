@@ -46,14 +46,16 @@ def _openapi_responses(action: str, outcome: str, message, data: dict) -> dict:
 
 
 def message_data(result) -> AIAgentMessageResponse:
-    """The answer of /session/message: the reply, the movements to run (when the movement flow answered) and which flow answered."""
+    """The answer of /session/message: the reply, the movements to run (the ones asked for, or the gesture of the reply) and which flow answered."""
     return AIAgentMessageResponse(
         success=result.success, response=result.response,
         message=result.message, error_code=result.error_code,
-        directives=tuple(MotorDirective(arm=m.arm, degrees=m.degrees, direction=m.direction)
+        directives=tuple(MotorDirective(arm=m.arm, degrees=m.degrees, direction=m.direction,
+                                        pause_seconds=m.pause_seconds)
                          for m in result.movements),
         awaiting_user_input=result.awaiting_user_input,
         flow=result.flow or None,
+        gesture=result.gesture,
     )
 
 

@@ -24,8 +24,11 @@ OBLIVION workspace, `deployment/` regenerates its settings files from `.env.exam
 | `AI_AGENT_HISTORY_TURNS` | `6` | exchanges (a user message and its reply) remembered per session; only triage and the project manager read them |
 | `AI_AGENT_PARALLEL_ACTIONS` | `1` | independent actions of a plan that run together (`1` = one by one; tool calls stay sequential). Keep `1` on providers with a tokens-per-minute limit |
 | `AI_AGENT_MAX_ATTEMPTS` | `3` | tries (the first included) of a failed LLM call, MCP tool or `retry` answer |
+| `AI_AGENT_EXPRESSION` | `1` | `1` = the arm gesture that goes with a spoken reply (the expression flow: one more model call per reply); `0` = no gestures |
+| `AI_AGENT_SPEECH_CHARS_PER_SECOND` | `14` | how fast the robot talks; the gesture lasts about as long as the reply takes to say at this rate |
+| `AI_AGENT_EXPRESSION_SEED` | empty | a number makes the gestures repeatable (tests); empty = random |
 | `AI_AGENT_MODELS_FILE` | `config/step_models.json` | another models file |
-| `AI_AGENT_MODEL_PHASE_<n>` (n = 1..9, 20, 99) | unset | model id for one phase; wins over the models file |
+| `AI_AGENT_MODEL_PHASE_<n>` (n = 1..9, 20, 30, 99) | unset | model id for one phase; wins over the models file |
 | `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`, `MISTRAL_API_KEY`, `GROQ_API_KEY`, `COHERE_API_KEY`, `GITHUB_PAT` | empty | provider keys; set only the providers you use. `GET /available` is true when one of them or `OLLAMA_URL` is set |
 | `GOOGLE_URL`, `MISTRAL_URL`, `GROQ_URL`, `COHERE_URL`, `GITHUB_URL`, `OLLAMA_URL` | empty | OpenAI-compatible base URLs of those providers. OpenAI and Anthropic are native and need no URL |
 | `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_HOST` | empty | optional reporting to Langfuse (section 5). Empty host = the EU cloud |

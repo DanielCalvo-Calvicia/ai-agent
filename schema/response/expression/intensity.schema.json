@@ -1,0 +1,13 @@
+{
+  "intensity": {
+    "type": "integer",
+    "enum": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "description": "How strong the emotion is: 1 barely there, 3 clear, 5 very strong"
+  }
+}

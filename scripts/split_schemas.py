@@ -23,9 +23,10 @@ import sys
 from typing import Any, Dict, List
 
 RESPONSE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "schema", "response")
-# One tree per agent answer. `general` is the answer of the text flows (identification, conversation, special); `motion` is the movement
+# One tree per agent answer. `general` is the answer of the text flows (identification, conversation, special); `expression` is the
+# emotion reader's (the gesture that goes with a reply); `motion` is the movement
 # flow's own fields (its `next_step` is the general one, so it is not repeated there).
-TREES = ("general", "motion")
+TREES = ("general", "motion", "expression")
 FULL_FILE = "full.schema.json"
 FOLDER_NAMES = {"next_step": "next_steps"}
 # The action element is recursive (subactions), so it lives in the root `$defs` and elements point at it.

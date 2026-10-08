@@ -23,7 +23,8 @@ POST /session/message
               communication -> conversation flow    draft writer, editor
               movement      -> movement flow        motion planner, motion validator
               anything else -> special flow         project manager, safety gate, action executor, draft writer, editor
-   -> FlowResult(reply, movements, paused, flow, state)
+   -> for a conversation or special reply: EXPRESSION flow (emotion_reader -> gesture_builder), after the reply is final
+   -> FlowResult(reply, movements, paused, flow, state, gesture)
    -> MessageReceivedResponseDTO -> contracts AIAgentMessageResponse (response, directives, awaiting_user_input, flow)
 ```
 
@@ -138,6 +139,8 @@ top (`PHASE_ID`, `STEP_NAME`, `MODEL_ENV_VAR`, `DEFAULT_MODEL`, `PROMPT_FILE`, `
 | 9 | `answer_checker` | `common/answer_checker.py` | the engine | Reads the next message of a session with a saved run (answer / yes / no / not an answer / stop) |
 | 20 | `motion_planner` | `movement/motion_planner.py` | movement | Writes the ordered movement list, `is_motion_request` and a short `spoken_reply`; asks the user when the arm or the degrees are missing |
 | 21 | `motion_validator` | `movement/motion_validator.py` | movement | **No LLM call.** Valid arm and direction, degrees within limits, at most 20 movements and 3600 degrees in total; one bad movement refuses the whole sequence |
+| 30 | `emotion_reader` | `expression/emotion_reader.py` | expression | Reads the feeling of an exchange (what the user said and what the robot answers): `emotion`, `intensity` 1 to 5 and up to 3 optional movements of its own |
+| 31 | `gesture_builder` | `expression/gesture_builder.py` | expression | **No LLM call.** Builds the gesture: random movements shaped by the emotion (`domain/operations/gesture.py`), about as long as the speech, every arm back where it started; the motion validator checks it and a refused gesture is dropped |
 | 99 | `user_clarification` | `common/user_clarification.py` | the engine | Writes the question for the user (plain text, temperature 0.7, 2000 tokens) |
 
 A phase's answer is one JSON object built from the schema pieces it names in `SCHEMAS` (section 5.1 of

@@ -30,8 +30,10 @@ class MessageReceivedRequestDTO(BaseRequestDTO):
 
 class MessageReceivedResponseDTO(BaseResponseDTO):
     response: str
-    # The movement flow's validated movement sequence, in execution order.
+    # The movement sequence, in execution order: the movement flow's validated one, or the gesture of the reply.
     movements: List[Movement] = Field(default_factory=list)
+    # True when `movements` are an expressive gesture that goes with `response`, not movements the user asked for.
+    gesture: bool = False
     # True when `response` is a question for the user: the flow is paused until they answer.
     awaiting_user_input: bool = False
     # The flow that produced the answer: identification, conversation, special or movement.

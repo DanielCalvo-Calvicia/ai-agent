@@ -90,6 +90,7 @@ class SessionService(SessionInboundPort):
             result = self._run_agent(request, user_session)
             user_session.remember(request.message, result.content, self.history_turns)
             return MessageReceivedResponseDTO(response=result.content, movements=list(result.movements),
+                                              gesture=result.gesture,
                                               awaiting_user_input=result.awaiting_user_input, flow=result.flow,
                                               success=True)
         except Exception as e:

@@ -10,6 +10,7 @@ from types import ModuleType
 from typing import Dict, Optional, Tuple
 
 from application.orchestration.phases.common import answer_checker, draft_writer, editor_in_chief, user_clarification
+from application.orchestration.phases.expression import emotion_reader, gesture_builder
 from application.orchestration.phases.identification import triage
 from application.orchestration.phases.movement import motion_planner, motion_validator
 from application.orchestration.phases.special import (
@@ -24,6 +25,7 @@ from domain.value_objects.llm_request.model import GithubModels
 # The phases that are one LLM call (or one per action). The text ones (identification, conversation and special flows)
 # come first, in execution order: that order is the order of the step list in config/step_models.json.
 MOVEMENT_FLOW_MODULES: Tuple[ModuleType, ...] = (motion_planner,)
+EXPRESSION_FLOW_MODULES: Tuple[ModuleType, ...] = (emotion_reader,)
 
 TEXT_FLOW_MODULES: Tuple[ModuleType, ...] = (
     triage,
@@ -38,10 +40,10 @@ TEXT_FLOW_MODULES: Tuple[ModuleType, ...] = (
     user_clarification,
 )
 
-PHASE_MODULES: Tuple[ModuleType, ...] = TEXT_FLOW_MODULES + MOVEMENT_FLOW_MODULES
+PHASE_MODULES: Tuple[ModuleType, ...] = TEXT_FLOW_MODULES + MOVEMENT_FLOW_MODULES + EXPRESSION_FLOW_MODULES
 
 # Steps that run no LLM: no model, no prompt. They have an id and a name for errors and logs.
-NON_LLM_MODULES: Tuple[ModuleType, ...] = (motion_validator,)
+NON_LLM_MODULES: Tuple[ModuleType, ...] = (motion_validator, gesture_builder)
 
 
 @dataclass(frozen=True)
