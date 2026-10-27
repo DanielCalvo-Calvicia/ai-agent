@@ -1,0 +1,15 @@
+{
+  "action_type": {
+    "type": "string",
+    "enum": [
+      "analysis",
+      "generation",
+      "transformation",
+      "decision",
+      "retrieval",
+      "clarification",
+      "mcp_tool_call"
+    ],
+    "description": "Canonical action category used by the orchestrator to determine execution strategy. Must be exactly one of the allowed enum values."
+  }
+}

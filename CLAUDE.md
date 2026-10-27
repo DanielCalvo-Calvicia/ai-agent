@@ -1,0 +1,90 @@
+# CLAUDE.md: ai-agent
+
+Port **7998** (`AI_AGENT_PORT`). Python/FastAPI. The "mind" of OBLIVION: it receives what the user said and **decides what to do**.
+Status: prototype. Read `README.md` first, then `docs/guides/architecture.md` (how it works), `docs/guides/schemas_and_prompts.md`,
+`docs/guides/configuration.md` and `../CLAUDE.md` (workspace rules). Each doc says which parts are generated or historical (`docs/README.md`).
+
+State (2026-10-06): branch `feature_ai_claude_2`; last pushed feature commit `ede87f8`. **Uncommitted: the four-flow redesign**
+(identification, conversation, special, movement behind one router; the schema tree split into one file per node; the `movement`
+domain; `domain/` grouped by what uses it; contracts 0.14.0; rebuilt docs). Tests: `636 passed`. No real LLM call since the redesign.
+Check `git status` before editing.
+
+## Role
+
+- Only decides and returns a structured answer. It **never controls hardware** and never calls stepper, TTS or speaker; **Brain** acts on
+  its answer (speaks it, moves the arms). Brain makes **one call per utterance** (`../brain_microservice/CLAUDE.md`).
+- **Four flows** in one service and one venv: `identification` (triage), `conversation` (draft writer, editor), `special` (project manager,
+  safety gate, action executor, draft writer, editor) and `movement` (motion planner, motion validator). Every message goes through
+  identification; `task_category.domain` then picks ONE flow in `flows/router.py` (`FLOW_BY_DOMAIN`): `communication` -> conversation,
+  `movement` -> movement, anything else -> special.
+- The flows never call each other; only the router hands the identification state to the next one (nothing is classified twice). A flow that
+  asked the user a question is resumed by the next message (`PausedRun.flow`) without identifying it again.
+- **Gestures** (`AI_AGENT_EXPRESSION`, default on): after the conversation or special flow has written its reply, the router runs the
+  `expression` flow on it (`emotion_reader`, one cheap model call, then `gesture_builder`, plain code). The result is random arm
+  movements shaped by the emotion (`domain/operations/gesture.py`), with `pause_seconds` between them, about as long as the speech, every
+  arm back where it started; they go out as `directives` with `gesture: true`. The reply is never held back: if the expression flow fails
+  or the validator refuses the gesture, the reply goes out without one. A movement the user asked for (movement flow) gets no gesture.
+  Brain starts a gesture when the robot starts to speak.
+- May later fetch content from `aws_microservice` through MCP (`mcps/aws_microservice.json`). Nothing uses it yet.
+
+## API
+
+`POST /session/{start,message,end}`, `GET /health`, `GET /available`, `/docs`. Envelope `action / status / status_code / message / data / timestamp`,
+`data` built from `contracts.api.microservices.ai_agent.session.*` (`infrastructure/inbound/http/fastapi.py`).
+
+- `/message` takes `session_id`, `message`, `speak_movements` (default true, Brain's setting) and answers `response` (what to say; always speakable,
+  an apology on failure), `directives` (movements in order, only the movement flow; `degrees` is signed), `awaiting_user_input` and `flow`.
+  `response` is empty only for a movement that goes ahead with `speak_movements` off; a refusal or a question is always said.
+- Sessions are in-process memory only (`SessionService.sessions`), lost on restart. `error_code == "SESSION_NOT_FOUND"` means exactly that
+  (start a new session and retry the message once); any other `error_code` is a real failure, not a reconnect signal.
+- `/available` only checks that a provider key or `OLLAMA_URL` is configured; it never calls an LLM.
+
+## Layout (details in `docs/guides/architecture.md`)
+
+- `composition_root/main.py` builds the app (run this one): `VercelAIAdapter` -> one `SessionService` -> `SessionFastAPI`. Each message builds a
+  `MessageFlowService` with an `AgentRouter`.
+- `application/orchestration/` in five folders; **dependencies go one way** (`tests/test_orchestration_layout.py`): `flows` use everything below,
+  `engine` never imports a flow, `phases` never import the engine, `state` and `support` are the base.
+  - `flows/`: one file per flow, `router.py`, `registry.py`, `action_executor.py` (the special flow's step for phases 4-6).
+  - `phases/`: one phase per file in `identification/`, `common/` (draft writer, editor, answer checker, clarification), `special/`, `movement/`.
+    Every phase file declares its constants at the top (`PHASE_ID`, `STEP_NAME`, `MODEL_ENV_VAR`, `DEFAULT_MODEL`, `PROMPT_FILE`, `FORMAT_NAME`,
+    `INTENT`, `SCHEMAS`); `catalog.py` reads them (`tests/test_phase_structure.py` enforces it). The motion validator is plain code (no LLM); its limits
+    are constants at its top.
+  - `engine/`: `pipeline.py`, `flow.py`, `phase_runner.py` (the only place an LLM payload is built), `clarification.py` (phase 99), `answer_check.py` (phase 9).
+  - `state/`: `flow_state.py`, `motion_state.py`, `paused_run.py` (`PausedRun`, `FlowResult`). `support/`: model selection, metrics, failures, schemas, action tree.
+- `domain/`: `entities/` and `value_objects/`, each with `llm_request/`, `llm_response/` and `movement/`. Pure data, one file per concept.
+- `infrastructure/`: inbound HTTP, outbound `llm/` (`vercel.py`, `provider_models.py`, `response_mapper.py`, `tools.py`), `mcp/`, `usage/` (Langfuse).
+- `prompts/<id>_<name>.txt` (flat) plus `0_generic_prompt.txt` and `capabilities.txt`; which phase uses which is its `PROMPT_FILE`.
+- `schema/response/general/` and `schema/response/motion/`: **`full.schema.json` is the one file you edit**; every other file is generated by
+  `scripts/split_schemas.py --write` (without the flag it only checks), and `tests/test_schema_tree.py` fails on drift. The files the phases load
+  must keep their content (`test_flow_golden.py`).
+- **Keep prompts, schemas and `domain/` in sync** (`docs/guides/schemas_and_prompts.md`, section 4).
+
+## Rules
+
+- `.env` holds many provider keys. Never read the values out, print them or copy them; use variable names only.
+- Uses `shared_logging` (`init_logging("ai-agent")`, `TracingMiddleware`, `-e ../shared-logging`) and the bundled `contracts` wheel in `vendor/`
+  (refresh with `contracts/scripts/bundle.py`; the version is in `requirements.txt`).
+- Keep the LLM adapter behind `LLMOutboundPort` so providers stay swappable.
+- A change to a prompt, schema, model or message format changes the golden file: read the diff first, then regenerate on purpose (`UPDATE_GOLDEN=1`).
+- Do not hand-edit generated files: the schema tree, `docs/models/gemini_models_per_step.md`, `docs/models/models_per_step_budget.md`, `docs/models/cost_of_a_full_plan.md`.
+
+## Config (details in `docs/guides/configuration.md`)
+
+- Models per step: `AI_AGENT_MODEL_PHASE_<n>` > `config/step_models.json` `steps` > the active profile > the code default (GitHub Models ids, retired,
+  so a real run always sets one of the first three). Prices and budget: `config/{gemini_models,other_models,budget,measured_runs}.json`.
+- `AI_AGENT_PARALLEL_ACTIONS` (default 1), `AI_AGENT_MAX_ATTEMPTS` (3), `AI_AGENT_HISTORY_TURNS` (6), `AI_AGENT_RELOAD` (defaults to `1`; `0` for a stable run).
+- Removed: `AI_AGENT_FAST_PATH_ENABLED` (the domain decides the flow now).
+- **Langfuse** (when its keys are set) receives the user's text and the prompts and answers of every call, not only metadata; it never breaks a call.
+
+## Commands
+
+```powershell
+& windows\Scripts\python.exe composition_root\main.py          # run from the ai-agent folder
+& windows\Scripts\python.exe -m pytest tests                   # about 640 tests, no keys, no cost
+& windows\Scripts\python.exe scripts\split_schemas.py          # check the schema tree (--write to rebuild it)
+```
+
+`tests/` is all mock-based and runs without the config file (`tests/conftest.py`). `tests/output/` holds generated reports of manual runs, not
+documentation. `tests/manual/` scripts call real LLMs and MCP servers, are not collected by pytest, were not re-run after the redesign, and cost
+money: ask first. The cross-service e2e tests are in `../contracts/tests/e2e/`.

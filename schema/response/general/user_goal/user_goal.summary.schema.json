@@ -1,0 +1,6 @@
+{
+  "summary": {
+    "type": "string",
+    "description": "Concise human-readable interpretation of what the user is trying to achieve"
+  }
+}

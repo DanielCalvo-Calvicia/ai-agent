@@ -1,0 +1,74 @@
+{
+  "_about": "One real message sent through the whole agent with each model on every step (tests/manual/debug_flow.py --real), 2026-09-21. Tokens as the provider counted them: sent, answered, and thinking = total - sent - answered (Gemini bills thinking but does not count it in the answer).",
+  "message": "Compare Python, Go and Rust. For each language give two strengths and two weaknesses, then recommend one for a beginner and explain why.",
+  "runs": [
+    {
+      "id": "gemini-2.5-flash-lite",
+      "calls": 10,
+      "sent": 11672,
+      "answered": 2310,
+      "thinking": 2
+    },
+    {
+      "id": "openai/gpt-oss-20b",
+      "calls": 6,
+      "sent": 10161,
+      "answered": 4300,
+      "thinking": 0
+    },
+    {
+      "id": "gemini-3.1-flash-lite",
+      "calls": 7,
+      "sent": 8938,
+      "answered": 1487,
+      "thinking": 0
+    },
+    {
+      "id": "openai/gpt-oss-120b",
+      "calls": 6,
+      "sent": 10393,
+      "answered": 3885,
+      "thinking": 0
+    },
+    {
+      "id": "gemini-2.5-flash",
+      "calls": 10,
+      "sent": 12305,
+      "answered": 3194,
+      "thinking": 2484
+    },
+    {
+      "id": "gemini-3.8-flash",
+      "calls": 7,
+      "sent": 9757,
+      "answered": 2357,
+      "thinking": 3611
+    }
+  ],
+  "thinking_per_call_measured": {
+    "_about": "Thinking tokens per call, measured with gemini-2.5-flash and gemini-3.8-flash (the models that think). The lite models measured 0.",
+    "triage_specialist": {
+      "gemini-2.5-flash": 300,
+      "gemini-3.8-flash": 489
+    },
+    "project_manager": {
+      "gemini-2.5-flash": 977,
+      "gemini-3.8-flash": 985
+    },
+    "safety_quality_gatekeeper": {
+      "gemini-2.5-flash": 114,
+      "gemini-3.8-flash": 231
+    },
+    "cognitive_worker": {
+      "gemini-2.5-flash": 203,
+      "gemini-3.8-flash": 724
+    },
+    "draft_writer": {
+      "gemini-2.5-flash": 79,
+      "gemini-3.8-flash": 344
+    },
+    "editor_in_chief": {
+      "gemini-3.8-flash": 115
+    }
+  }
+}

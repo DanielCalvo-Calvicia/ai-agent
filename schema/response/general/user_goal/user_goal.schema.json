@@ -1,0 +1,20 @@
+{
+  "user_goal": {
+    "type": "object",
+    "required": [
+      "summary",
+      "expected_outcome"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "summary": {
+        "type": "string",
+        "description": "Concise human-readable interpretation of what the user is trying to achieve"
+      },
+      "expected_outcome": {
+        "type": "string",
+        "description": "Concrete description of the result that would satisfy the user's request"
+      }
+    }
+  }
+}

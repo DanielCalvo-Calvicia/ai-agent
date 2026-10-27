@@ -1,0 +1,15 @@
+{
+    "filesystem": {
+        "type": "stdio",
+        "command": "docker",
+        "args": [
+            "run",
+            "-i",
+            "--rm",
+            "--mount",
+            "type=bind,source=${MCP_FILESYSTEM_DIR},target=/data",
+            "ghcr.io/modelcontextprotocol/servers/filesystem:latest",
+            "/data"
+        ]
+    }
+}

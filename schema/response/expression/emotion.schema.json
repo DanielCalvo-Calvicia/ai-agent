@@ -1,0 +1,16 @@
+{
+  "emotion": {
+    "type": "string",
+    "enum": [
+      "joy",
+      "sadness",
+      "anger",
+      "fear",
+      "surprise",
+      "curiosity",
+      "affection",
+      "calm"
+    ],
+    "description": "The emotion that best fits the exchange: what the user said and how the robot answers. Use calm when there is no clear emotion"
+  }
+}

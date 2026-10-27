@@ -1,6 +1,0 @@
-{
-    "field": {
-        "type": "string",
-        "description": "Name of the missing field or information"
-    }
-}

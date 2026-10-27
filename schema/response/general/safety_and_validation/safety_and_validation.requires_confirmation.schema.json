@@ -1,0 +1,6 @@
+{
+  "requires_confirmation": {
+    "type": "boolean",
+    "description": "Whether explicit user confirmation is required before execution"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "improvised": {
+    "type": "array",
+    "description": "Up to 3 arm movements of your own that express the emotion. Empty is fine: a gesture is made without them",
+    "maxItems": 3,
+    "items": {
+      "type": "object",
+      "required": [
+        "arm",
+        "degrees",
+        "direction"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "arm": {
+          "type": "string",
+          "enum": [
+            "left",
+            "right"
+          ],
+          "description": "Which arm moves"
+        },
+        "degrees": {
+          "type": "number",
+          "description": "Degrees of rotation, positive, at most 360"
+        },
+        "direction": {
+          "type": "string",
+          "enum": [
+            "forward",
+            "reverse"
+          ],
+          "description": "Direction of the rotation"
+        }
+      }
+    }
+  }
+}

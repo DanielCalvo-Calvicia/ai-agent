@@ -12,8 +12,9 @@ from fastapi.testclient import TestClient
 from application.outbound.ports.llm_ports import LLMOutboundPort
 from application.service.session_service import SessionService
 from infrastructure.inbound.http.fastapi import SessionFastAPI
-from domain.entities.payload import Payload
-from domain.entities.response import Response
+from domain.entities.llm_request.payload import Payload
+from domain.entities.llm_response.response import Response
+from domain.value_objects.llm_response.user_goal.user_goal import create_user_goal
 
 
 # ===============================================
@@ -29,10 +30,15 @@ class MockLLMAdapter(LLMOutboundPort):
     def __init__(self):
         self._started = True
 
+    def is_available(self) -> bool:
+        return True
+
     def ask(self, Payload: Payload) -> Response:
+        # Every phase gets the same answer: a user goal whose expected outcome is the reply.
+        # The flow ends with "Mock LLM response" as the final text.
         return Response(
                 intent=None,
-                user_goal=None,
+                user_goal=create_user_goal(summary_value="summary", expected_outcome_value="Mock LLM response"),
                 mcp_routing=None,
                 task_category=None,
                 actions=None,
@@ -47,6 +53,16 @@ class MockLLMAdapter(LLMOutboundPort):
 
     def is_active(self) -> bool:
         return self._started
+
+
+class FailingLLMAdapter(LLMOutboundPort):
+    """Raises on every call: used to check the error_code a real (non-session) failure gets."""
+
+    def is_available(self) -> bool:
+        return True
+
+    def ask(self, Payload: Payload) -> Response:
+        raise ConnectionError("could not reach the model")
 
 
 # ===============================================
@@ -198,6 +214,7 @@ class TestEndSession:
         assert response.status_code == 200
         assert data["data"]["success"] is False
         assert "not found" in data["data"]["message"].lower()
+        assert data["data"]["error_code"] == "SESSION_NOT_FOUND"
 
     def test_end_session_twice(self, started_session):
         client, sessionId = started_session
@@ -214,6 +231,7 @@ class TestEndSession:
         # Second end — session no longer exists
         response2 = client.post("/session/end", json=payload)
         assert response2.json()["data"]["success"] is False
+        assert response2.json()["data"]["error_code"] == "SESSION_NOT_FOUND"
 
     def test_end_session_missing_session_id(self, test_app):
         payload = {
@@ -259,7 +277,11 @@ class TestMessageReceived:
         data = response.json()
 
         assert response.status_code == 200
+        assert data["status"] == "error"
         assert data["data"]["success"] is False
+        assert data["data"]["error_code"] == "SESSION_NOT_FOUND"
+        # The reply is a speakable apology, not empty: Brain can hand it straight to TTS.
+        assert data["data"]["response"] != ""
 
     def test_message_received_missing_message(self, test_app):
         payload = {
@@ -301,7 +323,29 @@ class TestMessageReceived:
         data = response.json()
 
         assert response.status_code == 200
+        assert data["status"] == "error"
         assert data["data"]["success"] is False
+        assert data["data"]["error_code"] == "SESSION_NOT_FOUND"
+
+    def test_message_received_llm_failure_gets_a_non_session_error_code(self):
+        app = FastAPI()
+        SessionFastAPI(App=app, SessionPort=SessionService(outbound_port=FailingLLMAdapter()))
+        client = TestClient(app)
+        sessionId = client.post("/session/start", json={
+            "user_id": "test-user-001", "username": "TestUser",
+        }).json()["data"]["session_id"]
+
+        response = client.post("/session/message", json={
+            "user_id": "test-user-001", "session_id": sessionId, "message": "hello",
+        })
+        data = response.json()
+
+        assert response.status_code == 200
+        assert data["status"] == "error"
+        assert data["data"]["success"] is False
+        # Distinguishable from SESSION_NOT_FOUND: Brain must not treat this as "reconnect".
+        assert data["data"]["error_code"] not in (None, "SESSION_NOT_FOUND")
+        assert data["data"]["response"] != ""
 
     def test_multiple_messages_same_session(self, started_session):
         client, sessionId = started_session

@@ -1,6 +1,0 @@
-{
-    "output": {
-        "type": "string",
-        "description": "Expected result produced by the action if successful"
-    }
-}

@@ -1,0 +1,72 @@
+{
+  "type": "object",
+  "required": [
+    "emotion",
+    "intensity",
+    "improvised"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "emotion": {
+      "type": "string",
+      "enum": [
+        "joy",
+        "sadness",
+        "anger",
+        "fear",
+        "surprise",
+        "curiosity",
+        "affection",
+        "calm"
+      ],
+      "description": "The emotion that best fits the exchange: what the user said and how the robot answers. Use calm when there is no clear emotion"
+    },
+    "intensity": {
+      "type": "integer",
+      "enum": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "description": "How strong the emotion is: 1 barely there, 3 clear, 5 very strong"
+    },
+    "improvised": {
+      "type": "array",
+      "description": "Up to 3 arm movements of your own that express the emotion. Empty is fine: a gesture is made without them",
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "required": [
+          "arm",
+          "degrees",
+          "direction"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "arm": {
+            "type": "string",
+            "enum": [
+              "left",
+              "right"
+            ],
+            "description": "Which arm moves"
+          },
+          "degrees": {
+            "type": "number",
+            "description": "Degrees of rotation, positive, at most 360"
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "forward",
+              "reverse"
+            ],
+            "description": "Direction of the rotation"
+          }
+        }
+      }
+    }
+  }
+}

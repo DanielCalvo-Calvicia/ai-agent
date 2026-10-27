@@ -1,0 +1,54 @@
+{
+  "type": "object",
+  "required": [
+    "is_motion_request",
+    "movements",
+    "spoken_reply"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "is_motion_request": {
+      "type": "boolean",
+      "description": "True when the user asked the robot to move an arm, even if a detail is still missing"
+    },
+    "movements": {
+      "type": "array",
+      "description": "The movements to run, in order. Empty when no movement was asked for or a detail is missing",
+      "items": {
+        "type": "object",
+        "required": [
+          "arm",
+          "degrees",
+          "direction"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "arm": {
+            "type": "string",
+            "enum": [
+              "left",
+              "right"
+            ],
+            "description": "Which arm moves"
+          },
+          "degrees": {
+            "type": "number",
+            "description": "Degrees of rotation, signed: 90 then -90 returns the arm"
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "forward",
+              "reverse"
+            ],
+            "description": "Direction of the rotation"
+          }
+        }
+      }
+    },
+    "spoken_reply": {
+      "type": "string",
+      "description": "One short sentence the robot says out loud, in the language of the user. When the movements are clear: what the robot is about to do. When no movement was asked or it cannot be done: a brief honest answer. When a detail is missing: an empty string, the question is asked separately"
+    }
+  }
+}

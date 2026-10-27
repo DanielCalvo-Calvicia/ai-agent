@@ -1,0 +1,6 @@
+{
+  "degrees": {
+    "type": "number",
+    "description": "Degrees of rotation, positive, at most 360"
+  }
+}

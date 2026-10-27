@@ -1,0 +1,33 @@
+{
+  "item": {
+    "type": "object",
+    "required": [
+      "arm",
+      "degrees",
+      "direction"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "arm": {
+        "type": "string",
+        "enum": [
+          "left",
+          "right"
+        ],
+        "description": "Which arm moves"
+      },
+      "degrees": {
+        "type": "number",
+        "description": "Degrees of rotation, signed: 90 then -90 returns the arm"
+      },
+      "direction": {
+        "type": "string",
+        "enum": [
+          "forward",
+          "reverse"
+        ],
+        "description": "Direction of the rotation"
+      }
+    }
+  }
+}

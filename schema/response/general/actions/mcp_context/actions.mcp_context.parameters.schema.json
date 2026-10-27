@@ -1,0 +1,6 @@
+{
+  "parameters": {
+    "type": "object",
+    "description": "Arguments to pass to the MCP tool. Must be a complete object when used."
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "missing_information": {
+    "type": "array",
+    "items": {
+      "type": "object",
+      "required": [
+        "field",
+        "why_needed",
+        "blocking"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "field": {
+          "type": "string",
+          "description": "Name of the missing field or information"
+        },
+        "why_needed": {
+          "type": "string",
+          "description": "Explanation of how this missing information affects execution"
+        },
+        "blocking": {
+          "type": "boolean",
+          "description": "If true, execution cannot proceed until this information is provided"
+        }
+      }
+    }
+  }
+}

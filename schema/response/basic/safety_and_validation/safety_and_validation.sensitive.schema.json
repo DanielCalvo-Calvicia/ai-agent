@@ -1,6 +1,0 @@
-{
-    "sensitive": {
-        "type": "boolean",
-        "description": "Whether the request involves sensitive or restricted content"
-    }
-}

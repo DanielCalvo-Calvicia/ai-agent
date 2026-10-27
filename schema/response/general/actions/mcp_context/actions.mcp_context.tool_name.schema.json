@@ -1,0 +1,6 @@
+{
+  "tool_name": {
+    "type": "string",
+    "description": "Specific tool to invoke on the MCP server."
+  }
+}

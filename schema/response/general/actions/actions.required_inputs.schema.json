@@ -1,0 +1,9 @@
+{
+  "required_inputs": {
+    "type": "array",
+    "items": {
+      "type": "string"
+    },
+    "description": "List of inputs required by the user to perform this action that are missing from the knowledge base. THEY MUST NOT REFERENCE FROM PREVIOS ACTIONS"
+  }
+}

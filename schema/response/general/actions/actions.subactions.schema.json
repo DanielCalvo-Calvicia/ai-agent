@@ -1,0 +1,10 @@
+{
+  "subactions": {
+    "type": "array",
+    "maxItems": 10,
+    "description": "Optional nested subactions to further decompose this action. Each subaction follows the exact same schema as a top-level action. Use this to break complex actions into smaller, manageable steps.",
+    "items": {
+      "$ref": "#/$defs/action"
+    }
+  }
+}

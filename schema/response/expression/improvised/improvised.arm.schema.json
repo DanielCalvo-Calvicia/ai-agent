@@ -1,0 +1,10 @@
+{
+  "arm": {
+    "type": "string",
+    "enum": [
+      "left",
+      "right"
+    ],
+    "description": "Which arm moves"
+  }
+}
