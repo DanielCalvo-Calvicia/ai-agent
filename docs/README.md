@@ -17,6 +17,8 @@ docs/
   requirements/   what the service must do and its state
   rules/          what must change together (prompts, schemas, domain)
   security/       secrets, exposure, data sent to third parties
+  setup/          questionnaires with the questions to answer before building
+  tasks/          the task plan: README (protocol, board), ORDER, one folder per epic
   models/         generated tables of models, prices and costs (do not edit by hand)
 ```
 
@@ -34,6 +36,8 @@ docs/
 | [`operations/monitoring.md`](operations/monitoring.md) | probes, logging, metrics, Langfuse, failures |
 | [`operations/debugging-the-flow.md`](operations/debugging-the-flow.md) | tracing and debugging a message step by step (`tests/manual/debug_flow.py`, `debug_break.py`) |
 | [`decisions/`](decisions/) | ADR-001 to ADR-010 |
+| [`setup/questionnaires/`](setup/questionnaires/00_README.md) | the questions to answer before building (Q01: the `dynamics_microservice` MCP tools) |
+| [`tasks/README.md`](tasks/README.md), [`tasks/ORDER.md`](tasks/ORDER.md) | the task plan, the protocol, the board and the order; epic [T-01](tasks/T-01_dynamics-mcp/T-01_dynamics-mcp.md) uses the `dynamics_microservice` MCP tools (T-01.1 to T-01.9, nothing built yet) |
 
 ## `models/`: generated
 

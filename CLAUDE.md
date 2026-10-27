@@ -23,6 +23,7 @@ No change is finished until the documents that describe it are true again. Do it
 | Secrets, exposure, data sent to providers | [docs/security/security.md](docs/security/security.md) |
 | How it runs | [docs/deployment/deployment.md](docs/deployment/deployment.md) |
 | A requirement or a known gap | [docs/requirements/requirements.md](docs/requirements/requirements.md) |
+| The state of a task, a new task, a dependency | the task file, the board in [docs/tasks/README.md](docs/tasks/README.md) section 5 and [docs/tasks/ORDER.md](docs/tasks/ORDER.md) |
 | A decision | a new ADR in [docs/decisions/](docs/decisions/) (or a dated note on the one it changes) |
 
 Use dated notes in history (ADRs, proposals); correct the text in documents that describe the present. Mark what is planned as planned. Never describe as working something that is not. The generated files in `docs/models/` are not edited by hand.
