@@ -3,8 +3,8 @@
 How ai-agent works, from the HTTP request to the LLM call and back. Written from the code on 2026-10-06 (after the
 four-flow redesign). When this file and the code disagree, the code is right: fix this file.
 
-Related: [`schemas_and_prompts.md`](schemas_and_prompts.md) (the JSON Schemas and prompts the phases use),
-[`configuration.md`](configuration.md) (every setting), [`debugging_the_flow.md`](debugging_the_flow.md).
+Related: [`schemas-and-prompts.md`](../rules/schemas-and-prompts.md) (the JSON Schemas and prompts the phases use),
+[`environment-variables.md`](../configuration/environment-variables.md) (every setting), [`debugging-the-flow.md`](../operations/debugging-the-flow.md).
 
 ## 1. The big picture
 
@@ -44,7 +44,7 @@ application/
   orchestration/                  the agents (section 3 to 8)
 domain/                           pure data (section 9)
 infrastructure/                   adapters: inbound HTTP, outbound LLM, MCP, usage (section 10)
-prompts/  schema/  config/  mcps/ data files the code reads (see schemas_and_prompts.md and configuration.md)
+prompts/  schema/  config/  mcps/ data files the code reads (see rules/schemas-and-prompts.md and configuration/environment-variables.md)
 scripts/split_schemas.py          builds the schema tree from schema/response/*/full.schema.json
 tests/                            pytest (all mock-based) and tests/manual (real LLM / MCP, costs money)
 docs/                             this documentation
@@ -144,7 +144,7 @@ top (`PHASE_ID`, `STEP_NAME`, `MODEL_ENV_VAR`, `DEFAULT_MODEL`, `PROMPT_FILE`, `
 | 99 | `user_clarification` | `common/user_clarification.py` | the engine | Writes the question for the user (plain text, temperature 0.7, 2000 tokens) |
 
 A phase's answer is one JSON object built from the schema pieces it names in `SCHEMAS` (section 5.1 of
-`schemas_and_prompts.md`). Phases 4, 5 and 6 answer with the actions schema, one call per action.
+`rules/schemas-and-prompts.md`). Phases 4, 5 and 6 answer with the actions schema, one call per action.
 
 The code defaults of `DEFAULT_MODEL` are GitHub Models ids (a retired service). The model really used is chosen by
 `AI_AGENT_MODEL_PHASE_<id>` or `config/step_models.json` (see `configuration.md`).
@@ -276,7 +276,7 @@ response mapper builds them from the LLM's JSON, one function per section.
 - **A new domain value:** `schema/response/general/full.schema.json` (then `python scripts/split_schemas.py --write`),
   `domain/value_objects/llm_response/task_category/domain.py`, the triage prompt, `FLOW_BY_DOMAIN`.
 - **A new field in an answer:** the full schema, the prompt, the domain object and the response mapper, together
-  (`schemas_and_prompts.md`, section 4).
+  (`rules/schemas-and-prompts.md`, section 4).
 - **A new provider:** a row in `infrastructure/outbound/llm/provider_models.py`, its key and URL in `VercelAIConfig`, its
   models in `domain/value_objects/llm_request/model_catalog.py`.
 

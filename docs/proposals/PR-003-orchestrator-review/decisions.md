@@ -2,7 +2,7 @@
 
 # Orchestrator decisions
 
-Your answers to `docs/history/orchestrator_questionnaire.md`, how I read each one, and what is done. Written 2026-09-21. The priority you chose (Q21 A) is: make a simple case work correctly (findings A, B, C, D), then try it with a real LLM (Q19).
+Your answers to `docs/proposals/PR-003-orchestrator-review/questionnaire.md`, how I read each one, and what is done. Written 2026-09-21. The priority you chose (Q21 A) is: make a simple case work correctly (findings A, B, C, D), then try it with a real LLM (Q19).
 
 ## Real LLM results (Q19)
 

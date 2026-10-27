@@ -33,7 +33,7 @@ POST /session/message
   sent with every message as `speak_movements` (a refusal or a question is always said).
 
 The full explanation (folders, phases, engine, state, domain, extension recipes) is in
-[`docs/guides/architecture.md`](docs/guides/architecture.md).
+[`docs/architecture/architecture.md`](docs/architecture/architecture.md).
 
 ## Quick start
 
@@ -45,7 +45,7 @@ copy .env.example .env                  # fill in at least one provider key and 
 
 Then open `http://<host>:7998/docs` or call `GET /health`. It works from any folder (it changes to the project root).
 `AI_AGENT_RELOAD` defaults to `1` (auto-reload); set `0` for a stable run. Which model answers each step is chosen in
-`config/step_models.json` (see [`docs/guides/configuration.md`](docs/guides/configuration.md)).
+`config/step_models.json` (see [`docs/configuration/environment-variables.md`](docs/configuration/environment-variables.md)).
 
 ```powershell
 & windows\Scripts\python.exe -m pytest tests          # no keys, no network, no cost
@@ -102,10 +102,14 @@ tests/              pytest (all mock-based); tests/manual has scripts that call 
 
 | Read | For |
 |---|---|
-| [`docs/guides/architecture.md`](docs/guides/architecture.md) | how everything works and how to extend it |
-| [`docs/guides/schemas_and_prompts.md`](docs/guides/schemas_and_prompts.md) | the prompts, the schema trees and how to change an answer |
-| [`docs/guides/configuration.md`](docs/guides/configuration.md) | every setting, models per step, MCP servers, retries, Langfuse |
-| [`docs/guides/debugging_the_flow.md`](docs/guides/debugging_the_flow.md) | tracing and debugging a message step by step |
+| [`docs/api/api.md`](docs/api/api.md) | the routes, the answer, sessions |
+| [`docs/architecture/architecture.md`](docs/architecture/architecture.md) | how everything works and how to extend it |
+| [`docs/requirements/requirements.md`](docs/requirements/requirements.md) | what it must do, its state and the known gaps |
+| [`docs/security/security.md`](docs/security/security.md), [`docs/deployment/deployment.md`](docs/deployment/deployment.md), [`docs/operations/monitoring.md`](docs/operations/monitoring.md) | secrets and exposure, how it runs, probes and Langfuse |
+| [`docs/decisions/`](docs/decisions/) | the ADRs |
+| [`docs/rules/schemas-and-prompts.md`](docs/rules/schemas-and-prompts.md) | the prompts, the schema trees and how to change an answer |
+| [`docs/configuration/environment-variables.md`](docs/configuration/environment-variables.md) | every setting, models per step, MCP servers, retries, Langfuse |
+| [`docs/operations/debugging-the-flow.md`](docs/operations/debugging-the-flow.md) | tracing and debugging a message step by step |
 | [`docs/README.md`](docs/README.md) | the index of `docs/`, including the generated and the historical files |
 | `CLAUDE.md` | the rules for working in this folder |
 
@@ -148,5 +152,5 @@ Open:
 
 Decisions worth knowing: Brain makes one call per utterance (it used to ask two flows in order); the fast-path heuristic and
 `robot_context` were removed; the answer schemas are one file per node, generated from `full.schema.json`;
-`value_objects` and `entities` are grouped by what uses them. History of how it got here: `docs/history/refactor_plan.md`,
-`docs/history/flows_refactor_plan.md` and the orchestrator notes (all marked historical).
+`value_objects` and `entities` are grouped by what uses them. History of how it got here: `docs/proposals/PR-001-layered-refactor.md`,
+`docs/proposals/PR-002-flows-split.md` and `docs/proposals/PR-003-orchestrator-review/` (all marked historical).
