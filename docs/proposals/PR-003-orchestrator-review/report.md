@@ -1,4 +1,4 @@
-> **HISTORICAL (banner added 2026-10-01; the phase chain is now split into four flows, see `../guides/architecture.md`).** This report was written on 2026-09-21 from the code before the refactor, the flows split and the folder reorganisation: file paths, the single pipeline and the listed prompt/schema mismatches describe that earlier state. For the current design read `README.md` and `CLAUDE.md`.
+> **HISTORICAL (banner added 2026-10-01; the phase chain is now split into four flows, see `../../architecture/architecture.md`).** This report was written on 2026-09-21 from the code before the refactor, the flows split and the folder reorganisation: file paths, the single pipeline and the listed prompt/schema mismatches describe that earlier state. For the current design read `README.md` and `CLAUDE.md`.
 
 # Orchestrator report
 

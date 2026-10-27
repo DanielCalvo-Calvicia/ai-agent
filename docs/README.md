@@ -1,27 +1,43 @@
 # docs/ of ai-agent
 
-Four folders. Only `guides/` describes how the code works today.
+Same layout as the other Snow Factory services ([ADR-001](decisions/ADR-001-adopt-documentation-standard.md)). Status 2026-10-27: the four-flow redesign and the expression flow are merged into `feature` (PR #3); the documents describe that code.
+
+When you change the code, change the matching document in the same piece of work. If a document and the code disagree, the code is right: fix the document.
 
 ```text
 docs/
-  guides/      written by hand, kept in step with the code
-  models/      generated tables of models, prices and costs (do not edit by hand)
-  reference/   notes on the model catalog
-  history/     plans and reviews that explain why, not how it is laid out now
+  api/            the HTTP routes and the answer
+  architecture/   how the code works
+  configuration/  every environment variable, models per step, MCP servers
+  decisions/      ADRs
+  deployment/     how it runs
+  operations/     monitoring, failures, debugging
+  proposals/      plans and reviews that explain why (history)
+  reference/      notes on the model catalog
+  requirements/   what the service must do and its state
+  rules/          what must change together (prompts, schemas, domain)
+  security/       secrets, exposure, data sent to third parties
+  models/         generated tables of models, prices and costs (do not edit by hand)
 ```
 
-## `guides/`: current
+## Current
 
 | File | What it is |
 |---|---|
-| [`architecture.md`](guides/architecture.md) | the reference: the request path, the four flows and the router, the phases, the engine, the state, `domain/`, `infrastructure/`, how to extend it |
-| [`schemas_and_prompts.md`](guides/schemas_and_prompts.md) | the prompts, the two schema trees (`general`, `motion`), the generator, how to change an answer |
-| [`configuration.md`](guides/configuration.md) | every environment variable, which model answers each step, MCP servers, retries and failures, Langfuse |
-| [`debugging_the_flow.md`](guides/debugging_the_flow.md) | tracing and debugging a message step by step (`tests/manual/debug_flow.py`, `debug_break.py`) |
-
-When you change the code, change the matching guide in the same commit. If a guide and the code disagree, the code is right.
+| [`api/api.md`](api/api.md) | routes, the envelope, `/session/message`, sessions, `SESSION_NOT_FOUND` |
+| [`architecture/architecture.md`](architecture/architecture.md) | the request path, the four flows and the router, the phases, the engine, the state, `domain/`, `infrastructure/`, how to extend it |
+| [`configuration/environment-variables.md`](configuration/environment-variables.md) | every variable, which model answers each step, MCP servers, retries, Langfuse |
+| [`rules/schemas-and-prompts.md`](rules/schemas-and-prompts.md) | the prompts, the two schema trees (`general`, `motion`), the generator, how to change an answer |
+| [`requirements/requirements.md`](requirements/requirements.md) | functional and non-functional requirements with their status and the known gaps |
+| [`security/security.md`](security/security.md) | secrets, what the service can do, data that leaves it |
+| [`deployment/deployment.md`](deployment/deployment.md) | run it, what it needs, state; the delivery lives outside this repository |
+| [`operations/monitoring.md`](operations/monitoring.md) | probes, logging, metrics, Langfuse, failures |
+| [`operations/debugging-the-flow.md`](operations/debugging-the-flow.md) | tracing and debugging a message step by step (`tests/manual/debug_flow.py`, `debug_break.py`) |
+| [`decisions/`](decisions/) | ADR-001 to ADR-010 |
 
 ## `models/`: generated
+
+They stay in `docs/models/` because the tests and the scripts of `tests/manual/` read and write them there.
 
 | File | Written by |
 |---|---|
@@ -33,16 +49,15 @@ When you change the code, change the matching guide in the same commit. If a gui
 
 | File | What it is |
 |---|---|
-| [`github_models.md`](reference/github_models.md), [`model_catalog_notes.md`](reference/model_catalog_notes.md) | notes on the model catalog (ids and providers as the author listed them; GitHub Models is retired) |
-| [`model_recomended_per_phase.md`](reference/model_recomended_per_phase.md) | an early, unmeasured recommendation table |
+| [`github-models.md`](reference/github-models.md), [`model-catalog-notes.md`](reference/model-catalog-notes.md) | notes on the model catalog (ids and providers as the author listed them; GitHub Models is retired) |
+| [`model-recommended-per-phase.md`](reference/model-recommended-per-phase.md) | an early, unmeasured recommendation table |
 
-## `history/`: not documentation of the current design
+## `proposals/`: history, not the current design
 
 | File | What it is |
 |---|---|
-| [`orchestrator_report.md`](history/orchestrator_report.md), [`orchestrator_questionnaire.md`](history/orchestrator_questionnaire.md), [`orchestrator_decisions.md`](history/orchestrator_decisions.md) | the review of 2026-09-21 of the single-pipeline design and the owner's answers |
-| [`refactor_plan.md`](history/refactor_plan.md) | the refactor that made the code layered (2026-09) |
-| [`flows_refactor_plan.md`](history/flows_refactor_plan.md) | the split into conversation-flow and motion-flow (2026-09-30), **replaced on 2026-10-05 by the four flows** described in `guides/architecture.md` |
+| [`PR-001-layered-refactor.md`](proposals/PR-001-layered-refactor.md) | the refactor that made the code layered (2026-09) |
+| [`PR-002-flows-split.md`](proposals/PR-002-flows-split.md) | the split into conversation-flow and motion-flow (2026-09-30), **replaced on 2026-10-05 by the four flows** ([ADR-004](decisions/ADR-004-four-flows-behind-one-router.md)) |
+| [`PR-003-orchestrator-review/`](proposals/PR-003-orchestrator-review/) | the review of 2026-09-21 of the single-pipeline design (`report.md`, `questionnaire.md`) and the owner's answers (`decisions.md`) |
 
-The history files keep the old names (`conversation-flow`, `motion-flow`, `fast_path`, `robot_context`, `Pipeline` with one flow) and old
-paths. Read them for the reasons behind a decision, never for how the code is laid out.
+The proposals keep the old names (`conversation-flow`, `motion-flow`, `fast_path`, `robot_context`, `Pipeline` with one flow) and old paths. Read them for the reasons behind a decision, never for how the code is laid out.
