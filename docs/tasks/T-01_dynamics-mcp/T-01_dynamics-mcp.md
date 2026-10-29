@@ -43,7 +43,7 @@ The special flow can answer questions about Business Central (the orders of a cu
 | 9 | [T-01.6 Planner: guidance, jobs and answers](T-01.6_planner-guidance-and-jobs.md) | code | done (2026-10-28) |
 | 10 | [T-01.7 Verification](T-01.7_verification.md) | test | done (2026-10-28) |
 | 11 | [T-01.8 Documentation and ADR](T-01.8_documentation.md) | docs | done (2026-10-28) |
-| 12 | [T-01.9 First real run](T-01.9_first-real-run.md) | manual | todo; the maintainer runs it and closes the epic |
+| 12 | [T-01.9 First real run](T-01.9_first-real-run.md) | manual | in-progress (run 2026-10-29; the maintainer closes the epic) |
 
 ## Exit criteria
 

@@ -32,7 +32,7 @@ Written on 2026-10-27.
 | 10 | [T-01.6](T-01_dynamics-mcp/T-01.6_planner-guidance-and-jobs.md) | Planner: guidance, jobs and answers | code | Done | built 2026-10-27, closed 2026-10-28 | T-01.5, T-01.10, T-01.11 | 2026-10-28 |
 | 11 | [T-01.7](T-01_dynamics-mcp/T-01.7_verification.md) | Verification with scripted LLMs | test | Done | built 2026-10-27, closed 2026-10-28 | T-01.2 to T-01.6, T-01.10 to T-01.12 | 2026-10-28 |
 | 12 | [T-01.8](T-01_dynamics-mcp/T-01.8_documentation.md) | Documentation and ADR | docs | Done | built 2026-10-27, closed 2026-10-28 | T-01.2 to T-01.6, T-01.10 to T-01.12 | 2026-10-28 |
-| 13 | [T-01.9](T-01_dynamics-mcp/T-01.9_first-real-run.md) | First real run | manual | Todo | costs money; the maintainer runs it and closes the epic (command prepared in its Notes) | T-01.7, T-01.8 | 2026-10-28 |
+| 13 | [T-01.9](T-01_dynamics-mcp/T-01.9_first-real-run.md) | First real run | manual | In progress | run on 2026-10-29: orders request answered with real data (72 s), order-state request refused by the service's input rule; findings in its Notes | T-01.7, T-01.8 | 2026-10-28 |
 
 ## B. T-02 Model catalog refresh
 
