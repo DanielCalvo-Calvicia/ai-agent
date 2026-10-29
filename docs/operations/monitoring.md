@@ -49,7 +49,7 @@ What the user hears for a tool that failed is one honest sentence per kind, writ
 
 ## Failures and what the user hears
 
-- A failed LLM call is retried up to `AI_AGENT_MAX_ATTEMPTS` unless the provider answered HTTP 400, 401, 403 or 404.
+- A failed LLM call is retried up to `AI_AGENT_MAX_ATTEMPTS` unless the provider answered HTTP 400, 401, 403 or 404, waiting after a lack of capacity (`AI_AGENT_RETRY_WAIT_SECONDS`). Then the fallback models are tried: a `WARNING` "Answered by a fallback model" (phase, chosen model, fallback model; no prompt, no answer) says one answered, and "Fallback model failed too" says one did not. The metrics and Langfuse name the model that answered.
 - A step whose answer says `retry` or `error` runs again up to the same limit.
 - When it still fails, `/session/message` answers `success = false` with a speakable apology in `response` and the technical reason in `message`.
 

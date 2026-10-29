@@ -244,7 +244,7 @@ class TestShippedConfig:
 
     def test_google_free_is_defined_with_the_two_free_tier_models(self, shipped):
         profile = load_config()["profiles"]["google_free"]
-        used = {profile["default"]} | {v for k, v in profile.items() if not k.startswith("_") and k != "default"}
+        used = {profile["default"]} | {v for k, v in profile.items() if not k.startswith("_") and k not in ("default", "fallback_models")}
         free = {m["id"] for m in load_models()["models"] if m["free_tier"]}
         assert used == {"gemini-3.1-flash-lite", "gemini-3.6-flash"} and used <= free
         assert all(get_selected_model(model).is_google() for model in used)
@@ -265,8 +265,9 @@ class TestShippedConfig:
     def test_the_other_profiles_still_name_models_of_the_catalog(self, shipped):
         for name, profile in load_config()["profiles"].items():
             for step, model in profile.items():
-                if not step.startswith("_") and model:
-                    assert get_selected_model(model), (name, step)
+                for one in (model if isinstance(model, list) else [model]):      # fallback_models is a list of ids
+                    if not step.startswith("_") and one:
+                        assert get_selected_model(one), (name, step)
 
     @pytest.mark.parametrize("profile", ["proven", "budget", "balanced", "quality"])
     def test_every_profile_resolves_every_step_to_a_gemini_model_of_the_table(self, shipped, tmp_path, monkeypatch, profile):
@@ -325,7 +326,8 @@ class TestTheTable:
     def test_the_profiles_never_use_a_model_the_api_refused(self):
         refused = {m["id"] for m in load_models()["models"] if m["api_check"].startswith("FAILED")}
         config = json.load(open(CONFIG_PATH, encoding="utf-8"))
-        used = {v for p in config["profiles"].values() for k, v in p.items() if not k.startswith("_") and v}
+        used = {v for p in config["profiles"].values() for k, v in p.items() if not k.startswith("_") and k != "fallback_models" and v}
+        used |= {v for p in config["profiles"].values() for v in p.get("fallback_models", [])}     # the fallbacks are models in use too
         assert not used & refused
 
     def test_the_cost_of_a_message(self):

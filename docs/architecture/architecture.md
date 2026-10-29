@@ -177,7 +177,7 @@ There is no default flow: `Pipeline` needs its `flow`.
 | Model | `model_for_phase`: env variable, then `config/step_models.json`, then the code default |
 
 `send()` asks the LLM, retries a failed call up to `AI_AGENT_MAX_ATTEMPTS` unless the error cannot get better
-(`failure.worth_retrying`), records the token usage in `SessionMetrics`, and raises an `AgentFailure` that says what
+(`failure.worth_retrying`; after a lack of capacity it waits first, and then asks the `fallback_models` of the active profile once each, ADR-014), records the token usage in `SessionMetrics`, and raises an `AgentFailure` that says what
 happened and in which activity (`PHASE_ACTIVITIES`).
 
 ### 6.3 Failures

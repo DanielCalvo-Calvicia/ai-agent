@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | in-progress (created 2026-10-27; T-01.1 to T-01.8 and T-01.10 to T-01.12 done on 2026-10-28; only T-01.9, the maintainer's first real run, is open) |
+| Status | done (created 2026-10-27; T-01.1 to T-01.8 and T-01.10 to T-01.12 done on 2026-10-28; T-01.9, the first real run, done on 2026-10-29; the maintainer closed the epic with its findings recorded) |
 | Kind | epic |
 | Parent | project |
 | Depends on | the four-flow redesign and the docs layout (both merged into `feature`) |
@@ -43,7 +43,7 @@ The special flow can answer questions about Business Central (the orders of a cu
 | 9 | [T-01.6 Planner: guidance, jobs and answers](T-01.6_planner-guidance-and-jobs.md) | code | done (2026-10-28) |
 | 10 | [T-01.7 Verification](T-01.7_verification.md) | test | done (2026-10-28) |
 | 11 | [T-01.8 Documentation and ADR](T-01.8_documentation.md) | docs | done (2026-10-28) |
-| 12 | [T-01.9 First real run](T-01.9_first-real-run.md) | manual | in-progress (run 2026-10-29; the maintainer closes the epic) |
+| 12 | [T-01.9 First real run](T-01.9_first-real-run.md) | manual | done (2026-10-29) |
 
 ## Exit criteria
 

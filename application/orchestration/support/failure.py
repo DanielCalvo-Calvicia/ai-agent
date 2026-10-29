@@ -7,6 +7,7 @@
 # ===============================================
 
 import os
+import time
 from typing import Optional
 
 from shared_logging import get_logger
@@ -16,6 +17,11 @@ logger = get_logger(__name__)
 # One setting for every "try again" of the agent: LLM calls, MCP tool calls, status `retry`.
 DEFAULT_MAX_ATTEMPTS = 3
 MAX_ATTEMPTS_VARIABLE = "AI_AGENT_MAX_ATTEMPTS"
+
+# Seconds to wait before the second try of an LLM call that failed for lack of capacity; it doubles on every try (up to 8 times
+# this value) and is not spent at all when the provider says a daily quota is used up. 0 = no wait.
+DEFAULT_RETRY_WAIT_SECONDS = 1.0
+RETRY_WAIT_VARIABLE = "AI_AGENT_RETRY_WAIT_SECONDS"
 
 # How many MCP tool actions one message may run (0 = no limit).
 DEFAULT_MAX_MCP_CALLS = 5
@@ -113,6 +119,34 @@ def classify(error: BaseException) -> str:
 
 def worth_retrying(error: BaseException) -> bool:
     return getattr(error, "status_code", None) not in _NOT_WORTH_RETRYING
+
+
+def capacity_problem(error: BaseException) -> bool:
+    """The provider is out of capacity or unreachable for now (429, any 5xx, a timeout, no connection): another model may answer."""
+    status = getattr(error, "status_code", None)
+    if status == 429 or (isinstance(status, int) and status >= 500):
+        return True
+    return classify(error) in ("timeout", "connection")
+
+
+def daily_quota_used_up(error: BaseException) -> bool:
+    """A 429 that says the quota of the DAY is gone (Google: "requests per day"): waiting seconds cannot help, so go to the next model."""
+    text = str(error).lower()
+    return getattr(error, "status_code", None) == 429 and ("per day" in text or "perday" in text)
+
+
+def retry_wait_seconds() -> float:
+    try:
+        return max(0.0, float(os.environ.get(RETRY_WAIT_VARIABLE, DEFAULT_RETRY_WAIT_SECONDS)))
+    except ValueError:
+        return DEFAULT_RETRY_WAIT_SECONDS
+
+
+def wait_before_retry(attempt: int, error: BaseException) -> None:
+    """Waits before try number attempt + 1 when the failure was a lack of capacity (never for any other error)."""
+    wait = retry_wait_seconds()
+    if wait > 0 and capacity_problem(error):
+        time.sleep(min(wait * (2 ** (attempt - 1)), wait * 8))
 
 
 class AgentFailure(Exception):

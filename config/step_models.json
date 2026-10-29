@@ -16,7 +16,8 @@
   "profiles": {
     "proven": {
       "_about": "Every step on gemini-3.1-flash-lite, which has an end-to-end run (2026-09-21) and answered a test call on 2026-10-28. It replaces gemini-2.5-flash, the first model tested end to end, which Google no longer gives to new keys. Active since 2026-10-28: on the free tier it answered 10 calls in a row, while gemini-3.6-flash (profile google_free) returned 429 after about 7 calls in 30 s.",
-      "default": "gemini-3.1-flash-lite"
+      "default": "gemini-3.1-flash-lite",
+      "fallback_models": ["gemini-3.5-flash-lite", "gemini-3-flash-preview"]
     },
     "budget": {
       "_about": "The cheapest that should work: gemini-3.1-flash-lite everywhere except the planner and the tool step (gemini-3.5-flash-lite). Untested. It replaces the gemini-2.5-flash-lite and gemini-2.5-flash of the first version, which Google no longer gives to new keys.",
@@ -62,6 +63,7 @@
     "google_free": {
       "_about": "Google models only, both with a free tier (no billing needed to run or test). The small steps (triage, cleaning, the checker, the question, the emotion reader) use gemini-3.1-flash-lite; the planner, the gate, the worker, the tool step, the draft, the editor and the motion planner use gemini-3.6-flash (the same price as gemini-3.8-flash, which was the first choice but answered 503 \"high demand\" on every try of 2026-10-28; change them back when it answers). Needs GOOGLE_API_KEY and GOOGLE_URL only. Untested as a combination. Free-tier content is used by Google to improve its products, and its rate limits are not published on Google's pricing page; with a billed key neither applies, but the price of gemini-3.6-flash doubles on 2027-01-01. Decided in PR-004 (2026-10-27). Not active since 2026-10-28: on the free tier gemini-3.6-flash returned 429 \"quota exceeded\" after about 7 calls in 30 s, and one message calls it about 6 times; proven (every step on gemini-3.1-flash-lite) is active instead.",
       "default": "gemini-3.1-flash-lite",
+      "fallback_models": ["gemini-3.5-flash-lite", "gemini-3-flash-preview"],
       "project_manager": "gemini-3.6-flash",
       "safety_quality_gatekeeper": "gemini-3.6-flash",
       "cognitive_worker": "gemini-3.6-flash",

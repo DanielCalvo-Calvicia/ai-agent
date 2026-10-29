@@ -31,7 +31,7 @@ Cost of one message, thinking included. The limit is **$0.0575 (0.050 EUR)**. Bi
 
 | Profile | Big plan, USD | Big plan, EUR per 1,000 messages | Fits the budget? | Small plan, USD | Providers | Active |
 |---|---|---|---|---|---|---|
-| strongest (per step, from the earlier table) | $0.350 | 304.37 | no | $0.055 | Anthropic, Google, OpenAI |  |
+| strongest (per step, from the earlier table) | $1.34 | 1167.38 | no | $0.174 | Anthropic, Google |  |
 | proven | $0.044 | 37.90 | **yes** | $0.0069 | Google | yes |
 | budget | $0.050 | 43.45 | **yes** | $0.0078 | Google |  |
 | balanced | $0.104 | 90.28 | no | $0.021 | Google |  |
@@ -127,21 +127,24 @@ To use one: `windows\Scripts\python.exe tests\manual\show_models.py --profile=bu
 |---|---|---|---|---|---|---|---|---|
 | 1 | GPT-OSS 20B (Groq) | Groq | `openai/gpt-oss-20b` | 0.075 | 0.30 | 0.13 | yes, tested | reasoning model: its reasoning is inside the counted output tokens (about 2.5x the visible answer) |
 | 2 | GPT-5 nano (OpenAI) | OpenAI | `gpt-5-nano` | 0.050 | 0.40* | 0.14 | needs adapter change | reasoning model: reasoning tokens are billed as output |
-| 3 | GPT-OSS 120B (Groq) | Groq | `openai/gpt-oss-120b` | 0.150 | 0.60 | 0.26 | yes, tested | reasoning model: its reasoning is inside the counted output tokens (about 2.5x the visible answer) |
-| 4 | GPT-5.6 Luna (OpenAI) | OpenAI | `gpt-5.6-luna` | 0.200 | 1.20 | 0.45 | needs adapter change | reasoning model (assumed): reasoning tokens are billed as output |
-| 5 | Gemini 3.1 Flash-Lite | Google | `gemini-3.1-flash-lite` | 0.250 | 1.50 | 0.56 | yes, tested | not stated in the pages read |
-| 6 | GPT-5 mini (OpenAI) | OpenAI | `gpt-5-mini` | 0.250 | 2.00* | 0.69 | needs adapter change | reasoning model: reasoning tokens are billed as output |
-| 7 | Gemini 3.5 Flash-Lite | Google | `gemini-3.5-flash-lite` | 0.300 | 2.50 | 0.85 | yes, tested | minimal by default |
-| 8 | Gemini 3 Flash (preview) | Google | `gemini-3-flash-preview` | 0.500 | 3.00 | 1.12 | yes, tested | a test call used 20 thinking tokens (2026-10-28); not stated in the pages read |
-| 9 | Gemini 3.6 Flash | Google | `gemini-3.6-flash` | 0.750 | 3.75* | 1.50 | yes, tested | medium by default. Can go down to 'minimal'. |
-| 10 | Gemini 3.8 Flash | Google | `gemini-3.8-flash` | 0.750 | 3.75* | 1.50 | yes, tested | medium by default |
-| 11 | GPT-5.4 mini (OpenAI) | OpenAI | `gpt-5.4-mini` | 0.750 | 4.50 | 1.69 | needs adapter change | reasoning model (assumed): reasoning tokens are billed as output |
-| 12 | Claude Haiku 4.5 (Anthropic) | Anthropic | `claude-haiku-4-5` | 1.000 | 5.00 | 2.00 | yes, tested | no extended thinking unless asked |
-| 13 | Gemini 4 Argon | Google | `gemini-4-argon` | 2.000 | 10.00* | 4.00 | should (no key to test) | not stated in the pages read |
-| 14 | Claude Sonnet 5 (Anthropic) | Anthropic | `claude-sonnet-5` | 2.000 | 10.00 | 4.00 | should (no key to test) | no extended thinking unless asked |
-| 15 | Claude Sonnet 5.5 (Anthropic) | Anthropic | `claude-sonnet-5-5` | 2.000 | 10.00 | 4.00 | yes, tested | adaptive thinking (Anthropic: Sonnet 5.5 decides how much to think, steered by effort) |
-| 16 | Gemini 3.1 Pro (preview) | Google | `gemini-3.1-pro-preview` | 2.000 | 12.00* | 4.50 | yes, tested | always on |
-| 17 | GPT-5.6 Terra (OpenAI) | OpenAI | `gpt-5.6-terra` | 2.000 | 12.00 | 4.50 | needs adapter change | reasoning model (assumed): reasoning tokens are billed as output |
+| 3 | Claude Haiku 5.5 (Anthropic) | Anthropic | `claude-haiku-5-5` | 0.100 | 0.50 | 0.20 | should (no key to test) | thinks by default, hidden by the OpenAI-compatible endpoint |
+| 4 | GPT-OSS 120B (Groq) | Groq | `openai/gpt-oss-120b` | 0.150 | 0.60 | 0.26 | yes, tested | reasoning model: its reasoning is inside the counted output tokens (about 2.5x the visible answer) |
+| 5 | GPT-5.6 Luna (OpenAI) | OpenAI | `gpt-5.6-luna` | 0.200 | 1.20 | 0.45 | needs adapter change | reasoning model (assumed): reasoning tokens are billed as output |
+| 6 | Gemini 3.1 Flash-Lite | Google | `gemini-3.1-flash-lite` | 0.250 | 1.50 | 0.56 | yes, tested | not stated in the pages read |
+| 7 | GPT-5 mini (OpenAI) | OpenAI | `gpt-5-mini` | 0.250 | 2.00* | 0.69 | needs adapter change | reasoning model: reasoning tokens are billed as output |
+| 8 | Gemini 3.5 Flash-Lite | Google | `gemini-3.5-flash-lite` | 0.300 | 2.50 | 0.85 | yes, tested | minimal by default |
+| 9 | Gemini 3 Flash (preview) | Google | `gemini-3-flash-preview` | 0.500 | 3.00 | 1.12 | yes, tested | a test call used 20 thinking tokens (2026-10-28); not stated in the pages read |
+| 10 | Gemini 3.6 Flash | Google | `gemini-3.6-flash` | 0.750 | 3.75* | 1.50 | yes, tested | medium by default. Can go down to 'minimal'. |
+| 11 | Gemini 3.8 Flash | Google | `gemini-3.8-flash` | 0.750 | 3.75* | 1.50 | yes, tested | medium by default |
+| 12 | GPT-5.4 mini (OpenAI) | OpenAI | `gpt-5.4-mini` | 0.750 | 4.50 | 1.69 | needs adapter change | reasoning model (assumed): reasoning tokens are billed as output |
+| 13 | Claude Haiku 4.5 (Anthropic) | Anthropic | `claude-haiku-4-5` | 1.000 | 5.00 | 2.00 | yes, tested | no extended thinking unless asked |
+| 14 | Gemini 4 Argon | Google | `gemini-4-argon` | 2.000 | 10.00* | 4.00 | should (no key to test) | not stated in the pages read |
+| 15 | Claude Sonnet 5 (Anthropic) | Anthropic | `claude-sonnet-5` | 2.000 | 10.00 | 4.00 | should (no key to test) | no extended thinking unless asked |
+| 16 | Claude Sonnet 5.5 (Anthropic) | Anthropic | `claude-sonnet-5-5` | 2.000 | 10.00 | 4.00 | yes, tested | adaptive thinking (Anthropic: Sonnet 5.5 decides how much to think, steered by effort) |
+| 17 | Gemini 3.1 Pro (preview) | Google | `gemini-3.1-pro-preview` | 2.000 | 12.00* | 4.50 | yes, tested | always on |
+| 18 | GPT-5.6 Terra (OpenAI) | OpenAI | `gpt-5.6-terra` | 2.000 | 12.00 | 4.50 | needs adapter change | reasoning model (assumed): reasoning tokens are billed as output |
+| 19 | Claude Opus 5.5 (Anthropic) | Anthropic | `claude-opus-5-5` | 4.000 | 20.00 | 8.00 | should (no key to test) | adaptive thinking, hidden by the OpenAI-compatible endpoint |
+| 20 | Claude Fable 5.1 (Anthropic) | Anthropic | `claude-fable-5-1` | 10.000 | 50.00 | 20.00 | should (no key to test) | adaptive thinking, hidden by the OpenAI-compatible endpoint |
 
 \* GPT-5 nano (OpenAI): OpenAI lists it as deprecated; it is shut down on 2026-12-11 (replacement: gpt-5.6-luna for nano, gpt-5.6-terra for mini).
 \* GPT-5 mini (OpenAI): OpenAI lists it as deprecated; it is shut down on 2026-12-11 (replacement: gpt-5.6-luna for nano, gpt-5.6-terra for mini).
@@ -153,12 +156,15 @@ To use one: `windows\Scripts\python.exe tests\manual\show_models.py --profile=bu
 Notes on what each model needs:
 
 - `gpt-5-nano`: GPT-5 models reject max_tokens (they need max_completion_tokens). Needs an OpenAI key.
+- `claude-haiku-5-5`: Same route as claude-haiku-4-5, which works end to end (ADR-013); answered a one-word call on 2026-10-28 (check_google_ids.py --provider=anthropic); not run in a flow. Needs an Anthropic key. Claude 5 thinks by default and the endpoint hides it.
 - `gpt-5.6-luna`: GPT-5.x models reject max_tokens (they need max_completion_tokens). Needs an OpenAI key.
 - `gpt-5-mini`: GPT-5 models reject max_tokens (they need max_completion_tokens). Needs an OpenAI key.
 - `gpt-5.4-mini`: GPT-5.x models reject max_tokens (they need max_completion_tokens). Needs an OpenAI key.
 - `gemini-4-argon`: not called: no free tier (listed by the API for this key on 2026-10-28)
 - `claude-sonnet-5`: Same route as claude-haiku-4-5, which works end to end (ADR-013); answered a one-word call on 2026-10-28 (check_google_ids.py --provider=anthropic); not run in a flow. Needs an Anthropic key. Claude 5 thinks by default and the endpoint hides it.
 - `gpt-5.6-terra`: GPT-5.x models reject max_tokens (they need max_completion_tokens). Needs an OpenAI key.
+- `claude-opus-5-5`: Same route as claude-haiku-4-5, which works end to end (ADR-013); answered a one-word call on 2026-10-28 (check_google_ids.py --provider=anthropic); not run in a flow. Needs an Anthropic key. Claude 5 thinks by default and the endpoint hides it.
+- `claude-fable-5-1`: Same route as claude-haiku-4-5, which works end to end (ADR-013); answered a one-word call on 2026-10-28 (check_google_ids.py --provider=anthropic); not run in a flow. Needs an Anthropic key. Claude 5 thinks by default and the endpoint hides it.
 
 ## 4. One table per step
 
@@ -174,6 +180,7 @@ Big plan: 1 call(s), 1,260 tokens sent and 150 answered (measured per call with 
 |---|---|---|---|---|---|---|---|---|---|
 | GPT-OSS 20B (Groq) | Groq | `openai/gpt-oss-20b` | 0.075 | 0.30 | $0.0002 | 0.18 | yes, tested | **good** | `"triage_specialist": "openai/gpt-oss-20b"` |
 | GPT-5 nano (OpenAI) | OpenAI | `gpt-5-nano` | 0.050 | 0.40* | $0.0002 | 0.19 | needs adapter change | **good** | `"triage_specialist": "gpt-5-nano"` |
+| Claude Haiku 5.5 (Anthropic) | Anthropic | `claude-haiku-5-5` | 0.100 | 0.50 | $0.0002 | 0.17 | should (no key to test) | **ok** | `"triage_specialist": "claude-haiku-5-5"` |
 | GPT-OSS 120B (Groq) | Groq | `openai/gpt-oss-120b` | 0.150 | 0.60 | $0.0004 | 0.36 | yes, tested | **good** | `"triage_specialist": "openai/gpt-oss-120b"` |
 | GPT-5.6 Luna (OpenAI) | OpenAI | `gpt-5.6-luna` | 0.200 | 1.20 | $0.0006 | 0.53 | needs adapter change | **good** | `"triage_specialist": "gpt-5.6-luna"` |
 | Gemini 3.1 Flash-Lite | Google | `gemini-3.1-flash-lite` | 0.250 | 1.50 | $0.0005 | 0.47 | yes, tested | **best** | `"triage_specialist": "gemini-3.1-flash-lite"` |
@@ -195,6 +202,7 @@ Big plan: 1 call(s), 1,600 tokens sent and 3,420 answered (measured per call wit
 |---|---|---|---|---|---|---|---|---|---|
 | GPT-OSS 20B (Groq) | Groq | `openai/gpt-oss-20b` | 0.075 | 0.30 | $0.0027 | 2.34 | yes, tested | **ok** | `"project_manager": "openai/gpt-oss-20b"` |
 | GPT-5 nano (OpenAI) | OpenAI | `gpt-5-nano` | 0.050 | 0.40* | $0.0035 | 3.05 | needs adapter change | **ok** | `"project_manager": "gpt-5-nano"` |
+| Claude Haiku 5.5 (Anthropic) | Anthropic | `claude-haiku-5-5` | 0.100 | 0.50 | $0.0019 | 1.63 | should (no key to test) | **good** | `"project_manager": "claude-haiku-5-5"` |
 | GPT-OSS 120B (Groq) | Groq | `openai/gpt-oss-120b` | 0.150 | 0.60 | $0.0054 | 4.67 | yes, tested | **best** | `"project_manager": "openai/gpt-oss-120b"` |
 | GPT-5.6 Luna (OpenAI) | OpenAI | `gpt-5.6-luna` | 0.200 | 1.20 | $0.0085 | 7.42 | needs adapter change | **ok** | `"project_manager": "gpt-5.6-luna"` |
 | Gemini 3.1 Flash-Lite | Google | `gemini-3.1-flash-lite` | 0.250 | 1.50 | $0.0055 | 4.81 | yes, tested | **ok** | `"project_manager": "gemini-3.1-flash-lite"` |
@@ -210,6 +218,8 @@ Big plan: 1 call(s), 1,600 tokens sent and 3,420 answered (measured per call wit
 | Claude Sonnet 5.5 (Anthropic) | Anthropic | `claude-sonnet-5-5` | 2.000 | 10.00 | $0.037 | 32.55 | yes, tested | **best** | `"project_manager": "claude-sonnet-5-5"` |
 | Gemini 3.1 Pro (preview) | Google | `gemini-3.1-pro-preview` | 2.000 | 12.00* | $0.080 | 69.36 | yes, tested | **best** | `"project_manager": "gemini-3.1-pro-preview"` |
 | GPT-5.6 Terra (OpenAI) | OpenAI | `gpt-5.6-terra` | 2.000 | 12.00 | $0.085 | 74.22 | needs adapter change | **best** | `"project_manager": "gpt-5.6-terra"` |
+| Claude Opus 5.5 (Anthropic) | Anthropic | `claude-opus-5-5` | 4.000 | 20.00 | $0.075 | 65.10 | should (no key to test) | **best** | `"project_manager": "claude-opus-5-5"` |
+| Claude Fable 5.1 (Anthropic) | Anthropic | `claude-fable-5-1` | 10.000 | 50.00 | $0.187 | 162.75 | should (no key to test) | **best** | `"project_manager": "claude-fable-5-1"` |
 
 ### safety_quality_gatekeeper
 
@@ -221,6 +231,7 @@ Big plan: 1 call(s), 3,170 tokens sent and 55 answered (measured per call with g
 |---|---|---|---|---|---|---|---|---|---|
 | GPT-OSS 20B (Groq) | Groq | `openai/gpt-oss-20b` | 0.075 | 0.30 | $0.0003 | 0.24 | yes, tested | **good** | `"safety_quality_gatekeeper": "openai/gpt-oss-20b"` |
 | GPT-5 nano (OpenAI) | OpenAI | `gpt-5-nano` | 0.050 | 0.40* | $0.0002 | 0.19 | needs adapter change | **ok** | `"safety_quality_gatekeeper": "gpt-5-nano"` |
+| Claude Haiku 5.5 (Anthropic) | Anthropic | `claude-haiku-5-5` | 0.100 | 0.50 | $0.0003 | 0.30 | should (no key to test) | **good** | `"safety_quality_gatekeeper": "claude-haiku-5-5"` |
 | GPT-OSS 120B (Groq) | Groq | `openai/gpt-oss-120b` | 0.150 | 0.60 | $0.0006 | 0.49 | yes, tested | **good** | `"safety_quality_gatekeeper": "openai/gpt-oss-120b"` |
 | GPT-5.6 Luna (OpenAI) | OpenAI | `gpt-5.6-luna` | 0.200 | 1.20 | $0.0008 | 0.67 | needs adapter change | **good** | `"safety_quality_gatekeeper": "gpt-5.6-luna"` |
 | Gemini 3.1 Flash-Lite | Google | `gemini-3.1-flash-lite` | 0.250 | 1.50 | $0.0009 | 0.76 | yes, tested | **good** | `"safety_quality_gatekeeper": "gemini-3.1-flash-lite"` |
@@ -236,6 +247,8 @@ Big plan: 1 call(s), 3,170 tokens sent and 55 answered (measured per call with g
 | Claude Sonnet 5.5 (Anthropic) | Anthropic | `claude-sonnet-5-5` | 2.000 | 10.00 | $0.0069 | 6.00 | yes, tested | **best** | `"safety_quality_gatekeeper": "claude-sonnet-5-5"` |
 | Gemini 3.1 Pro (preview) | Google | `gemini-3.1-pro-preview` | 2.000 | 12.00* | $0.011 | 9.71 | yes, tested | **good** | `"safety_quality_gatekeeper": "gemini-3.1-pro-preview"` |
 | GPT-5.6 Terra (OpenAI) | OpenAI | `gpt-5.6-terra` | 2.000 | 12.00 | $0.0077 | 6.67 | needs adapter change | **good** | `"safety_quality_gatekeeper": "gpt-5.6-terra"` |
+| Claude Opus 5.5 (Anthropic) | Anthropic | `claude-opus-5-5` | 4.000 | 20.00 | $0.014 | 11.99 | should (no key to test) | **best** | `"safety_quality_gatekeeper": "claude-opus-5-5"` |
+| Claude Fable 5.1 (Anthropic) | Anthropic | `claude-fable-5-1` | 10.000 | 50.00 | $0.034 | 29.98 | should (no key to test) | **best** | `"safety_quality_gatekeeper": "claude-fable-5-1"` |
 
 ### cognitive_worker
 
@@ -247,6 +260,7 @@ Big plan: 25 call(s), 40,250 tokens sent and 8,000 answered (measured per call w
 |---|---|---|---|---|---|---|---|---|---|
 | GPT-OSS 20B (Groq) | Groq | `openai/gpt-oss-20b` | 0.075 | 0.30 | $0.0090 | 7.85 | yes, tested | **good** | `"cognitive_worker": "openai/gpt-oss-20b"` |
 | GPT-5 nano (OpenAI) | OpenAI | `gpt-5-nano` | 0.050 | 0.40* | $0.010 | 8.71 | needs adapter change | **ok** | `"cognitive_worker": "gpt-5-nano"` |
+| Claude Haiku 5.5 (Anthropic) | Anthropic | `claude-haiku-5-5` | 0.100 | 0.50 | $0.0080 | 6.98 | should (no key to test) | **good** | `"cognitive_worker": "claude-haiku-5-5"` |
 | GPT-OSS 120B (Groq) | Groq | `openai/gpt-oss-120b` | 0.150 | 0.60 | $0.018 | 15.70 | yes, tested | **good** | `"cognitive_worker": "openai/gpt-oss-120b"` |
 | GPT-5.6 Luna (OpenAI) | OpenAI | `gpt-5.6-luna` | 0.200 | 1.20 | $0.027 | 23.72 | needs adapter change | **good** | `"cognitive_worker": "gpt-5.6-luna"` |
 | Gemini 3.1 Flash-Lite | Google | `gemini-3.1-flash-lite` | 0.250 | 1.50 | $0.022 | 19.20 | yes, tested | **good** | `"cognitive_worker": "gemini-3.1-flash-lite"` |
@@ -262,6 +276,8 @@ Big plan: 25 call(s), 40,250 tokens sent and 8,000 answered (measured per call w
 | Claude Sonnet 5.5 (Anthropic) | Anthropic | `claude-sonnet-5-5` | 2.000 | 10.00 | $0.161 | 139.69 | yes, tested | **best** | `"cognitive_worker": "claude-sonnet-5-5"` |
 | Gemini 3.1 Pro (preview) | Google | `gemini-3.1-pro-preview` | 2.000 | 12.00* | $0.502 | 437.16 | yes, tested | **good** | `"cognitive_worker": "gemini-3.1-pro-preview"` |
 | GPT-5.6 Terra (OpenAI) | OpenAI | `gpt-5.6-terra` | 2.000 | 12.00 | $0.273 | 237.16 | needs adapter change | **good** | `"cognitive_worker": "gpt-5.6-terra"` |
+| Claude Opus 5.5 (Anthropic) | Anthropic | `claude-opus-5-5` | 4.000 | 20.00 | $0.321 | 279.37 | should (no key to test) | **best** | `"cognitive_worker": "claude-opus-5-5"` |
+| Claude Fable 5.1 (Anthropic) | Anthropic | `claude-fable-5-1` | 10.000 | 50.00 | $0.802 | 698.43 | should (no key to test) | **best** | `"cognitive_worker": "claude-fable-5-1"` |
 
 ### mcp_operator
 
@@ -273,6 +289,7 @@ Big plan: 5 call(s), 9,500 tokens sent and 1,000 answered (measured per call wit
 |---|---|---|---|---|---|---|---|---|---|
 | GPT-OSS 20B (Groq) | Groq | `openai/gpt-oss-20b` | 0.075 | 0.30 | $0.0015 | 1.27 | yes, tested | **ok** | `"mcp_operator": "openai/gpt-oss-20b"` |
 | GPT-5 nano (OpenAI) | OpenAI | `gpt-5-nano` | 0.050 | 0.40* | $0.0015 | 1.28 | needs adapter change | **weak** | `"mcp_operator": "gpt-5-nano"` |
+| Claude Haiku 5.5 (Anthropic) | Anthropic | `claude-haiku-5-5` | 0.100 | 0.50 | $0.0014 | 1.26 | should (no key to test) | **good** | `"mcp_operator": "claude-haiku-5-5"` |
 | GPT-OSS 120B (Groq) | Groq | `openai/gpt-oss-120b` | 0.150 | 0.60 | $0.0029 | 2.55 | yes, tested | **good** | `"mcp_operator": "openai/gpt-oss-120b"` |
 | GPT-5.6 Luna (OpenAI) | OpenAI | `gpt-5.6-luna` | 0.200 | 1.20 | $0.0043 | 3.74 | needs adapter change | **good** | `"mcp_operator": "gpt-5.6-luna"` |
 | Gemini 3.1 Flash-Lite | Google | `gemini-3.1-flash-lite` | 0.250 | 1.50 | $0.0039 | 3.37 | yes, tested | **good** | `"mcp_operator": "gemini-3.1-flash-lite"` |
@@ -288,6 +305,8 @@ Big plan: 5 call(s), 9,500 tokens sent and 1,000 answered (measured per call wit
 | Claude Sonnet 5.5 (Anthropic) | Anthropic | `claude-sonnet-5-5` | 2.000 | 10.00 | $0.029 | 25.24 | yes, tested | **best** | `"mcp_operator": "claude-sonnet-5-5"` |
 | Gemini 3.1 Pro (preview) | Google | `gemini-3.1-pro-preview` | 2.000 | 12.00* | $0.096 | 83.69 | yes, tested | **good** | `"mcp_operator": "gemini-3.1-pro-preview"` |
 | GPT-5.6 Terra (OpenAI) | OpenAI | `gpt-5.6-terra` | 2.000 | 12.00 | $0.043 | 37.42 | needs adapter change | **best** | `"mcp_operator": "gpt-5.6-terra"` |
+| Claude Opus 5.5 (Anthropic) | Anthropic | `claude-opus-5-5` | 4.000 | 20.00 | $0.058 | 50.48 | should (no key to test) | **best** | `"mcp_operator": "claude-opus-5-5"` |
+| Claude Fable 5.1 (Anthropic) | Anthropic | `claude-fable-5-1` | 10.000 | 50.00 | $0.145 | 126.20 | should (no key to test) | **best** | `"mcp_operator": "claude-fable-5-1"` |
 
 ### data_engineer
 
@@ -299,6 +318,7 @@ Big plan: 5 call(s), 7,000 tokens sent and 2,000 answered (measured per call wit
 |---|---|---|---|---|---|---|---|---|---|
 | GPT-OSS 20B (Groq) | Groq | `openai/gpt-oss-20b` | 0.075 | 0.30 | $0.0020 | 1.76 | yes, tested | **good** | `"data_engineer": "openai/gpt-oss-20b"` |
 | GPT-5 nano (OpenAI) | OpenAI | `gpt-5-nano` | 0.050 | 0.40* | $0.0024 | 2.05 | needs adapter change | **good** | `"data_engineer": "gpt-5-nano"` |
+| Claude Haiku 5.5 (Anthropic) | Anthropic | `claude-haiku-5-5` | 0.100 | 0.50 | $0.0017 | 1.48 | should (no key to test) | **ok** | `"data_engineer": "claude-haiku-5-5"` |
 | GPT-OSS 120B (Groq) | Groq | `openai/gpt-oss-120b` | 0.150 | 0.60 | $0.0040 | 3.52 | yes, tested | **ok** | `"data_engineer": "openai/gpt-oss-120b"` |
 | GPT-5.6 Luna (OpenAI) | OpenAI | `gpt-5.6-luna` | 0.200 | 1.20 | $0.0062 | 5.40 | needs adapter change | **good** | `"data_engineer": "gpt-5.6-luna"` |
 | Gemini 3.1 Flash-Lite | Google | `gemini-3.1-flash-lite` | 0.250 | 1.50 | $0.0047 | 4.13 | yes, tested | **best** | `"data_engineer": "gemini-3.1-flash-lite"` |
@@ -320,6 +340,7 @@ Big plan: 1 call(s), 12,190 tokens sent and 800 answered (measured per call with
 |---|---|---|---|---|---|---|---|---|---|
 | GPT-OSS 20B (Groq) | Groq | `openai/gpt-oss-20b` | 0.075 | 0.30 | $0.0015 | 1.32 | yes, tested | **ok** | `"draft_writer": "openai/gpt-oss-20b"` |
 | GPT-5 nano (OpenAI) | OpenAI | `gpt-5-nano` | 0.050 | 0.40* | $0.0014 | 1.23 | needs adapter change | **ok** | `"draft_writer": "gpt-5-nano"` |
+| Claude Haiku 5.5 (Anthropic) | Anthropic | `claude-haiku-5-5` | 0.100 | 0.50 | $0.0016 | 1.41 | should (no key to test) | **good** | `"draft_writer": "claude-haiku-5-5"` |
 | GPT-OSS 120B (Groq) | Groq | `openai/gpt-oss-120b` | 0.150 | 0.60 | $0.0030 | 2.64 | yes, tested | **good** | `"draft_writer": "openai/gpt-oss-120b"` |
 | GPT-5.6 Luna (OpenAI) | OpenAI | `gpt-5.6-luna` | 0.200 | 1.20 | $0.0044 | 3.79 | needs adapter change | **good** | `"draft_writer": "gpt-5.6-luna"` |
 | Gemini 3.1 Flash-Lite | Google | `gemini-3.1-flash-lite` | 0.250 | 1.50 | $0.0042 | 3.70 | yes, tested | **good** | `"draft_writer": "gemini-3.1-flash-lite"` |
@@ -335,6 +356,8 @@ Big plan: 1 call(s), 12,190 tokens sent and 800 answered (measured per call with
 | Claude Sonnet 5.5 (Anthropic) | Anthropic | `claude-sonnet-5-5` | 2.000 | 10.00 | $0.032 | 28.18 | yes, tested | **best** | `"draft_writer": "claude-sonnet-5-5"` |
 | Gemini 3.1 Pro (preview) | Google | `gemini-3.1-pro-preview` | 2.000 | 12.00* | $0.040 | 34.96 | yes, tested | **good** | `"draft_writer": "gemini-3.1-pro-preview"` |
 | GPT-5.6 Terra (OpenAI) | OpenAI | `gpt-5.6-terra` | 2.000 | 12.00 | $0.044 | 37.93 | needs adapter change | **best** | `"draft_writer": "gpt-5.6-terra"` |
+| Claude Opus 5.5 (Anthropic) | Anthropic | `claude-opus-5-5` | 4.000 | 20.00 | $0.065 | 56.36 | should (no key to test) | **best** | `"draft_writer": "claude-opus-5-5"` |
+| Claude Fable 5.1 (Anthropic) | Anthropic | `claude-fable-5-1` | 10.000 | 50.00 | $0.162 | 140.91 | should (no key to test) | **best** | `"draft_writer": "claude-fable-5-1"` |
 
 ### editor_in_chief
 
@@ -346,6 +369,7 @@ Big plan: 1 call(s), 1,890 tokens sent and 800 answered (measured per call with 
 |---|---|---|---|---|---|---|---|---|---|
 | GPT-OSS 20B (Groq) | Groq | `openai/gpt-oss-20b` | 0.075 | 0.30 | $0.0007 | 0.65 | yes, tested | **ok** | `"editor_in_chief": "openai/gpt-oss-20b"` |
 | GPT-5 nano (OpenAI) | OpenAI | `gpt-5-nano` | 0.050 | 0.40* | $0.0009 | 0.78 | needs adapter change | **ok** | `"editor_in_chief": "gpt-5-nano"` |
+| Claude Haiku 5.5 (Anthropic) | Anthropic | `claude-haiku-5-5` | 0.100 | 0.50 | $0.0006 | 0.51 | should (no key to test) | **good** | `"editor_in_chief": "claude-haiku-5-5"` |
 | GPT-OSS 120B (Groq) | Groq | `openai/gpt-oss-120b` | 0.150 | 0.60 | $0.0015 | 1.29 | yes, tested | **good** | `"editor_in_chief": "openai/gpt-oss-120b"` |
 | GPT-5.6 Luna (OpenAI) | OpenAI | `gpt-5.6-luna` | 0.200 | 1.20 | $0.0023 | 2.00 | needs adapter change | **good** | `"editor_in_chief": "gpt-5.6-luna"` |
 | Gemini 3.1 Flash-Lite | Google | `gemini-3.1-flash-lite` | 0.250 | 1.50 | $0.0017 | 1.46 | yes, tested | **good** | `"editor_in_chief": "gemini-3.1-flash-lite"` |
@@ -361,6 +385,8 @@ Big plan: 1 call(s), 1,890 tokens sent and 800 answered (measured per call with 
 | Claude Sonnet 5.5 (Anthropic) | Anthropic | `claude-sonnet-5-5` | 2.000 | 10.00 | $0.012 | 10.25 | yes, tested | **good** | `"editor_in_chief": "claude-sonnet-5-5"` |
 | Gemini 3.1 Pro (preview) | Google | `gemini-3.1-pro-preview` | 2.000 | 12.00* | $0.015 | 13.45 | yes, tested | **ok** | `"editor_in_chief": "gemini-3.1-pro-preview"` |
 | GPT-5.6 Terra (OpenAI) | OpenAI | `gpt-5.6-terra` | 2.000 | 12.00 | $0.023 | 20.00 | needs adapter change | **good** | `"editor_in_chief": "gpt-5.6-terra"` |
+| Claude Opus 5.5 (Anthropic) | Anthropic | `claude-opus-5-5` | 4.000 | 20.00 | $0.024 | 20.50 | should (no key to test) | **good** | `"editor_in_chief": "claude-opus-5-5"` |
+| Claude Fable 5.1 (Anthropic) | Anthropic | `claude-fable-5-1` | 10.000 | 50.00 | $0.059 | 51.26 | should (no key to test) | **good** | `"editor_in_chief": "claude-fable-5-1"` |
 
 ### answer_checker
 
@@ -372,6 +398,7 @@ Big plan: 0 call(s), 0 tokens sent and 0 answered (measured per call with gemini
 |---|---|---|---|---|---|---|---|---|---|
 | GPT-OSS 20B (Groq) | Groq | `openai/gpt-oss-20b` | 0.075 | 0.30 | $0 | 0 | yes, tested | **best** | `"answer_checker": "openai/gpt-oss-20b"` |
 | GPT-5 nano (OpenAI) | OpenAI | `gpt-5-nano` | 0.050 | 0.40* | $0 | 0 | needs adapter change | **good** | `"answer_checker": "gpt-5-nano"` |
+| Claude Haiku 5.5 (Anthropic) | Anthropic | `claude-haiku-5-5` | 0.100 | 0.50 | $0 | 0 | should (no key to test) | **ok** | `"answer_checker": "claude-haiku-5-5"` |
 | GPT-OSS 120B (Groq) | Groq | `openai/gpt-oss-120b` | 0.150 | 0.60 | $0 | 0 | yes, tested | **good** | `"answer_checker": "openai/gpt-oss-120b"` |
 | GPT-5.6 Luna (OpenAI) | OpenAI | `gpt-5.6-luna` | 0.200 | 1.20 | $0 | 0 | needs adapter change | **good** | `"answer_checker": "gpt-5.6-luna"` |
 | Gemini 3.1 Flash-Lite | Google | `gemini-3.1-flash-lite` | 0.250 | 1.50 | $0 | 0 | yes, tested | **best** | `"answer_checker": "gemini-3.1-flash-lite"` |
@@ -393,6 +420,7 @@ Big plan: 0 call(s), 0 tokens sent and 0 answered (measured per call with gemini
 |---|---|---|---|---|---|---|---|---|---|
 | GPT-OSS 20B (Groq) | Groq | `openai/gpt-oss-20b` | 0.075 | 0.30 | $0 | 0 | yes, tested | **best** | `"user_clarification": "openai/gpt-oss-20b"` |
 | GPT-5 nano (OpenAI) | OpenAI | `gpt-5-nano` | 0.050 | 0.40* | $0 | 0 | needs adapter change | **good** | `"user_clarification": "gpt-5-nano"` |
+| Claude Haiku 5.5 (Anthropic) | Anthropic | `claude-haiku-5-5` | 0.100 | 0.50 | $0 | 0 | should (no key to test) | **good** | `"user_clarification": "claude-haiku-5-5"` |
 | GPT-OSS 120B (Groq) | Groq | `openai/gpt-oss-120b` | 0.150 | 0.60 | $0 | 0 | yes, tested | **good** | `"user_clarification": "openai/gpt-oss-120b"` |
 | GPT-5.6 Luna (OpenAI) | OpenAI | `gpt-5.6-luna` | 0.200 | 1.20 | $0 | 0 | needs adapter change | **best** | `"user_clarification": "gpt-5.6-luna"` |
 | Gemini 3.1 Flash-Lite | Google | `gemini-3.1-flash-lite` | 0.250 | 1.50 | $0 | 0 | yes, tested | **best** | `"user_clarification": "gemini-3.1-flash-lite"` |

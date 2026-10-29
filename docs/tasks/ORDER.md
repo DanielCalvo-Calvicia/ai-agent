@@ -20,7 +20,7 @@ Written on 2026-10-27.
 
 | # | Task | Name | Kind | State | Detail | Depends on | Last updated |
 |---|---|---|---|---|---|---|---|
-| 1 | [T-01](T-01_dynamics-mcp/T-01_dynamics-mcp.md) | Use the dynamics_microservice MCP tools (epic) | epic | In progress | everything but T-01.9 done on 2026-10-28; T-01.9 is the maintainer's | — | 2026-10-28 |
+| 1 | [T-01](T-01_dynamics-mcp/T-01_dynamics-mcp.md) | Use the dynamics_microservice MCP tools (epic) | epic | Done | T-01.9 ran on 2026-10-29; its open findings are in its notes | — | 2026-10-28 |
 | 2 | [T-01.1](T-01_dynamics-mcp/T-01.1_decisions.md) | Decisions | decision | Done | decided in Q01 and Q02 (2026-10-27) | — | 2026-10-27 |
 | 3 | [T-01.2](T-01_dynamics-mcp/T-01.2_streamable-http-transport.md) | Streamable HTTP transport in the MCP client | code | Done | built 2026-10-27, closed 2026-10-28 | — | 2026-10-28 |
 | 4 | [T-01.4](T-01_dynamics-mcp/T-01.4_mcp-timeouts.md) | Timeouts and retries that fit a slow query | code | Done | built 2026-10-27, closed 2026-10-28 | T-01.2 | 2026-10-28 |
@@ -32,7 +32,7 @@ Written on 2026-10-27.
 | 10 | [T-01.6](T-01_dynamics-mcp/T-01.6_planner-guidance-and-jobs.md) | Planner: guidance, jobs and answers | code | Done | built 2026-10-27, closed 2026-10-28 | T-01.5, T-01.10, T-01.11 | 2026-10-28 |
 | 11 | [T-01.7](T-01_dynamics-mcp/T-01.7_verification.md) | Verification with scripted LLMs | test | Done | built 2026-10-27, closed 2026-10-28 | T-01.2 to T-01.6, T-01.10 to T-01.12 | 2026-10-28 |
 | 12 | [T-01.8](T-01_dynamics-mcp/T-01.8_documentation.md) | Documentation and ADR | docs | Done | built 2026-10-27, closed 2026-10-28 | T-01.2 to T-01.6, T-01.10 to T-01.12 | 2026-10-28 |
-| 13 | [T-01.9](T-01_dynamics-mcp/T-01.9_first-real-run.md) | First real run | manual | In progress | run on 2026-10-29: orders request answered with real data (72 s), order-state request refused by the service's input rule; findings in its Notes | T-01.7, T-01.8 | 2026-10-28 |
+| 13 | [T-01.9](T-01_dynamics-mcp/T-01.9_first-real-run.md) | First real run | manual | Done | run on 2026-10-29: real data, speakable replies in the user's language, personal data masked; the open findings are limits of the Go service or not scheduled | T-01.7, T-01.8 | 2026-10-28 |
 
 ## B. T-02 Model catalog refresh
 
@@ -61,3 +61,13 @@ Written on 2026-10-27.
 | 29 | [T-03.4](T-03_claude-provider/T-03.4_profile-and-price-notes.md) | The profile, the Claude notes in the price file and the generated tables | code | Done | `claude_haiku`, not active | T-03.2 | 2026-10-28 |
 | 30 | [T-03.5](T-03_claude-provider/T-03.5_documentation.md) | Documentation and ADR-013 | docs | Done | ADR-013 | T-03.2 to T-03.4 | 2026-10-28 |
 | 31 | [T-03.6](T-03_claude-provider/T-03.6_first-real-run-on-claude.md) | First real run on Claude | manual | In progress | run twice: Haiku answered the greeting with a description; Sonnet for planner, writer and editor got all three right | T-03.2 to T-03.5 | 2026-10-28 |
+| 32 | [T-03.7](T-03_claude-provider/T-03.7_prices-of-the-other-claude-ids.md) | Prices of the other Claude ids | code | Done | the three ids priced from Anthropic's page of 2026-10-29 | T-03.4 | 2026-10-29 |
+
+## D. T-04 A model out of capacity does not stop the message
+
+| # | Task | Name | Kind | State | Detail | Depends on | Last updated |
+|---|---|---|---|---|---|---|---|
+| 33 | [T-04](T-04_llm-resilience/T-04_llm-resilience.md) | A model out of capacity does not stop the message (epic) | epic | Done | not provoked with a real 503 | T-02 | 2026-10-29 |
+| 34 | [T-04.1](T-04_llm-resilience/T-04.1_decisions.md) | Decisions | decision | Done | taken by the assistant, the maintainer asked for the feature | — | 2026-10-29 |
+| 35 | [T-04.2](T-04_llm-resilience/T-04.2_wait-and-fallback.md) | Wait, fallback models and the runner | code | Done | `failure.py`, `model_selection.py`, `phase_runner.py` | T-04.1 | 2026-10-29 |
+| 36 | [T-04.3](T-04_llm-resilience/T-04.3_tests-and-documentation.md) | Tests and documentation | test | Done | 30 tests, ADR-014 | T-04.2 | 2026-10-29 |

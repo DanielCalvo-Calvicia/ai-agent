@@ -4,17 +4,20 @@
 #  through LLMOutboundPort and records the token usage.
 # ===============================================
 
+import dataclasses
 import json
 import time
 from typing import Any, Dict, Optional, Sequence, Tuple
 
-from application.orchestration.support.failure import AgentFailure, classify, max_attempts, worth_retrying
+from application.orchestration.support.failure import (
+    AgentFailure, capacity_problem, classify, daily_quota_used_up, max_attempts, wait_before_retry, worth_retrying,
+)
 from application.orchestration.state.flow_state import FlowState
 from application.orchestration.support.metrics import SessionMetrics
 from application.orchestration.phases.phase import ActionPhaseSpec, PhaseSpec
 from application.orchestration.support.schemas import actions_schema, object_schema
 from application.outbound.ports.llm_ports import LLMOutboundPort
-from application.orchestration.support.model_selection import model_for_phase
+from application.orchestration.support.model_selection import fallback_models, model_for_phase
 from application.system_prompts.general import build_system_prompt_from_file
 
 from domain.entities.llm_response.action import Action
@@ -112,11 +115,14 @@ class PhaseRunner:
     ) -> Response:
         """
         Asks the LLM and records the call in the metrics. A failed call is tried again (up to
-        AI_AGENT_MAX_ATTEMPTS in total) unless the error cannot get better. When it still fails,
-        an AgentFailure says what happened.
+        AI_AGENT_MAX_ATTEMPTS in total) unless the error cannot get better, waiting a little after a lack of capacity
+        (AI_AGENT_RETRY_WAIT_SECONDS) and not at all when a daily quota is gone. When the model is still out of capacity
+        (429, 5xx, timeout, no connection), the fallback models of the active profile are tried once each, in order.
+        When nothing answers, an AgentFailure says what happened to the chosen model.
         """
         attempts = max_attempts()
         started_ns = time.time_ns()
+        failure: Optional[BaseException] = None
 
         for attempt in range(1, attempts + 1):
             try:
@@ -124,16 +130,41 @@ class PhaseRunner:
                 if not isinstance(answer, Response):
                     raise TypeError("Invalid response type")
             except Exception as error:
-                if attempt == attempts or not worth_retrying(error):
-                    raise AgentFailure(classify(error), phase_id, error) from error
+                failure = error
+                if attempt == attempts or not worth_retrying(error) or daily_quota_used_up(error):
+                    break
                 logger.warning("LLM call failed, trying again", phase_id=phase_id, attempt=attempt,
                                error_type=type(error).__name__)
+                wait_before_retry(attempt, error)
                 continue
 
             self._track(answer, phase_id, model, action_id, payload, started_ns, time.time_ns())
             return answer
 
-        raise AgentFailure("unknown", phase_id)       # not reached: the last attempt either answers or raises
+        answer = self._fall_back(payload, phase_id, model, action_id, started_ns, failure)
+        if answer is not None:
+            return answer
+        raise AgentFailure(classify(failure), phase_id, failure) from failure
+
+    def _fall_back(self, payload: Payload, phase_id: int, model: SelectedModel, action_id: Optional[str],
+                   started_ns: int, failure: Optional[BaseException]) -> Optional[Response]:
+        """The answer of the first fallback model that gives one, or None. Only after a lack of capacity of the chosen model."""
+        if failure is None or not capacity_problem(failure):
+            return None
+        for other in fallback_models():
+            if other.id == model.id:
+                continue
+            try:
+                answer = self.outbound_port.ask(dataclasses.replace(payload, model=other))
+                if not isinstance(answer, Response):
+                    raise TypeError("Invalid response type")
+            except Exception as error:
+                logger.warning("Fallback model failed too", phase_id=phase_id, fallback_model=other.id, error_type=type(error).__name__)
+                continue
+            logger.warning("Answered by a fallback model", phase_id=phase_id, chosen_model=model.id, fallback_model=other.id)
+            self._track(answer, phase_id, other, action_id, payload, started_ns, time.time_ns())
+            return answer
+        return None
 
     def _track(
         self,

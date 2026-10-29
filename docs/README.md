@@ -35,7 +35,7 @@ docs/
 | [`deployment/deployment.md`](deployment/deployment.md) | run it, what it needs, state; the delivery lives outside this repository |
 | [`operations/monitoring.md`](operations/monitoring.md) | probes, logging, metrics, Langfuse, failures |
 | [`operations/debugging-the-flow.md`](operations/debugging-the-flow.md) | tracing and debugging a message step by step (`tests/manual/debug_flow.py`, `debug_break.py`) |
-| [`decisions/`](decisions/) | ADR-001 to ADR-013 |
+| [`decisions/`](decisions/) | ADR-001 to ADR-014 |
 | [`setup/questionnaires/`](setup/questionnaires/00_README.md) | the questions to answer before building (Q01: the `dynamics_microservice` MCP tools) |
 | [`tasks/README.md`](tasks/README.md), [`tasks/ORDER.md`](tasks/ORDER.md) | the task plan, the protocol, the board and the order; epic [T-01](tasks/T-01_dynamics-mcp/T-01_dynamics-mcp.md) uses the `dynamics_microservice` MCP tools (T-01.1 to T-01.9: T-01.2 to T-01.8 are built on the branch `feature_dynamics_mcp` and none is closed yet; T-01.9, the first real run, is the maintainer's) |
 

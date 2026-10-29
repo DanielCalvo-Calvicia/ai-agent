@@ -32,7 +32,8 @@ The agent runs on Claude models through Anthropic's OpenAI-compatible endpoint, 
 | 3 | [T-03.3 Tests](T-03.3_tests.md) | test | done (2026-10-28) |
 | 4 | [T-03.4 Profile, price notes, generated tables](T-03.4_profile-and-price-notes.md) | code | done (2026-10-28) |
 | 5 | [T-03.5 Documentation and ADR-013](T-03.5_documentation.md) | docs | done (2026-10-28) |
-| 6 | [T-03.6 First real run on Claude](T-03.6_first-real-run-on-claude.md) | manual | in-progress (run twice; the second, with Sonnet, all right) |
+| 6 | [T-03.6 First real run on Claude](T-03.6_first-real-run-on-claude.md) | manual | in-progress (run twice; the second, with Sonnet, all right; a Business Central request ran on `claude_mixed` on 2026-10-29) |
+| 7 | [T-03.7 Prices of the other Claude ids](T-03.7_prices-of-the-other-claude-ids.md) | code | done (2026-10-29) |
 
 ## Exit criteria
 

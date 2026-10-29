@@ -21,9 +21,12 @@ docs/tasks/
 ├── T-02_model-catalog-refresh/                 epic
     ├── T-02_model-catalog-refresh.md
     └── T-02.1_decisions.md ... T-02.10_first-real-run.md         leaves
-└── T-03_claude-provider/                       epic
-    ├── T-03_claude-provider.md
-    └── T-03.1_decisions.md ... T-03.6_first-real-run-on-claude.md leaves
+├── T-03_claude-provider/                       epic
+│   ├── T-03_claude-provider.md
+│   └── T-03.1_decisions.md ... T-03.7_prices-of-the-other-claude-ids.md leaves
+└── T-04_llm-resilience/                        epic
+    ├── T-04_llm-resilience.md
+    └── T-04.1_decisions.md ... T-04.3_tests-and-documentation.md leaves
 ```
 
 ## 2. Execution protocol
@@ -80,7 +83,7 @@ Verified on 2026-10-27 against both projects.
 
 | ID | Task | Kind | Status |
 |---|---|---|---|
-| [T-01](T-01_dynamics-mcp/T-01_dynamics-mcp.md) | **Use the dynamics_microservice MCP tools** (epic) | epic | in-progress (everything but T-01.9 done on 2026-10-28; T-01.9 is the maintainer's) |
+| [T-01](T-01_dynamics-mcp/T-01_dynamics-mcp.md) | **Use the dynamics_microservice MCP tools** (epic) | epic | done (T-01.1 to T-01.8 and T-01.10 to T-01.12 on 2026-10-28, T-01.9 on 2026-10-29; findings in T-01.9) |
 | [T-01.1](T-01_dynamics-mcp/T-01.1_decisions.md) | Decisions | decision | done (2026-10-27) |
 | [T-01.2](T-01_dynamics-mcp/T-01.2_streamable-http-transport.md) | Streamable HTTP transport in the MCP client | code | done (2026-10-28) |
 | [T-01.3](T-01_dynamics-mcp/T-01.3_server-config-and-settings.md) | Server config and settings | code | done (2026-10-28) |
@@ -92,7 +95,7 @@ Verified on 2026-10-27 against both projects.
 | [T-01.12](T-01_dynamics-mcp/T-01.12_tool-call-metrics.md) | Tool call metrics | code | done (2026-10-28) |
 | [T-01.7](T-01_dynamics-mcp/T-01.7_verification.md) | Verification with scripted LLMs | test | done (2026-10-28) |
 | [T-01.8](T-01_dynamics-mcp/T-01.8_documentation.md) | Documentation and ADR | docs | done (2026-10-28) |
-| [T-01.9](T-01_dynamics-mcp/T-01.9_first-real-run.md) | First real run | manual | in-progress (run 2026-10-29: the tool path works; findings in its Notes) |
+| [T-01.9](T-01_dynamics-mcp/T-01.9_first-real-run.md) | First real run | manual | done (2026-10-29: the tool path works; the open findings are in its Notes) |
 | [T-02](T-02_model-catalog-refresh/T-02_model-catalog-refresh.md) | **Model catalog refresh: no GitHub Models, Google free tier by default** (epic) | epic | in-progress (T-02.1, T-02.2 and T-02.4 to T-02.9 done on 2026-10-28; T-02.3 and T-02.10 done on 2026-10-28 with the Anthropic models; plan in [PR-004](../proposals/PR-004-model-catalog-gemini-free-tier.md)) |
 | [T-02.1](T-02_model-catalog-refresh/T-02.1_decisions.md) | Decisions | decision | done (2026-10-27) |
 | [T-02.2](T-02_model-catalog-refresh/T-02.2_profile-google-free.md) | Profile `google_free` | code | done (2026-10-28) |
@@ -111,3 +114,8 @@ Verified on 2026-10-27 against both projects.
 | [T-03.4](T-03_claude-provider/T-03.4_profile-and-price-notes.md) | The profile, the Claude notes in the price file and the generated tables | code | done (2026-10-28) |
 | [T-03.5](T-03_claude-provider/T-03.5_documentation.md) | Documentation and ADR-013 | docs | done (2026-10-28) |
 | [T-03.6](T-03_claude-provider/T-03.6_first-real-run-on-claude.md) | First real run on Claude | manual | in-progress (run twice on 2026-10-28; the second, with Sonnet, all right) |
+| [T-03.7](T-03_claude-provider/T-03.7_prices-of-the-other-claude-ids.md) | Prices of the other Claude ids | code | done (2026-10-29) |
+| [T-04](T-04_llm-resilience/T-04_llm-resilience.md) | **A model out of capacity does not stop the message** (epic) | epic | done (2026-10-29; not provoked with a real 503) |
+| [T-04.1](T-04_llm-resilience/T-04.1_decisions.md) | Decisions | decision | done (2026-10-29) |
+| [T-04.2](T-04_llm-resilience/T-04.2_wait-and-fallback.md) | Wait, fallback models and the runner | code | done (2026-10-29) |
+| [T-04.3](T-04_llm-resilience/T-04.3_tests-and-documentation.md) | Tests and documentation | test | done (2026-10-29) |

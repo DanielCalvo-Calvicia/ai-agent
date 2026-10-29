@@ -57,6 +57,8 @@ Status as of 2026-10-27, taken from `CLAUDE.md`, `README.md` and the code after 
 
 14. The Dynamics tools ran once for real on 2026-10-29 (T-01.9, `claude_mixed`, test customer `CL-1001`): the orders request got real data in 72 s; the order-state request was refused by the service's order-number rule (a space). The replies came in Spanish to English questions, one listed every order (not speakable), and a customer name that looks real went to the model provider (since 2026-10-29 the personal columns of tool answers are masked as `[hidden]`; `AI_AGENT_MASK_PERSONAL_DATA`). Once a Claude reply ended with a stray closing parameter tag; `FlowState.final_text()` now strips such tags (T-01.9). Not run yet: a `running` follow-up (a heavier request still got the full answer).
 
+15. A model out of capacity (429, 5xx, timeout, no connection) is waited for and then replaced by the `fallback_models` of the active profile (`proven` and `google_free`: `gemini-3.5-flash-lite`, `gemini-3-flash-preview`; ADR-014). Tested with scripted errors only; no real 503 was provoked. The Claude profiles have no fallback on purpose. Not done: a circuit breaker, `Retry-After`, and a fallback for the MCP tools.
+
 ## Known limits of the Dynamics tools (accepted for the prototype, ADR-011)
 
 1. **No authentication in either service.** The Go endpoint is open and reached by a public IP and port over plain HTTP. Who may see which customer is decided above ai-agent; a Cognito identity service is planned.
