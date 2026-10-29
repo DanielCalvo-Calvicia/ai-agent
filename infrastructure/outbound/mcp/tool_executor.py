@@ -15,6 +15,7 @@ from application.outbound.ports.mcp_ports import (
 )
 from domain.value_objects.llm_request.tool import ToolDefinition
 from infrastructure.outbound.mcp.client_manager import MCPClientManager
+from infrastructure.outbound.mcp.masking import mask_personal_columns, masking_enabled
 from infrastructure.outbound.mcp.tool_catalog import MCPToolCatalog, call_timeout_seconds
 from shared_logging import get_logger
 
@@ -104,7 +105,8 @@ class MCPToolExecutor(McpToolsPort):
             kind = _error_kind(text)
             return {"error": text, "is_error": True}, (kind if kind in RETRYABLE_KINDS else None), kind if kind in TOOL_ERROR_KINDS else "internal"
 
-        return {"result": text, "is_error": False}, None, "ok"
+        # Personal columns (customer name, e-mail, phone, address...) are hidden before any model sees the answer (masking.py).
+        return {"result": mask_personal_columns(text) if masking_enabled() else text, "is_error": False}, None, "ok"
 
 
 def _error_kind(text: str) -> Optional[str]:

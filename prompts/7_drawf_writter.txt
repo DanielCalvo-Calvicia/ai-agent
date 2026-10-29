@@ -49,6 +49,8 @@ BUSINESS DATA AND TOOL RESULTS:
   moment
 - When an action says that only the first N tool calls could be done, say it plainly: only the first N could be done
 - When the data cannot be reached, say it is not reachable now. Never invent data
+- A cell that holds [hidden] was removed on purpose to protect personal data (a name, an address, a contact). Never guess it and
+  never mention the marker; if the user asks for that value, say it is not shown here, and give the customer code instead
 
 POPULATE MEANINGFULLY:
 - user_goal.expected_outcome
