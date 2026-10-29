@@ -28,7 +28,9 @@ def _apply(state, response):
 
 
 def _build_input(state) -> dict:
+    # user_message is the user's own words: the only sure sign of the language to answer in (the data may be in another one)
     return {
+        "user_message": state.message,
         "user_goal": state.user_goal,
         "task_category": state.task_category,
         "actions": state.actions,

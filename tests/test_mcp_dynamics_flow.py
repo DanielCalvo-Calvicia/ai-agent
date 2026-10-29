@@ -380,8 +380,21 @@ def test_the_prompts_ask_for_the_language_of_the_user_and_plain_text():
     capabilities = " ".join(LoadCapabilities().split())
     writer = " ".join(LoadSystemPrompt(7).split())
     assert "in the language the user writes in" in capabilities and "plain text" in capabilities
-    assert "in the language the user writes in" in writer and "no Markdown" in writer
+    assert "in the language of user_message" in writer and "no Markdown" in writer
     assert "Plain text only" in " ".join(LoadSystemPrompt(8).split())
+
+
+def test_the_writer_is_told_to_speak_short_and_to_summarise_long_data():
+    writer = " ".join(LoadSystemPrompt(7).split())
+    editor = " ".join(LoadSystemPrompt(8).split())
+    assert "said aloud by a robot" in editor and "Keep the language of the draft" in editor
+    assert "SPOKEN aloud by a robot" in writer and "No lists" in writer and "Never read out every item" in writer
+
+
+def test_the_writer_receives_the_users_own_words():
+    from application.orchestration.phases.common.draft_writer import DRAFT_WRITER
+    from application.orchestration.state.flow_state import FlowState
+    assert DRAFT_WRITER.build_input(FlowState(message="How many orders does CL-1001 have?"))["user_message"] == "How many orders does CL-1001 have?"
 
 
 # ---------------------------------------------------------------- what the session remembers
