@@ -20,7 +20,7 @@ from application.orchestration.support.action_tree import (
     in_execution_order,
     subactions_of,
 )
-from application.orchestration.support.failure import AgentFailure, max_attempts
+from application.orchestration.support.failure import AgentFailure, max_attempts, max_mcp_calls
 from application.orchestration.state.flow_state import FlowState
 from application.orchestration.phases.phase import ActionPhaseSpec
 from application.orchestration.engine.phase_runner import PhaseRunner
@@ -28,7 +28,7 @@ from application.orchestration.phases.special import cognitive_worker, mcp_opera
 from application.orchestration.phases.special.cognitive_worker import COGNITIVE_WORKER
 from application.orchestration.phases.special.data_engineer import DATA_ENGINEER
 from application.orchestration.phases.special.mcp_operator import MCP_OPERATOR
-from application.outbound.ports.mcp_ports import McpToolsPort
+from application.outbound.ports.mcp_ports import McpToolsPort, tool_wait_budget, watch_tool_failures
 from domain.entities.llm_response.action import Action
 from domain.value_objects.llm_response.action.output import create_output
 from shared_logging import get_logger
@@ -37,7 +37,12 @@ logger = get_logger(__name__)
 
 PARALLEL_VARIABLE = "AI_AGENT_PARALLEL_ACTIONS"
 
+# How long the tool calls of one message may wait in total, a follow-up of a query that is still running included.
+MAX_TOOL_WAIT_SECONDS = 60
+
 NO_RESULT = "The step did not produce a result."
+MCP_CAP_REACHED = ("The step was not run: the limit of {cap} tool calls for one message was reached, "
+                   "so only the first {cap} could be done.")
 UNRESOLVABLE = "The step could not run: circular or unknown dependencies."
 
 
@@ -46,10 +51,19 @@ class ActionExecutor:
         self.runner = runner
         self.mcp_list = mcp_list
         self.mcp_tools = mcp_tools
+        self._mcp_cap = 0         # set by run(): MCP actions allowed in this message (0 = no limit)
+        self._mcp_started = 0     # MCP actions started in this message (a retry of the same action does not count)
 
     def run(self, state: FlowState) -> None:
+        with tool_wait_budget(MAX_TOOL_WAIT_SECONDS):
+            self._run_actions(state)
+
+    def _run_actions(self, state: FlowState) -> None:
         if not state.actions:
             return
+
+        self._mcp_cap = max_mcp_calls()
+        self._mcp_started = 0
 
         pending = in_execution_order(state.actions)
         for action in pending:
@@ -151,14 +165,30 @@ class ActionExecutor:
         if state.requires_confirmation():
             return "", BLOCKED_BY_CONFIRMATION
 
+        # MCP actions run one by one, so this count needs no lock. Skipped actions fail like any other, and the writer
+        # reads the reason from the action.
+        if self._mcp_cap and self._mcp_started >= self._mcp_cap:
+            logger.warning("MCP action not run: the limit per message was reached", action_id=action.id.get_value(), cap=self._mcp_cap)
+            return "", MCP_CAP_REACHED.format(cap=self._mcp_cap)
+        self._mcp_started += 1
+
         extra = mcp_operator.build_extra(state, self.mcp_list, self.mcp_tools, dependency_outputs, subaction_outputs)
 
         output, error = "", ""
         for attempt in range(max_attempts()):
-            output, error = self._ask(action, MCP_OPERATOR, extra, tools=self.mcp_list)
+            with watch_tool_failures() as tool_failures:
+                try:
+                    output, error = self._ask(action, MCP_OPERATOR, extra, tools=self.mcp_list)
+                finally:
+                    for call in tool_failures.calls:
+                        self.runner.metrics.record_tool_call(call)
             if output:
                 break
             logger.warning("MCP action did not produce a result", action_id=action.id.get_value(), attempt=attempt + 1)
+            if tool_failures.final:
+                # a timeout or a tool error that is not worth a retry: asking the model again would call the tool again
+                logger.warning("MCP tool failed for good, not asking again", action_id=action.id.get_value(), attempt=attempt + 1)
+                break
 
         if not output:
             return "", error

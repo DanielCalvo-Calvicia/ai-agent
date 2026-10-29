@@ -3,7 +3,7 @@
 
 from typing import Optional
 
-from domain.value_objects.llm_request.model import GithubModels
+from domain.value_objects.llm_request.model import GoogleModels
 
 from application.orchestration.phases.phase import PhaseSpec
 from application.orchestration.support.mcp_servers import describe_servers, server_names
@@ -14,7 +14,7 @@ from application.outbound.ports.mcp_ports import McpToolsPort
 PHASE_ID = 2
 STEP_NAME = "project_manager"
 MODEL_ENV_VAR = "AI_AGENT_MODEL_PHASE_2"
-DEFAULT_MODEL = GithubModels.GPT_4_1
+DEFAULT_MODEL = GoogleModels.GEMINI_3_6_FLASH
 PROMPT_FILE = "prompts/2_project_manager.txt"
 FORMAT_NAME = "project_manager_phase2_response_format"
 INTENT = ("decision_support", ("information_request",), 0.9)
@@ -27,10 +27,10 @@ SCHEMAS = {
 # -----------------------------------------------------------------------------
 
 
-def _properties(mcp_list: list):
+def _properties(mcp_list: list, mcp_tools: Optional[McpToolsPort] = None):
     others = schema_properties(SCHEMAS)
     return {
-        "actions": actions_schema(server_names(mcp_list), ACTIONS_SCHEMA),
+        "actions": actions_schema(server_names(mcp_list, mcp_tools), ACTIONS_SCHEMA),
         "next_step": others["next_step"],
         "task_category_complexity": others["task_category_complexity"],
     }
@@ -45,7 +45,7 @@ def make_project_manager(mcp_list: list, mcp_tools: Optional[McpToolsPort] = Non
         intent=INTENT,
         format_name=FORMAT_NAME,
         required=REQUIRED,
-        properties=lambda: _properties(mcp_list),
+        properties=lambda: _properties(mcp_list, mcp_tools),
         build_input=lambda state: _build_input(state, mcp_list, mcp_tools),
         apply=_apply,
     )

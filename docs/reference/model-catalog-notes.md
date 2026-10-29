@@ -1,5 +1,7 @@
 # Model catalog notes
 
+> **Dated note 2026-10-28.** The catalog was refreshed on this date (epic T-02, [ADR-012](../decisions/ADR-012-gemini-free-tier-default-no-github-models.md)): `model_catalog.py` lists only ids found in each provider's documentation, with comments for the ones that were removed or are not used. Several ids below are no longer in it.
+
 Notes that used to live as a string inside `domain/value_objects/llm_request/model.py`. Ids and providers as the author listed them; not all of them are in the catalog.
 
 | claude-3-5-sonnet-20240620 | Anthropic | reasoning | Claude 3.5 Sonnet |

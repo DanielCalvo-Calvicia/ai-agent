@@ -5,9 +5,9 @@ Status: prototype. Read `README.md` first, then `docs/architecture/architecture.
 `docs/configuration/environment-variables.md` and `../CLAUDE.md` (workspace rules). Each doc says which parts are generated or historical (`docs/README.md`).
 
 State (2026-10-27): the four-flow redesign and the expression flow are merged into `feature` (PR #3, `e41b8b8`). Working branch
-`feature_standard_normalitzation` (docs restructured to the Snow Factory layout, ADR-001). Tests: last known `636 passed` before the
-expression flow; not re-run in this checkout (the `windows` venv is not here). No real LLM call since the redesign.
-Check `git status` before editing.
+`feature_dynamics_mcp`: epic T-01, the read-only Business Central tools of `dynamics_microservice` through MCP (T-01.2 to T-01.8 and T-01.10 to T-01.12
+done on 2026-10-28; T-01.9, the first real run, is the maintainer's; `docs/tasks/README.md`, ADR-011). Tests (2026-10-28): 919 passed, 0 failed, with the real `shared-logging` put on `PYTHONPATH` (`../shared-logging` is not installed in the `windows` venv; nothing was installed); `scripts/split_schemas.py` ignores line endings, so a CRLF checkout passes. Real LLM runs since the redesign (2026-10-28): three messages on `gemini-3-flash-preview` (T-02.10; the active profile got Google 503s that day), and two runs on Claude (T-03.6: `claude_haiku`, `claude_mixed`)
+and no real call to the Go service. Epic T-02 (model catalog refresh, ADR-012, `docs/proposals/PR-004-model-catalog-gemini-free-tier.md`): T-02.1, T-02.2 and T-02.4 to T-02.9 done on 2026-10-28; T-02.3 (ids with the real key) and T-02.10 (first real run) done on 2026-10-28 with the Anthropic models; what they left on Google (`gemini-3.8-flash` 503, paid-only ids unchecked, token numbers of `proven` not measured) is not scheduled. Epic T-03 (Claude as a provider, ADR-013, `docs/tasks/T-03_claude-provider/`): T-03.1 to T-03.5 done on 2026-10-28, T-03.6 (first real run on Claude) done twice: Haiku with one wrong reply, then Sonnet 5.5 on planner, writer and editor (`claude_mixed`) with all three right. Check `git status` before editing.
 
 ## MANDATORY: every change updates the documentation
 
@@ -44,7 +44,9 @@ Use dated notes in history (ADRs, proposals); correct the text in documents that
   arm back where it started; they go out as `directives` with `gesture: true`. The reply is never held back: if the expression flow fails
   or the validator refuses the gesture, the reply goes out without one. A movement the user asked for (movement flow) gets no gesture.
   Brain starts a gesture when the robot starts to speak.
-- May later fetch content from `aws_microservice` through MCP (`mcps/aws_microservice.json`). Nothing uses it yet.
+- Reads Business Central data, **read-only**, from `dynamics_microservice` through MCP in the special flow (Streamable HTTP;
+  `mcps/dynamics_microservice.json`, its URL in `DYNAMICS_MCP_URL`, only the tools of its `allowed_tools`; `docs/api/api.md` "Tools consumed", ADR-011).
+  Never an environment or a company is sent. `mcps/aws_microservice.json` (SSE) is still used by nothing.
 
 ## API
 
@@ -86,13 +88,18 @@ Use dated notes in history (ADRs, proposals); correct the text in documents that
   (refresh with `contracts/scripts/bundle.py`; the version is in `requirements.txt`).
 - Keep the LLM adapter behind `LLMOutboundPort` so providers stay swappable.
 - A change to a prompt, schema, model or message format changes the golden file: read the diff first, then regenerate on purpose (`UPDATE_GOLDEN=1`).
+- **No log line, metric or span may hold a tool argument or a tool answer** (name, outcome, duration, tries only). The libraries under the MCP client are kept at WARNING for that (`quiet_client_libraries()`).
 - Do not hand-edit generated files: the schema tree, `docs/models/gemini_models_per_step.md`, `docs/models/models_per_step_budget.md`, `docs/models/cost_of_a_full_plan.md`.
 
 ## Config (details in `docs/configuration/environment-variables.md`)
 
-- Models per step: `AI_AGENT_MODEL_PHASE_<n>` > `config/step_models.json` `steps` > the active profile > the code default (GitHub Models ids, retired,
-  so a real run always sets one of the first three). Prices and budget: `config/{gemini_models,other_models,budget,measured_runs}.json`.
+- Models per step: `AI_AGENT_MODEL_PHASE_<n>` > `config/step_models.json` `steps` > the active profile > the code default (Google free-tier models: `gemini-3.1-flash-lite` for triage, data engineer, answer checker, clarification and emotion reader,
+  `gemini-3.6-flash` for the rest (`gemini-3.8-flash` answered 503 "high demand" on 2026-10-28); the active profile `proven`, every step on `gemini-3.1-flash-lite`, wins over them, ADR-012). Prices and budget: `config/{gemini_models,other_models,budget,measured_runs}.json`.
+- **Google free tier** (the default models): Google uses free-tier content to improve its products and does not publish its rate limits (measured 2026-10-28: `gemini-3.6-flash` about 7 calls in 30 s, then 429; `gemini-3.1-flash-lite` 10 of 10 in a row; and a **daily cap of 20 requests per model**, seen on `gemini-3-flash-preview`, about 2 to 5 messages a day); with a billed key the big plan costs about 175 EUR per 1,000 messages at paid prices (budget 50 EUR). `GITHUB_PAT` and `GITHUB_URL` are gone (GitHub Models is retired).
+- **Claude** (profiles `claude_haiku`, `claude_mixed`, `claude_sonnet`; `ANTHROPIC_API_KEY`): through Anthropic's OpenAI-compatible endpoint with a strict, sanitized schema per call (`infrastructure/outbound/llm/anthropic_schema.py`, ADR-013): an action nests at most 3 levels and the endpoint hides Claude's thinking. Run twice on 2026-10-28 (`claude_haiku`, `claude_mixed`: the second with Sonnet 5.5 on planner, writer and editor, all right).
 - `AI_AGENT_PARALLEL_ACTIONS` (default 1), `AI_AGENT_MAX_ATTEMPTS` (3), `AI_AGENT_HISTORY_TURNS` (6), `AI_AGENT_RELOAD` (defaults to `1`; `0` for a stable run).
+- MCP: `DYNAMICS_MCP_URL` (unset: that server is skipped), `AI_AGENT_MCP_CALL_TIMEOUT_SECONDS` (30), `AI_AGENT_MAX_MCP_CALLS_PER_MESSAGE` (5, `0` = no limit),
+  `AI_AGENT_CHECK_MCP_<NAME>=1` (optional check, log only). The tool calls of a message may wait 60 s in total (a constant).
 - Removed: `AI_AGENT_FAST_PATH_ENABLED` (the domain decides the flow now).
 - **Langfuse** (when its keys are set) receives the user's text and the prompts and answers of every call, not only metadata; it never breaks a call.
 

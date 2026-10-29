@@ -6,7 +6,7 @@ Estimates what one message costs, per step, for a plan of a given size.
     windows/Scripts/python.exe tests/manual/estimate_cost.py --write               save docs/models/cost_of_a_full_plan.md
 
 Only the default size is saved by --write. The model per step comes from the table of the strongest models
-(config/gemini_models.json), and from gemini-3.1-pro-preview on every step, and from gemini-2.5-flash for comparison.
+(config/gemini_models.json), and from gemini-3.1-pro-preview on every step, and from gemini-3.1-flash-lite for comparison.
 It is an estimate: read the assumptions in the output.
 """
 import os

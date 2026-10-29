@@ -9,7 +9,7 @@ from typing import Any, Callable, Dict, Optional, Tuple
 
 from application.orchestration.state.flow_state import FlowState
 from domain.entities.llm_response.response import Response
-from domain.value_objects.llm_request.model import GithubModels
+from domain.value_objects.llm_request.model import GoogleModels
 
 # Values a phase feeds to the LLM as its user message. A str is sent as is,
 # a dict is sent as str(dict) (the format the prompts were written against).
@@ -22,7 +22,7 @@ class PhaseSpec:
     id: int
     step_name: str                               # the name config/step_models.json and the metrics use
     prompt_file: str                             # the phase's prompt, relative to the project root
-    model: GithubModels
+    model: GoogleModels
     intent: Tuple[str, Tuple[str, ...], float]   # primary, secondary, confidence
     format_name: str
     required: Tuple[str, ...]
@@ -37,7 +37,7 @@ class ActionPhaseSpec:
     id: int
     step_name: str
     prompt_file: str
-    model: GithubModels
+    model: GoogleModels
     intent: Tuple[str, Tuple[str, ...], float]   # primary, secondary, confidence
     format_name: str
     schema_file: str                             # the actions schema, relative to the schema root

@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | todo (created 2026-10-27; nothing built) |
+| Status | in-progress (created 2026-10-27; T-01.1 to T-01.8 and T-01.10 to T-01.12 done on 2026-10-28; only T-01.9, the maintainer's first real run, is open) |
 | Kind | epic |
 | Parent | project |
 | Depends on | the four-flow redesign and the docs layout (both merged into `feature`) |
@@ -21,7 +21,7 @@ The special flow can answer questions about Business Central (the orders of a cu
 | The MCP client only speaks SSE (F6) | It also speaks Streamable HTTP, chosen by `type` in `mcps/<server>.json` |
 | One 10 s limit for listing and calling (F7) | A configurable limit for calling, longer than the server's 20 s wait (F4) |
 | `capabilities.txt` and triage say no external service exists (F9) | They say read-only Business Central data is available through tools |
-| The planner sees tool names, descriptions and parameters | It also handles a `running` answer (`get_job_result`, at most one follow-up, 60 s in total) and a tool error |
+| The planner sees tool names, descriptions and parameters | It also handles a `running` answer (the operator step follows up once with `get_job_result`, 60 s in total) and a tool error |
 | Any tool a server lists is offered | Only the tools of the server file's `allowed_tools` are offered |
 | A down server is still shown to the planner | It is hidden for the message, and the reply says it is not reachable |
 | No cap on MCP actions per message | `AI_AGENT_MAX_MCP_CALLS_PER_MESSAGE` (default 5, `0` = no limit) |
@@ -33,17 +33,17 @@ The special flow can answer questions about Business Central (the orders of a cu
 | Order | Task | Kind | Status |
 |---|---|---|---|
 | 1 | [T-01.1 Decisions](T-01.1_decisions.md) | decision | done (2026-10-27) |
-| 2 | [T-01.2 Streamable HTTP transport](T-01.2_streamable-http-transport.md) | code | todo |
-| 3 | [T-01.4 Timeouts and retries](T-01.4_mcp-timeouts.md) | code | todo (after T-01.2) |
-| 4 | [T-01.3 Server config and settings](T-01.3_server-config-and-settings.md) | code | todo (after T-01.2) |
-| 5 | [T-01.10 Server availability](T-01.10_server-availability.md) | code | todo (after T-01.3) |
-| 6 | [T-01.11 Cap of tool calls](T-01.11_tool-call-cap.md) | code | todo (after T-01.2) |
-| 7 | [T-01.12 Tool call metrics](T-01.12_tool-call-metrics.md) | code | todo (after T-01.2 and T-01.4) |
-| 8 | [T-01.5 Capabilities and triage prompts](T-01.5_capabilities-and-triage-prompts.md) | code | todo (after T-01.3) |
-| 9 | [T-01.6 Planner: guidance, jobs and answers](T-01.6_planner-guidance-and-jobs.md) | code | todo (after T-01.5, T-01.10 and T-01.11) |
-| 10 | [T-01.7 Verification](T-01.7_verification.md) | test | blocked (T-01.2 to T-01.6, T-01.10 to T-01.12) |
-| 11 | [T-01.8 Documentation and ADR](T-01.8_documentation.md) | docs | blocked (T-01.2 to T-01.6, T-01.10 to T-01.12) |
-| 12 | [T-01.9 First real run](T-01.9_first-real-run.md) | manual | blocked (T-01.7, T-01.8); the maintainer runs it and closes the epic |
+| 2 | [T-01.2 Streamable HTTP transport](T-01.2_streamable-http-transport.md) | code | done (2026-10-28) |
+| 3 | [T-01.4 Timeouts and retries](T-01.4_mcp-timeouts.md) | code | done (2026-10-28) |
+| 4 | [T-01.3 Server config and settings](T-01.3_server-config-and-settings.md) | code | done (2026-10-28) |
+| 5 | [T-01.10 Server availability](T-01.10_server-availability.md) | code | done (2026-10-28) |
+| 6 | [T-01.11 Cap of tool calls](T-01.11_tool-call-cap.md) | code | done (2026-10-28) |
+| 7 | [T-01.12 Tool call metrics](T-01.12_tool-call-metrics.md) | code | done (2026-10-28) |
+| 8 | [T-01.5 Capabilities and triage prompts](T-01.5_capabilities-and-triage-prompts.md) | code | done (2026-10-28) |
+| 9 | [T-01.6 Planner: guidance, jobs and answers](T-01.6_planner-guidance-and-jobs.md) | code | done (2026-10-28) |
+| 10 | [T-01.7 Verification](T-01.7_verification.md) | test | done (2026-10-28) |
+| 11 | [T-01.8 Documentation and ADR](T-01.8_documentation.md) | docs | done (2026-10-28) |
+| 12 | [T-01.9 First real run](T-01.9_first-real-run.md) | manual | todo; the maintainer runs it and closes the epic |
 
 ## Exit criteria
 

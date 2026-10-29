@@ -3,7 +3,7 @@
 # while it speaks. It names an emotion, how strong it is and, optionally, a few movements of its own.
 
 from domain.operations.gesture import DEFAULT_EMOTION, DEFAULT_INTENSITY, EMOTIONS, INTENSITIES
-from domain.value_objects.llm_request.model import GithubModels
+from domain.value_objects.llm_request.model import GoogleModels
 from domain.value_objects.movement.movement import Movement
 
 from application.orchestration.phases.movement.motion_planner import movement_from
@@ -16,7 +16,7 @@ from application.orchestration.support.schemas import SchemaRef, schema_properti
 PHASE_ID = 30
 STEP_NAME = "emotion_reader"
 MODEL_ENV_VAR = "AI_AGENT_MODEL_PHASE_30"
-DEFAULT_MODEL = GithubModels.GPT_4_1
+DEFAULT_MODEL = GoogleModels.GEMINI_3_1_FLASH_LITE
 PROMPT_FILE = "prompts/30_emotion_reader.txt"
 FORMAT_NAME = "emotion_reader_phase30_response_format"
 INTENT = ("decision_support", ("information_request",), 0.9)

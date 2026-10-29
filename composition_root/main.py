@@ -25,7 +25,8 @@ load_dotenv(os.path.join(PROJECT_ROOT, ".env"), override=False)
 
 from infrastructure.outbound.llm.config import VercelAIConfig
 from infrastructure.outbound.llm.vercel import VercelAIAdapter
-from infrastructure.outbound.mcp.client_manager import MCPClientManager
+from infrastructure.outbound.mcp.availability import McpAvailabilityCheck
+from infrastructure.outbound.mcp.client_manager import MCPClientManager, quiet_client_libraries
 from infrastructure.outbound.mcp.config import load_supported_mcp_configs
 from infrastructure.outbound.mcp.tool_executor import MCPToolExecutor
 from infrastructure.outbound.usage.langfuse import LangfuseUsageReporter
@@ -59,10 +60,15 @@ def CreateApp() -> FastAPI:
     """
 
     init_logging("ai-agent")
+    quiet_client_libraries()          # again: the logging set-up may have reset their levels
 
     # Step 1: Outbound adapters — MCP tools and LLM provider
     mcpList = load_supported_mcp_configs()
     toolExecutor = MCPToolExecutor(MCPClientManager(mcpList))
+
+    # Optional (AI_AGENT_CHECK_MCP_<NAME>=1): list the tools of those servers now and on every /available; only logs
+    availabilityCheck = McpAvailabilityCheck(toolExecutor.catalog, [server["name"] for server in mcpList])
+    availabilityCheck.run()
 
     llmConfig = VercelAIConfig.from_env(tool_executor=toolExecutor)
 
@@ -95,7 +101,7 @@ def CreateApp() -> FastAPI:
     )
 
     # Step 4: Inbound adapter
-    SessionFastAPI(App=app, SessionPort=sessionService)
+    SessionFastAPI(App=app, SessionPort=sessionService, AvailabilityCheck=availabilityCheck.run)
     app.add_middleware(TracingMiddleware)
 
     return app

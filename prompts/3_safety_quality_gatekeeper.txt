@@ -17,7 +17,7 @@ MARK sensitive = true IF ANY action or subaction:
 - deletes or overwrites data
 - triggers irreversible side effects
 - sends messages or performs external mutations on the user's behalf
-- uses sensitive/private/protected data
+- uses sensitive/private/protected data in any way other than showing it to the user who asked for it
 - performs risky system modifications
 
 MARK requires_confirmation = true IF:
@@ -25,6 +25,11 @@ MARK requires_confirmation = true IF:
 - the plan includes irreversible actions
 - the plan exceeds what the user explicitly requested
 - there is meaningful risk of data loss or external side effects
+
+READ-ONLY TOOLS:
+An action that only READS data through an MCP tool (orders, an order, a customer) is not sensitive and never
+requires confirmation: the user asked for that data. Sensitive and confirmation are for changes, deletions, messages
+sent and other irreversible effects.
 
 NEXT_STEP RULE:
 If confirmation is required:

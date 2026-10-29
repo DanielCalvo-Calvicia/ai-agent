@@ -2,6 +2,7 @@
 Runs a real MCP server (FastMCP over SSE) on a free local port and checks that
 MCPToolExecutor discovers its tools and executes them. Nothing leaves the machine.
 """
+import asyncio
 import os
 import socket
 import sys
@@ -38,10 +39,16 @@ def sse_server():
         """Returns the text it receives."""
         return f"echo:{text}"
 
+    @mcp.tool()
+    async def slow(seconds: float) -> str:
+        """Answers after the seconds it is given."""
+        await asyncio.sleep(seconds)
+        return f"slow:{seconds}"
+
     server = uvicorn.Server(uvicorn.Config(mcp.sse_app(), host="127.0.0.1", port=port, log_config=None))
     thread = threading.Thread(target=server.run, daemon=True)
     thread.start()
-    for _ in range(100):
+    for _ in range(200):
         if server.started:
             break
         time.sleep(0.05)
@@ -60,7 +67,7 @@ def _executor(url: str) -> MCPToolExecutor:
 
 def test_lists_the_tools_of_the_server(sse_server):
     tools = _executor(sse_server).list_tools("local")
-    assert [t.name for t in tools] == ["echo"]
+    assert [t.name for t in tools] == ["echo", "slow"]
     assert "text" in tools[0].parameters["properties"]
 
 
@@ -81,5 +88,16 @@ def test_phase5_style_server_descriptor_becomes_callable_tools(sse_server):
     executor = _executor(sse_server)
     descriptor = {"name": "local", "type": "sse", "config": {"url": sse_server}}
     tools = resolve_tools(VercelAIConfig(tool_executor=executor), [descriptor])
-    assert [t.name for t in tools] == ["echo"]
+    assert [t.name for t in tools] == ["echo", "slow"]
     assert tools[0].handler(text="yo") == {"result": "echo:yo", "is_error": False}
+
+
+def test_a_slow_answer_inside_the_call_limit_succeeds(sse_server, monkeypatch):
+    monkeypatch.setenv("AI_AGENT_MCP_CALL_TIMEOUT_SECONDS", "5")
+    assert _executor(sse_server).execute("slow", {"seconds": 1.5}) == {"result": "slow:1.5", "is_error": False}
+
+
+def test_a_call_that_never_answers_fails_at_the_call_limit_with_a_timeout_message(sse_server, monkeypatch):
+    monkeypatch.setenv("AI_AGENT_MCP_CALL_TIMEOUT_SECONDS", "1")
+    result = _executor(sse_server).execute("slow", {"seconds": 3})
+    assert result["is_error"] is True and "timed out" in result["error"]

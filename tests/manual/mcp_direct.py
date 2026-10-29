@@ -34,7 +34,7 @@ from infrastructure.outbound.llm.config import VercelAIConfig
 from infrastructure.outbound.llm.vercel import VercelAIAdapter
 from domain.entities.llm_request.payload import Payload
 from domain.value_objects.llm_request.message import Message, Role, create_message
-from domain.value_objects.llm_request.model import SelectedModel, GithubModels, get_selected_model
+from domain.value_objects.llm_request.model import SelectedModel, get_selected_model
 from domain.value_objects.llm_request.tool import ToolDefinition
 from domain.value_objects.llm_response.intent.intent import create_intent
 from domain.value_objects.llm_request.temperature import create_temperature
@@ -81,11 +81,7 @@ async def fetch_mcp_tools(url: str) -> List[ToolDefinition]:
 # -----------------------------------------------
 
 def main():
-    # 1. Configuration
-    # Map GITHUB_PAT to GITHUB_API_KEY as expected by VercelAIConfig
-    github_key = os.environ.get("GITHUB_PAT") or os.environ.get("GITHUB_API_KEY", "")
-    
-    # 2. Setup MCP Infrastructure
+    # 1. Setup MCP Infrastructure
     mcp_config = [
         {
             "name": "aws-microservice",
@@ -97,7 +93,6 @@ def main():
     tool_executor = MCPToolExecutor(client_manager)
 
     llm_config = VercelAIConfig(
-        github_api_key=github_key,
         openai_api_key=os.environ.get("OPENAI_API_KEY", ""),
         anthropic_api_key=os.environ.get("ANTHROPIC_API_KEY", ""),
         google_api_key=os.environ.get("GOOGLE_API_KEY", ""),

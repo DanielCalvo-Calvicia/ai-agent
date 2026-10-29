@@ -30,7 +30,6 @@ _OPENAI_COMPATIBLE_ROUTES: List[_Route] = [
     (lambda m: m.is_groq(), lambda c: (c.groq_api_key, c.groq_url)),
     (lambda m: m.is_cohere(), lambda c: (c.cohere_api_key, c.cohere_url)),
     (lambda m: m.is_ollama(), lambda c: ("ollama", c.OLLAMA_URL)),
-    (lambda m: m.is_github(), lambda c: (c.github_api_key, c.github_url)),
 ]
 
 

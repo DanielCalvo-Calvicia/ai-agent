@@ -10,3 +10,5 @@ All LLM access goes through `LLMOutboundPort`; `VercelAIAdapter` (`infrastructur
 
 - Positive: providers are swappable; one place to read a call.
 - Negative: the code defaults are useless today; a real run always sets one of the first three.
+
+*Dated note 2026-10-28:* the code default of a phase is no longer a GitHub Models id: GitHub Models was retired and removed, and the defaults are Google free-tier models ([ADR-012](ADR-012-gemini-free-tier-default-no-github-models.md)). The rest of this decision is unchanged.

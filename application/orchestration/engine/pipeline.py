@@ -41,7 +41,7 @@ class Pipeline:
         *,
         flow: Flow,
     ) -> None:
-        runner = PhaseRunner(outbound_port, metrics, server_names(mcp_list))
+        runner = PhaseRunner(outbound_port, metrics, server_names(mcp_list, mcp_tools))
         self.flow = flow
         self.steps = flow.build_steps(FlowContext(runner, mcp_list, mcp_tools))
         self.clarifier = Clarifier(runner)

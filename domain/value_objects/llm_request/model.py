@@ -5,7 +5,6 @@ from typing import get_args
 from domain.value_objects.llm_request.model_catalog import (  # noqa: F401  (re-exported for the callers)
     AnthropicModels,
     CohereModels,
-    GithubModels,
     GoogleModels,
     GroqModels,
     MistralModels,
@@ -65,9 +64,6 @@ class SelectedModel:
     def is_ollama(self) -> bool:
         return isinstance(self.model, ModelIdList.OLLAMA)
     
-    def is_github(self) -> bool:
-        return isinstance(self.model, ModelIdList.GITHUB)
-
     def is_local(self) -> bool:
         return isinstance(self.model, ModelIdList.OLLAMA)
 
@@ -88,8 +84,8 @@ def get_selected_model(model_val: str) -> SelectedModel:
             # Check if model_val exists in this specific Enum
             matched_member = enum_cls(model_val)
             return SelectedModel(model=matched_member)
-        except ValueError:
-            # Not in this Enum, move to the next one
+        except (ValueError, TypeError):
+            # Not in this Enum, move to the next one. A provider with no member yet (MistralModels) raises TypeError.
             continue
 
     # If the loop finishes without a return

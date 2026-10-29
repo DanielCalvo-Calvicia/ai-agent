@@ -14,7 +14,7 @@ Measured in real runs with gemini-2.5-flash (tokens sent / answered by one call)
 
 Assumed, not measured: each action writes about 300 tokens (a parent action 400), the final answer is 800 tokens, a tool result is 400 tokens. The draft writer reads all the outputs, so it is the biggest single call (about 12,000 tokens of input, which every model here takes).
 
-**Thinking tokens.** Gemini bills them as output and does not count them in the answer's token count (they are only in the total: measured). The column "with thinking" adds them: per call, what gemini-3.8-flash was measured to think (triage 489, gate 231, worker 724, draft 344, editor 115; the planner about 1,970 for a plan this big, twice the measured 985), times a factor per model (2.5 Flash 0.7 as measured, 2.5 Flash-Lite and 3.1 Flash-Lite 0 as measured, 3.5 Flash-Lite 0.1, the other Flash models 1, the Pro models 1.5: these last are guesses). "From 2027" doubles the price of 3.6, 3.7 and 3.8 Flash, as Google announced.
+**Thinking tokens.** Gemini bills them as output and does not count them in the answer's token count (they are only in the total: measured). The column "with thinking" adds them: per call, what gemini-3.8-flash was measured to think (triage 489, gate 231, worker 724, draft 344, editor 115; the planner about 1,970 for a plan this big, twice the measured 985), times a factor per model (2.5 Flash 0.7 as measured, 2.5 Flash-Lite and 3.1 Flash-Lite 0 as measured, 3.5 Flash-Lite 0.1, the other Flash models 1, the Pro models 1.5: these last are guesses). "From 2027" doubles the price of 3.6 and 3.8 Flash, as Google announced.
 
 ## The calls of each step
 
@@ -65,22 +65,22 @@ Assumed, not measured: each action writes about 300 tokens (a parent action 400)
 | **Total for one message** | | 40 | **$0.348** | **$0.817** | **$0.348** | **$0.817** |
 | 1,000 messages | | | $348.42 | $816.85 | $348.42 | $816.85 |
 
-## C. For comparison: `gemini-2.5-flash` on every step (what the agent uses today)
+## C. For comparison: `gemini-3.1-flash-lite` on every step (the cheapest model of the table)
 
 | Step | Model | Calls | Visible | With thinking | From 2027, visible | From 2027, with thinking |
 |---|---|---|---|---|---|---|
-| triage_specialist | `gemini-2.5-flash` | 1 | $0.0008 | $0.0016 | $0.0008 | $0.0016 |
-| project_manager | `gemini-2.5-flash` | 1 | $0.0090 | $0.012 | $0.0090 | $0.012 |
-| safety_quality_gatekeeper | `gemini-2.5-flash` | 1 | $0.0011 | $0.0015 | $0.0011 | $0.0015 |
-| cognitive_worker | `gemini-2.5-flash` | 25 | $0.032 | $0.064 | $0.032 | $0.064 |
-| mcp_operator | `gemini-2.5-flash` | 5 | $0.0053 | $0.012 | $0.0053 | $0.012 |
-| data_engineer | `gemini-2.5-flash` | 5 | $0.0071 | $0.0091 | $0.0071 | $0.0091 |
-| draft_writer | `gemini-2.5-flash` | 1 | $0.0057 | $0.0063 | $0.0057 | $0.0063 |
-| editor_in_chief | `gemini-2.5-flash` | 1 | $0.0026 | $0.0028 | $0.0026 | $0.0028 |
-| answer_checker | `gemini-2.5-flash` | 0 | $0 | $0 | $0 | $0 |
-| user_clarification | `gemini-2.5-flash` | 0 | $0 | $0 | $0 | $0 |
-| **Total for one message** | | 40 | **$0.064** | **$0.109** | **$0.064** | **$0.109** |
-| 1,000 messages | | | $63.62 | $109.16 | $63.62 | $109.16 |
+| triage_specialist | `gemini-3.1-flash-lite` | 1 | $0.0005 | $0.0005 | $0.0005 | $0.0005 |
+| project_manager | `gemini-3.1-flash-lite` | 1 | $0.0055 | $0.0055 | $0.0055 | $0.0055 |
+| safety_quality_gatekeeper | `gemini-3.1-flash-lite` | 1 | $0.0009 | $0.0009 | $0.0009 | $0.0009 |
+| cognitive_worker | `gemini-3.1-flash-lite` | 25 | $0.022 | $0.022 | $0.022 | $0.022 |
+| mcp_operator | `gemini-3.1-flash-lite` | 5 | $0.0039 | $0.0039 | $0.0039 | $0.0039 |
+| data_engineer | `gemini-3.1-flash-lite` | 5 | $0.0047 | $0.0047 | $0.0047 | $0.0047 |
+| draft_writer | `gemini-3.1-flash-lite` | 1 | $0.0042 | $0.0042 | $0.0042 | $0.0042 |
+| editor_in_chief | `gemini-3.1-flash-lite` | 1 | $0.0017 | $0.0017 | $0.0017 | $0.0017 |
+| answer_checker | `gemini-3.1-flash-lite` | 0 | $0 | $0 | $0 | $0 |
+| user_clarification | `gemini-3.1-flash-lite` | 0 | $0 | $0 | $0 | $0 |
+| **Total for one message** | | 40 | **$0.044** | **$0.044** | **$0.044** | **$0.044** |
+| 1,000 messages | | | $43.55 | $43.55 | $43.55 | $43.55 |
 
 ## Reading it
 

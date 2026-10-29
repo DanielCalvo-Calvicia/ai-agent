@@ -108,7 +108,8 @@ def _on_disk(tree: str) -> Dict[str, str]:
         for name in files:
             full_path = os.path.join(base, name)
             with open(full_path, "r", encoding="utf-8", newline="") as f:
-                found[os.path.relpath(full_path, tree_dir(tree)).replace(os.sep, "/")] = f.read()
+                # A checkout with core.autocrlf=true holds CRLF; the generator writes LF. Only the content is compared.
+                found[os.path.relpath(full_path, tree_dir(tree)).replace(os.sep, "/")] = f.read().replace("\r\n", "\n")
     return found
 
 

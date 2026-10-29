@@ -3,6 +3,7 @@
 #  Implements LLMOutboundPort with the Python AI SDK.
 #  Provider mapping: provider_models.py. Tools: tools.py.
 #  Answer parsing: response_mapper.py. Settings: config.py.
+#  The schema sent to Claude models: anthropic_schema.py.
 # ===============================================
 
 import json
@@ -14,6 +15,7 @@ from ai_sdk.types import CoreSystemMessage, CoreUserMessage
 from application.outbound.ports.llm_ports import LLMOutboundPort
 from domain.entities.llm_request.payload import Payload
 from domain.entities.llm_response.response import Response
+from infrastructure.outbound.llm.anthropic_schema import anthropic_response_format
 from infrastructure.outbound.llm.config import VercelAIConfig
 from infrastructure.outbound.llm.provider_models import create_model
 from infrastructure.outbound.llm.response_mapper import build_response
@@ -56,7 +58,7 @@ class VercelAIAdapter(LLMOutboundPort):
         return bool(
             config.openai_api_key or config.anthropic_api_key or config.google_api_key
             or config.mistral_api_key or config.groq_api_key or config.cohere_api_key
-            or config.github_api_key or config.OLLAMA_URL
+            or config.OLLAMA_URL
         )
 
 
@@ -79,7 +81,9 @@ def _build_options(config: VercelAIConfig, payload: Payload) -> Dict[str, Any]:
         options["seed"] = payload.seed
 
     if payload.response_format:
-        options["response_format"] = payload.response_format.to_dict()
+        response_format = payload.response_format.to_dict()
+        # Anthropic's endpoint needs "strict": true and a schema in the subset its structured outputs accept.
+        options["response_format"] = anthropic_response_format(response_format) if payload.model.is_anthropic() else response_format
 
     tools = resolve_tools(config, payload.tools)
     if tools:

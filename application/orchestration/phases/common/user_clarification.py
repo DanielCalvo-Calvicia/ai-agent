@@ -2,13 +2,13 @@
 # When a flow must pause, turns the missing inputs into a short message for the user.
 # It has no prompt file and no response schema: its prompt is the constant below and it answers with plain text.
 
-from domain.value_objects.llm_request.model import GithubModels
+from domain.value_objects.llm_request.model import GoogleModels
 
 # --- What this phase uses ---------------------------------------------------
 PHASE_ID = 99
 STEP_NAME = "user_clarification"
 MODEL_ENV_VAR = "AI_AGENT_MODEL_PHASE_99"
-DEFAULT_MODEL = GithubModels.GPT_4_1
+DEFAULT_MODEL = GoogleModels.GEMINI_3_1_FLASH_LITE
 INTENT = ("clarification_request", (), 1.0)
 TEMPERATURE = 0.7
 MAX_TOKENS = 2000

@@ -9,9 +9,17 @@
 import os
 from typing import Optional
 
+from shared_logging import get_logger
+
+logger = get_logger(__name__)
+
 # One setting for every "try again" of the agent: LLM calls, MCP tool calls, status `retry`.
 DEFAULT_MAX_ATTEMPTS = 3
 MAX_ATTEMPTS_VARIABLE = "AI_AGENT_MAX_ATTEMPTS"
+
+# How many MCP tool actions one message may run (0 = no limit).
+DEFAULT_MAX_MCP_CALLS = 5
+MAX_MCP_CALLS_VARIABLE = "AI_AGENT_MAX_MCP_CALLS_PER_MESSAGE"
 
 # HTTP statuses that will not get better by asking again.
 _NOT_WORTH_RETRYING = (400, 401, 403, 404)
@@ -59,6 +67,24 @@ def max_attempts() -> int:
         return max(1, int(os.environ.get(MAX_ATTEMPTS_VARIABLE, DEFAULT_MAX_ATTEMPTS)))
     except ValueError:
         return DEFAULT_MAX_ATTEMPTS
+
+
+def max_mcp_calls() -> int:
+    """
+    How many MCP tool actions one message may run; 0 means no limit. A value that is not a whole number, or is
+    negative, falls back to the default with a warning (never to 0: a typing mistake must not remove the limit).
+    """
+    raw = os.environ.get(MAX_MCP_CALLS_VARIABLE, "").strip()
+    if not raw:
+        return DEFAULT_MAX_MCP_CALLS
+    try:
+        value = int(raw)
+    except ValueError:
+        value = -1
+    if value < 0:
+        logger.warning("Invalid MCP call limit, using the default", variable=MAX_MCP_CALLS_VARIABLE, default=DEFAULT_MAX_MCP_CALLS)
+        return DEFAULT_MAX_MCP_CALLS
+    return value
 
 
 def classify(error: BaseException) -> str:

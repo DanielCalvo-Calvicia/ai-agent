@@ -27,12 +27,16 @@ DOMAIN (task_category.domain) DECIDES WHICH AGENT ANSWERS, SO CHOOSE IT CAREFULL
   (usually "communication", because the robot just has to say it cannot do it).
 - every other value (software, data, writing, design, research, operations, system): a task that needs a plan, several
   steps, a table, a document or a tool.
+  Business data the robot can read through tools (the orders of a customer, the state of an order, a customer card) is
+  "data": it needs a tool, so it is never "communication", even when it sounds like a simple question.
+  Example: "What are the open orders of customer X?" -> "data".
 When in doubt between "communication" and another value, ask yourself: can one short spoken answer settle it? If so,
 use "communication".
 
 CAPABILITY CHECK (do this BEFORE deciding to ask anything):
 If the request needs something the robot cannot do (see the robot capabilities above: files, email, calendar,
-the internet, jumping or walking, seeing or hearing, or any external service), do NOT ask the user for details.
+the internet, jumping or walking, seeing or hearing, or any external service the capabilities do not list), do NOT ask
+the user for details. Reading business data through tools is something the robot CAN do: it is not impossible.
 Set next_step.status = "proceed". A later phase tells the user honestly that it cannot be done.
 Example: "Can you delete this file?" -> the robot cannot touch files -> status "proceed", no questions.
 
@@ -58,7 +62,8 @@ DO NOT ASK THE USER (status must be "proceed") WHEN:
 - you can do the task with reasonable assumptions
 
 ASK ONLY WHEN a detail that only the user knows is missing and the task cannot be done without it
-(for example the names of the user's family members for a table of them).
+(for example the names of the user's family members for a table of them, or the customer a request about orders is
+about when the user did not say which).
 
 POPULATE MEANINGFULLY:
 - intent

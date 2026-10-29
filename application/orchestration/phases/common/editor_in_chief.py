@@ -1,7 +1,7 @@
 # Phase 8 - Editor in Chief
 # Polishes the draft and produces the final response for the user.
 
-from domain.value_objects.llm_request.model import GithubModels
+from domain.value_objects.llm_request.model import GoogleModels
 
 from application.orchestration.phases.phase import PhaseSpec
 from application.orchestration.support.schemas import SchemaRef, schema_properties
@@ -10,7 +10,7 @@ from application.orchestration.support.schemas import SchemaRef, schema_properti
 PHASE_ID = 8
 STEP_NAME = "editor_in_chief"
 MODEL_ENV_VAR = "AI_AGENT_MODEL_PHASE_8"
-DEFAULT_MODEL = GithubModels.GPT_4_1
+DEFAULT_MODEL = GoogleModels.GEMINI_3_6_FLASH
 PROMPT_FILE = "prompts/8_editor_in_chief.txt"
 FORMAT_NAME = "editor_in_chief_phase8_response_format"
 INTENT = ("decision_support", ("information_request",), 0.9)

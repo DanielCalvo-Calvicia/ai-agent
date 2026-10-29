@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from application.orchestration.support.metrics import RequestRecord
+from application.outbound.ports.mcp_ports import ToolCallRecord
 
 
 @dataclass(frozen=True)
@@ -21,3 +22,7 @@ class UsageReporterPort(ABC):
     @abstractmethod
     def report(self, record: RequestRecord, trace_id: str, session_id: str, details: Optional[CallDetails] = None) -> None:
         raise NotImplementedError
+
+    def report_tool_call(self, call: ToolCallRecord, trace_id: str, session_id: str, details: Optional[CallDetails] = None) -> None:
+        """One MCP tool call: tool, outcome, duration; never an argument or an answer. Optional: ignored by default."""
+        return None

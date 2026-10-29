@@ -56,8 +56,10 @@ def combined() -> Dict[str, Any]:
 
     for m in google["models"]:
         refused = m["api_check"].startswith("FAILED")
-        models.append({**m, "provider": "google", "works_today": "not available" if refused else "tested",
-                       "adapter_note": m["api_check"] if refused else "Works today. Answered a test call.",
+        untried = m["api_check"].startswith("not called")
+        models.append({**m, "provider": "google",
+                       "works_today": "not available" if refused else "should work, untested" if untried else "tested",
+                       "adapter_note": m["api_check"] if refused or untried else "Works today. Answered a test call.",
                        "output_multiplier": 1.0})
     for m in other["models"]:
         models.append({**m, "ratings": {step: [level, LEVEL_WHY[level]] for step, level in m["ratings"].items()},

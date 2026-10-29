@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from application.orchestration.phases.catalog import CONVERSATION_PHASES, PHASES
+from application.outbound.ports.mcp_ports import ToolCallRecord
 
 if TYPE_CHECKING:
     from application.outbound.ports.usage_ports import UsageReporterPort
@@ -79,11 +80,11 @@ class SessionMetrics:
 
     by_phase : Dict[phase_name, Dict[model, TokenCount]]
         Token aggregation grouped first by phase then by model.
-        e.g. metrics.by_phase["cognitive_worker"]["gpt-4.1"].total
+        e.g. metrics.by_phase["cognitive_worker"]["gemini-3.6-flash"].total
 
     by_model : Dict[model, TokenCount]
         Cross-phase token aggregation per model.
-        e.g. metrics.by_model["gpt-4.1"].total
+        e.g. metrics.by_model["gemini-3.6-flash"].total
 
     totals : TokenCount
         Grand total across the entire session.
@@ -96,6 +97,7 @@ class SessionMetrics:
         self.session_id = ""
         self.user_message = ""
         self.request_log: List[RequestRecord] = []
+        self.tool_calls:  List[ToolCallRecord] = []      # the MCP tool calls of the message: tool, outcome, duration, never a value
         self.by_phase:    Dict[str, Dict[str, TokenCount]] = {}
         self.by_model:    Dict[str, TokenCount] = {}
         self.totals:      TokenCount = TokenCount()
@@ -166,6 +168,18 @@ class SessionMetrics:
 
         return request_id
 
+    def record_tool_call(self, call: ToolCallRecord) -> None:
+        """Records one MCP tool call next to the tokens, and hands it to the usage report (which may fail: it never breaks a call)."""
+        with self._lock:
+            self.tool_calls.append(call)
+            if self.reporter is not None:
+                try:
+                    from application.outbound.ports.usage_ports import CallDetails
+                    self.reporter.report_tool_call(call, self.trace_id, self.session_id,
+                                                   CallDetails(self.user_message, None, None, call.started_ns, call.ended_ns))
+                except Exception:
+                    pass
+
     # ------------------------------------------
 
     def summary(self) -> Dict[str, Any]:
@@ -188,5 +202,8 @@ class SessionMetrics:
             },
             "request_log": [
                 r.to_dict() for r in self.request_log
+            ],
+            "tool_calls": [
+                c.to_dict() for c in self.tool_calls
             ],
         }

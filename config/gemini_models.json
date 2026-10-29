@@ -1,6 +1,6 @@
 {
-  "_source": "Prices and status: Google's pages ai.google.dev/gemini-api/docs/pricing, /models and /thinking, read on 2026-09-21. Prices are USD per 1M tokens, text, standard paid tier, and the output price includes thinking tokens. Check the page before you rely on a number.",
-  "_ratings": "The ratings are estimates from the tier and Google's description, NOT measurements. Only gemini-2.5-flash was run end to end in this project. Measure a model on a step with: tests/manual/debug_flow.py --only=<step> --state=<file> --repeat=5 --real (see docs/guides/debugging_the_flow.md).",
+  "_source": "Prices and status: Google's pages ai.google.dev/gemini-api/docs/pricing, /models and /thinking, read on 2026-09-21; the prices and the list of models were checked again on 2026-10-27 (T-02.6). Prices are USD per 1M tokens, text, standard paid tier, and the output price includes thinking tokens. Check the page before you rely on a number.",
+  "_ratings": "The ratings are estimates from the tier and Google's description, NOT measurements. Of the Google models only gemini-3.1-flash-lite and gemini-3.8-flash have an end-to-end run in this project (2026-09-21, config/measured_runs.json). Measure a model on a step with: tests/manual/debug_flow.py --only=<step> --state=<file> --repeat=5 --real (see docs/guides/debugging_the_flow.md).",
   "_levels": {
     "best": "the right model for this step",
     "good": "works well, a fair price for the job",
@@ -75,60 +75,6 @@
     }
   },
   "models": [
-    {
-      "name": "Gemini 2.5 Flash-Lite",
-      "id": "gemini-2.5-flash-lite",
-      "status": "stable",
-      "free_tier": true,
-      "input": 0.1,
-      "output": 0.4,
-      "price_note": "",
-      "thinking": "off by default (the fastest)",
-      "summary": "The cheapest and fastest. Good for short, simple tasks.",
-      "ratings": {
-        "triage_specialist": [
-          "good",
-          "Fast classifier. Watch that it does not ask too much."
-        ],
-        "project_manager": [
-          "weak",
-          "Deep plans with dependencies are too much for it."
-        ],
-        "safety_quality_gatekeeper": [
-          "ok",
-          "Fine for obvious cases, shallow on risk."
-        ],
-        "cognitive_worker": [
-          "ok",
-          "Simple actions only (facts, short text)."
-        ],
-        "mcp_operator": [
-          "weak",
-          "Tool calling is the least reliable here."
-        ],
-        "data_engineer": [
-          "best",
-          "Mechanical cleaning: cheapest and enough."
-        ],
-        "draft_writer": [
-          "ok",
-          "Plain writing."
-        ],
-        "editor_in_chief": [
-          "ok",
-          "Light polishing."
-        ],
-        "answer_checker": [
-          "best",
-          "Short, fast, cheap."
-        ],
-        "user_clarification": [
-          "best",
-          "Trivial text."
-        ]
-      },
-      "api_check": "answered"
-    },
     {
       "name": "Gemini 3.1 Flash-Lite",
       "id": "gemini-3.1-flash-lite",
@@ -238,55 +184,55 @@
       "api_check": "answered"
     },
     {
-      "name": "Gemini 2.5 Flash",
-      "id": "gemini-2.5-flash",
-      "status": "stable",
+      "name": "Gemini 3 Flash (preview)",
+      "id": "gemini-3-flash-preview",
+      "status": "preview",
       "free_tier": true,
-      "input": 0.3,
-      "output": 2.5,
+      "input": 0.5,
+      "output": 3.0,
       "price_note": "",
-      "thinking": "always on (the lowest level is 'low')",
-      "summary": "The only model tested in this project: it works on every step, but it is slow because it always thinks (3 to 14 s for triage alone).",
+      "thinking": "a test call used 20 thinking tokens (2026-10-28); not stated in the pages read",
+      "summary": "Google's Gemini 3 Flash preview: a Flash model priced between the Lite models and 3.6 Flash. It answered a test call on 2026-10-28 in 1.6 s. A preview can change or go away. Ratings are estimates.",
       "ratings": {
         "triage_specialist": [
           "ok",
-          "Works, slow because of the thinking."
+          "Overkill for a classifier; a preview."
         ],
         "project_manager": [
-          "good",
-          "Tested: valid plans."
+          "ok",
+          "May plan well; a preview and unmeasured. Test before trusting it."
         ],
         "safety_quality_gatekeeper": [
           "good",
-          "Tested: works."
+          "Enough judgement for a yes or no on risk."
         ],
         "cognitive_worker": [
           "good",
-          "Tested: works."
+          "Good content for the price."
         ],
         "mcp_operator": [
           "good",
-          "Not tested with a real tool."
+          "Function calling should be fine. Test it."
         ],
         "data_engineer": [
           "ok",
-          "Works, but overkill and slow."
+          "Overkill."
         ],
         "draft_writer": [
           "good",
-          "Tested: works."
+          "Good writing for the price."
         ],
         "editor_in_chief": [
           "good",
-          "Tested: works."
+          "Good polishing."
         ],
         "answer_checker": [
           "ok",
-          "Works, slower than needed."
+          "Overkill."
         ],
         "user_clarification": [
           "ok",
-          "Works, slower than needed."
+          "Overkill."
         ]
       },
       "api_check": "answered"
@@ -300,7 +246,7 @@
       "output": 3.75,
       "price_note": "until 2026-12-31. From 2027-01-01: 1.50 in, 7.50 out.",
       "thinking": "medium by default. Can go down to 'minimal'.",
-      "summary": "Google: balances speed and multimodal capabilities for general tasks. Same price as 3.7 and 3.8.",
+      "summary": "Google: balances speed and multimodal capabilities for general tasks. Same price as 3.8.",
       "ratings": {
         "triage_specialist": [
           "ok",
@@ -346,60 +292,6 @@
       "api_check": "answered"
     },
     {
-      "name": "Gemini 3.7 Flash",
-      "id": "gemini-3.7-flash",
-      "status": "stable",
-      "free_tier": true,
-      "input": 0.75,
-      "output": 3.75,
-      "price_note": "until 2026-12-31. From 2027-01-01: 1.50 in, 7.50 out.",
-      "thinking": "medium by default",
-      "summary": "Google: previous-generation Flash for complex coding and agentic workflows. Same price as 3.6 and 3.8.",
-      "ratings": {
-        "triage_specialist": [
-          "ok",
-          "Overkill."
-        ],
-        "project_manager": [
-          "good",
-          "Strong at agentic planning."
-        ],
-        "safety_quality_gatekeeper": [
-          "good",
-          "Solid judgement."
-        ],
-        "cognitive_worker": [
-          "best",
-          "Strong content."
-        ],
-        "mcp_operator": [
-          "best",
-          "Built for agentic work with tools."
-        ],
-        "data_engineer": [
-          "ok",
-          "Overkill."
-        ],
-        "draft_writer": [
-          "best",
-          "Strong writing."
-        ],
-        "editor_in_chief": [
-          "good",
-          "Good polishing."
-        ],
-        "answer_checker": [
-          "ok",
-          "Overkill."
-        ],
-        "user_clarification": [
-          "ok",
-          "Overkill."
-        ]
-      },
-      "api_check": "answered"
-    },
-    {
       "name": "Gemini 3.8 Flash",
       "id": "gemini-3.8-flash",
       "status": "stable",
@@ -408,7 +300,7 @@
       "output": 3.75,
       "price_note": "until 2026-12-31. From 2027-01-01: 1.50 in, 7.50 out.",
       "thinking": "medium by default",
-      "summary": "Google: made for long-horizon software engineering, autonomous agents and complex workflows. The newest Flash, same price as 3.6 and 3.7, so prefer it.",
+      "summary": "Google: made for long-horizon software engineering, autonomous agents and complex workflows. The newest Flash, same price as 3.6, so prefer it.",
       "ratings": {
         "triage_specialist": [
           "ok",
@@ -454,112 +346,58 @@
       "api_check": "answered"
     },
     {
-      "name": "Gemini 3.5 Flash",
-      "id": "gemini-3.5-flash",
+      "name": "Gemini 4 Argon",
+      "id": "gemini-4-argon",
       "status": "stable",
-      "free_tier": true,
-      "input": 1.5,
-      "output": 9.0,
-      "price_note": "",
-      "thinking": "not stated in the pages read",
-      "summary": "Google calls it the legacy Flash. It costs more than the newer 3.6, 3.7 and 3.8 Flash (also after their price change in 2027): not recommended.",
-      "ratings": {
-        "triage_specialist": [
-          "avoid",
-          "Costs more than newer models that do it better."
-        ],
-        "project_manager": [
-          "ok",
-          "Capable, but 3.8 Flash costs less."
-        ],
-        "safety_quality_gatekeeper": [
-          "ok",
-          "Capable, but 3.8 Flash costs less."
-        ],
-        "cognitive_worker": [
-          "ok",
-          "Capable, but 3.8 Flash costs less."
-        ],
-        "mcp_operator": [
-          "ok",
-          "Capable, but 3.8 Flash costs less."
-        ],
-        "data_engineer": [
-          "avoid",
-          "Wasteful."
-        ],
-        "draft_writer": [
-          "ok",
-          "Capable, but 3.8 Flash costs less."
-        ],
-        "editor_in_chief": [
-          "ok",
-          "Capable, but 3.8 Flash costs less."
-        ],
-        "answer_checker": [
-          "avoid",
-          "Wasteful."
-        ],
-        "user_clarification": [
-          "avoid",
-          "Wasteful."
-        ]
-      },
-      "api_check": "answered"
-    },
-    {
-      "name": "Gemini 2.5 Pro",
-      "id": "gemini-2.5-pro",
-      "status": "deprecated, no longer available to new users",
-      "free_tier": true,
-      "input": 1.25,
+      "free_tier": false,
+      "input": 2.0,
       "output": 10.0,
-      "price_note": "prompts up to 200k tokens. Above: 2.50 in, 15.00 out.",
-      "thinking": "always on",
-      "summary": "Deep reasoning, but Google marks it as deprecated and the API refused it with this key (404: no longer available to new users). Do not use.",
+      "price_note": "until 2026-11-30. From 2026-12-01: 4.00 in, 20.00 out.",
+      "thinking": "not stated in the pages read",
+      "summary": "Google's newest model, listed as stable on 2026-10-27. It has no free tier, so it was NOT called (a call costs money): the API lists it for this key and nothing more is known here. Ratings are estimates from its tier, never measured.",
       "ratings": {
         "triage_specialist": [
           "avoid",
-          "Not available: the API answers 404 for new users."
+          "Wasteful: paid only."
         ],
         "project_manager": [
-          "avoid",
-          "Not available: the API answers 404 for new users."
+          "best",
+          "The newest top model; an estimate from its tier, never run here."
         ],
         "safety_quality_gatekeeper": [
-          "avoid",
-          "Not available: the API answers 404 for new users."
+          "good",
+          "Very careful on risk, more than needed."
         ],
         "cognitive_worker": [
-          "avoid",
-          "Not available: the API answers 404 for new users."
+          "good",
+          "Top content, at a price."
         ],
         "mcp_operator": [
-          "avoid",
-          "Not available: the API answers 404 for new users."
+          "good",
+          "Top tool use, at a price."
         ],
         "data_engineer": [
           "avoid",
-          "Not available: the API answers 404 for new users."
+          "Wasteful."
         ],
         "draft_writer": [
-          "avoid",
-          "Not available: the API answers 404 for new users."
+          "good",
+          "Top writing, at a price."
         ],
         "editor_in_chief": [
-          "avoid",
-          "Not available: the API answers 404 for new users."
+          "ok",
+          "Overkill."
         ],
         "answer_checker": [
           "avoid",
-          "Not available: the API answers 404 for new users."
+          "Wasteful."
         ],
         "user_clarification": [
           "avoid",
-          "Not available: the API answers 404 for new users."
+          "Wasteful."
         ]
       },
-      "api_check": "FAILED: 404, 'no longer available to new users'"
+      "api_check": "not called: no free tier (listed by the API for this key on 2026-10-28)"
     },
     {
       "name": "Gemini 3.1 Pro (preview)",
@@ -616,5 +454,5 @@
       "api_check": "answered"
     }
   ],
-  "_api_check": "'api_check' is the result of one tiny test call per model id through the OpenAI-compatible endpoint (GOOGLE_URL) with the key of this project, on 2026-09-21. It proves the id works with this key, not that the model is good at a step."
+  "_api_check": "'api_check' is the result of one tiny test call per model id through the OpenAI-compatible endpoint (GOOGLE_URL) with the key of this project, on 2026-09-21. It proves the id works with this key, not that the model is good at a step. Re-checked on 2026-10-28 (T-02.3, only the ids that have a free tier): gemini-3.1-flash-lite, gemini-3.5-flash-lite and gemini-3.6-flash answered; gemini-3.8-flash got a 503 \"high demand\" (a temporary capacity problem, so it keeps its answer of 2026-09-21); gemini-3.1-pro-preview was not called (no free tier). gemini-2.5-flash and gemini-2.5-flash-lite answered 404 \"no longer available to new users\" and were removed. Later the same day gemini-3-flash-preview answered a test call (1.6 s) and was added. gemini-4-argon was added without a call: it has no free tier, so calling it would cost money; its api_check says \"not called\" and the tables mark it as untested."
 }

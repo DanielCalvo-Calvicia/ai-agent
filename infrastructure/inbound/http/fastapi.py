@@ -1,3 +1,5 @@
+from typing import Callable, Optional
+
 import anyio.to_thread
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
@@ -17,6 +19,9 @@ from contracts.api.microservices.ai_agent.session import (
 from contracts.api.microservices.common.availability import AvailabilityResponse
 from contracts.api.microservices.common.health_check import HealthCheckResponse
 from infrastructure.inbound.http.responses import failure, success
+from shared_logging import get_logger
+
+logger = get_logger(__name__)
 
 
 _ACTION_LABELS = {
@@ -62,9 +67,11 @@ def message_data(result) -> AIAgentMessageResponse:
 class SessionFastAPI:
     """HTTP routes of the agent: /session/start, /session/message, /session/end, /health and /available. Only translates between HTTP and the SessionInboundPort."""
 
-    def __init__(self, App: FastAPI, SessionPort: SessionInboundPort):
+    def __init__(self, App: FastAPI, SessionPort: SessionInboundPort, AvailabilityCheck: Optional[Callable[[], object]] = None):
+        """`AvailabilityCheck` is optional and blocking: it runs (in a worker thread) on every /available call, only to log."""
         self.app = App
         self.session_port = SessionPort
+        self.availability_check = AvailabilityCheck
         self.register_health_routes()
         self.register_routes()
 
@@ -86,6 +93,11 @@ class SessionFastAPI:
                         "call. Does not call any LLM.",
         )
         async def available():
+            if self.availability_check:
+                try:
+                    await anyio.to_thread.run_sync(self.availability_check)
+                except Exception as error:
+                    logger.warning("The optional availability check failed", error_type=type(error).__name__)
             try:
                 is_available = self.session_port.is_available()
             except Exception as e:

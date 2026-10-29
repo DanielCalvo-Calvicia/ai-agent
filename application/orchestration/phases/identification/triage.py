@@ -2,7 +2,7 @@
 # Classifies intent, extracts user goal and task category. It is the identification flow's only phase:
 # task_category.domain decides which flow answers.
 
-from domain.value_objects.llm_request.model import GithubModels
+from domain.value_objects.llm_request.model import GoogleModels
 
 from application.orchestration.phases.phase import PhaseSpec
 from application.orchestration.support.schemas import SchemaRef, schema_properties
@@ -11,7 +11,7 @@ from application.orchestration.support.schemas import SchemaRef, schema_properti
 PHASE_ID = 1
 STEP_NAME = "triage_specialist"
 MODEL_ENV_VAR = "AI_AGENT_MODEL_PHASE_1"
-DEFAULT_MODEL = GithubModels.GPT_4_1_MINI
+DEFAULT_MODEL = GoogleModels.GEMINI_3_1_FLASH_LITE
 PROMPT_FILE = "prompts/1_triage_specialist.txt"
 FORMAT_NAME = "triage_specialist_phase1_response_format"
 INTENT = ("clarification_request", ("information_request",), 1.0)

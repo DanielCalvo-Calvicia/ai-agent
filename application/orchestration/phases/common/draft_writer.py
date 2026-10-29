@@ -2,7 +2,7 @@
 # Synthesizes all action outputs into a first draft of the user response. The conversation flow runs it straight
 # after identification (nothing was planned); the special flow runs it after the actions.
 
-from domain.value_objects.llm_request.model import GithubModels
+from domain.value_objects.llm_request.model import GoogleModels
 
 from application.orchestration.phases.phase import PhaseSpec
 from application.orchestration.support.schemas import SchemaRef, schema_properties
@@ -11,7 +11,7 @@ from application.orchestration.support.schemas import SchemaRef, schema_properti
 PHASE_ID = 7
 STEP_NAME = "draft_writer"
 MODEL_ENV_VAR = "AI_AGENT_MODEL_PHASE_7"
-DEFAULT_MODEL = GithubModels.GPT_4_1
+DEFAULT_MODEL = GoogleModels.GEMINI_3_6_FLASH
 PROMPT_FILE = "prompts/7_drawf_writter.txt"
 FORMAT_NAME = "draft_writer_phase7_response_format"
 INTENT = ("decision_support", ("information_request",), 0.9)

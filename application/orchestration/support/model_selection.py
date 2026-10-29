@@ -15,7 +15,7 @@ from typing import Any, Dict, Optional, Tuple
 
 from application.orchestration.support.metrics import ALL_PHASE_NAMES, PHASE_NAMES
 from application.orchestration.phases.catalog import PHASES
-from domain.value_objects.llm_request.model import GithubModels, SelectedModel, get_selected_model
+from domain.value_objects.llm_request.model import GoogleModels, SelectedModel, get_selected_model
 
 MODELS_FILE_VARIABLE = "AI_AGENT_MODELS_FILE"
 DEFAULT_MODELS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', 'config', 'step_models.json')
@@ -122,11 +122,11 @@ def choose(phase_id: int) -> Tuple[Optional[str], str]:
     return None, "code default"
 
 
-def model_for_phase(phase_id: int, default: GithubModels) -> SelectedModel:
+def model_for_phase(phase_id: int, default: GoogleModels) -> SelectedModel:
     """
     The model of a phase (see the order of precedence at the top of this file).
     The provider is the first one of the catalog that lists the id (OpenAI, Google, Anthropic, Mistral, Cohere,
-    Groq, Ollama, then GitHub), and it needs that provider's key and URL.
+    Groq, Ollama), and it needs that provider's key and URL.
     """
     chosen, source = choose(phase_id)
     if chosen is None:

@@ -30,11 +30,11 @@ TRIAGE_OUTPUT, GATE_OUTPUT, PLANNER_BASE_OUTPUT = 150, 55, 120
 THINKING = {"triage_specialist": 489, "project_manager": 1970, "safety_quality_gatekeeper": 231,
             "cognitive_worker": 724, "mcp_operator": 724, "data_engineer": 231, "draft_writer": 344,
             "editor_in_chief": 115, "answer_checker": 231, "user_clarification": 0}
-# How much a model thinks compared with gemini-3.8-flash (1.0). Measured over a whole message: gemini-2.5-flash 0.69,
-# gemini-3.1-flash-lite 0, gemini-2.5-flash-lite 0. The others are guesses from Google's descriptions.
-THINKING_FACTOR = {"gemini-2.5-flash-lite": 0.0, "gemini-3.1-flash-lite": 0.0, "gemini-3.5-flash-lite": 0.1,
-                   "gemini-2.5-flash": 0.7, "gemini-3.6-flash": 1.0, "gemini-3.7-flash": 1.0, "gemini-3.8-flash": 1.0,
-                   "gemini-3.5-flash": 1.0, "gemini-2.5-pro": 1.5, "gemini-3.1-pro-preview": 1.5}
+# How much a model thinks compared with gemini-3.8-flash (1.0). Measured over a whole message: gemini-3.1-flash-lite 0
+# (and, on 2026-09-21, the retired gemini-2.5-flash 0.69 and gemini-2.5-flash-lite 0). The others are guesses from Google's descriptions.
+THINKING_FACTOR = {"gemini-3.1-flash-lite": 0.0, "gemini-3.5-flash-lite": 0.1, "gemini-3-flash-preview": 0.5,
+                   "gemini-3.6-flash": 1.0, "gemini-3.8-flash": 1.0,
+                   "gemini-4-argon": 1.5, "gemini-3.1-pro-preview": 1.5}
 
 # ---- assumptions (not measured) ----------------------------------------------------------------------------------
 ANSWER_TOKENS = 300             # what the worker writes for one action; a parent action writes 400
@@ -132,7 +132,7 @@ def markdown(data: Dict[str, Any], actions: int = 5, subactions: int = 5, tool_a
     scenarios = [
         ("A. The strongest model of each step", choice_strongest(data)),
         ("B. `gemini-3.1-pro-preview` on every step (the strongest model there is)", choice_single(data, "gemini-3.1-pro-preview")),
-        ("C. For comparison: `gemini-2.5-flash` on every step (what the agent uses today)", choice_single(data, "gemini-2.5-flash")),
+        ("C. For comparison: `gemini-3.1-flash-lite` on every step (the cheapest model of the table)", choice_single(data, "gemini-3.1-flash-lite")),
     ]
 
     lines = [
@@ -167,7 +167,7 @@ def markdown(data: Dict[str, Any], actions: int = 5, subactions: int = 5, tool_a
         "was measured to think (triage 489, gate 231, worker 724, draft 344, editor 115; the planner about 1,970 for a "
         "plan this big, twice the measured 985), times a factor per model (2.5 Flash 0.7 as measured, 2.5 Flash-Lite and "
         "3.1 Flash-Lite 0 as measured, 3.5 Flash-Lite 0.1, the other Flash models 1, the Pro models 1.5: these last are guesses). "
-        "\"From 2027\" doubles the price of 3.6, 3.7 and 3.8 Flash, as Google announced.",
+        "\"From 2027\" doubles the price of 3.6 and 3.8 Flash, as Google announced.",
         "",
         "## The calls of each step",
         "",

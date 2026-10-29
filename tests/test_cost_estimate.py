@@ -58,7 +58,7 @@ class TestTheSizeOfThePlan:
 
 
 class TestThePrice:
-    MODEL = {"id": "gemini-2.5-flash", "input": 0.30, "output": 2.50, "price_note": ""}
+    MODEL = {"id": "gemini-3.5-flash-lite", "input": 0.30, "output": 2.50, "price_note": ""}
 
     def test_visible_cost(self):
         u = by_step(usage())["cognitive_worker"]
@@ -67,11 +67,11 @@ class TestThePrice:
 
     def test_thinking_adds_output_tokens_per_call(self):
         u = by_step(usage())["cognitive_worker"]
-        extra = THINKING["cognitive_worker"] * THINKING_FACTOR["gemini-2.5-flash"] * u.calls * 2.50 / 1e6
+        extra = THINKING["cognitive_worker"] * THINKING_FACTOR["gemini-3.5-flash-lite"] * u.calls * 2.50 / 1e6
         assert price(self.MODEL, u, True) - price(self.MODEL, u, False) == pytest.approx(extra)
 
     def test_a_model_that_does_not_think_adds_nothing(self):
-        lite = {"id": "gemini-2.5-flash-lite", "input": 0.10, "output": 0.40, "price_note": ""}
+        lite = {"id": "gemini-3.1-flash-lite", "input": 0.25, "output": 1.50, "price_note": ""}
         u = by_step(usage())["project_manager"]
         assert price(lite, u, True) == price(lite, u, False)
 
@@ -103,9 +103,9 @@ class TestTheScenarios:
         usages = usage()
         strongest = total_row(rows_for(choice_strongest(self.data), usages))
         pro = total_row(rows_for(choice_single(self.data, "gemini-3.1-pro-preview"), usages))
-        flash = total_row(rows_for(choice_single(self.data, "gemini-2.5-flash"), usages))
-        assert flash["visible"] < strongest["visible"] < pro["visible"]
-        assert all(t["thinking"] >= t["visible"] for t in (strongest, pro, flash))
+        lite = total_row(rows_for(choice_single(self.data, "gemini-3.1-flash-lite"), usages))
+        assert lite["visible"] < strongest["visible"] < pro["visible"]
+        assert all(t["thinking"] >= t["visible"] for t in (strongest, pro, lite))
 
     def test_the_total_is_the_sum_of_the_steps(self):
         rows = rows_for(choice_strongest(self.data), usage())

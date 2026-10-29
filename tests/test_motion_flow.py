@@ -263,14 +263,14 @@ class TestHttp:
 
 class TestModelAndMetrics:
     def test_the_planner_model_can_be_set_by_its_variable(self, monkeypatch):
-        monkeypatch.setenv("AI_AGENT_MODEL_PHASE_20", "gpt-4.1-nano")
-        assert choose(20) == ("gpt-4.1-nano", "env AI_AGENT_MODEL_PHASE_20")
+        monkeypatch.setenv("AI_AGENT_MODEL_PHASE_20", "gemini-3.5-flash-lite")
+        assert choose(20) == ("gemini-3.5-flash-lite", "env AI_AGENT_MODEL_PHASE_20")
 
     def test_the_planner_model_can_be_set_in_the_config_file_by_its_step_name(self, monkeypatch, tmp_path):
         config = tmp_path / "models.json"
-        config.write_text(json.dumps({"steps": {"motion_planner": "gemini-2.5-flash"}}), encoding="utf-8")
+        config.write_text(json.dumps({"steps": {"motion_planner": "gemini-3.6-flash"}}), encoding="utf-8")
         monkeypatch.setenv("AI_AGENT_MODELS_FILE", str(config))
-        assert choose(20) == ("gemini-2.5-flash", "config steps")
+        assert choose(20) == ("gemini-3.6-flash", "config steps")
         assert load_config()
 
     def test_the_planner_is_reported_under_its_name(self):

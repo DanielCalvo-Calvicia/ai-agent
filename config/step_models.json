@@ -1,6 +1,6 @@
 {
   "_help": "Which LLM answers each step. Order of precedence: 1) the variable AI_AGENT_MODEL_PHASE_<n> (n = 1..9, 20, 30, 99), 2) `steps` below, 3) the active profile, 4) the `default` of the profile, 5) the default of the code. A step or a profile entry set to null or \"\" is skipped. To change one step: write it in `steps`. To change everything at once: change `profile`. Model ids: config/gemini_models.json and docs/models/gemini_models_per_step.md. Step names: triage_specialist, project_manager, safety_quality_gatekeeper, cognitive_worker, mcp_operator, data_engineer, draft_writer, editor_in_chief, answer_checker, user_clarification, and motion_planner (motion-flow; left out of the cost and budget tables, which cover conversation-flow). Keys that start with _ are ignored. See what is in use with: tests/manual/show_models.py",
-  "profile": "budget50_groq",
+  "profile": "proven",
   "steps": {
     "triage_specialist": null,
     "project_manager": null,
@@ -15,14 +15,14 @@
   },
   "profiles": {
     "proven": {
-      "_about": "Every step on gemini-2.5-flash, the only model tested end to end in this project. Works, but slow (it always thinks).",
-      "default": "gemini-2.5-flash"
+      "_about": "Every step on gemini-3.1-flash-lite, which has an end-to-end run (2026-09-21) and answered a test call on 2026-10-28. It replaces gemini-2.5-flash, the first model tested end to end, which Google no longer gives to new keys. Active since 2026-10-28: on the free tier it answered 10 calls in a row, while gemini-3.6-flash (profile google_free) returned 429 after about 7 calls in 30 s.",
+      "default": "gemini-3.1-flash-lite"
     },
     "budget": {
-      "_about": "The cheapest that should work: lite models everywhere except the planner and the tool step. Untested.",
-      "default": "gemini-2.5-flash-lite",
-      "project_manager": "gemini-2.5-flash",
-      "mcp_operator": "gemini-2.5-flash"
+      "_about": "The cheapest that should work: gemini-3.1-flash-lite everywhere except the planner and the tool step (gemini-3.5-flash-lite). Untested. It replaces the gemini-2.5-flash-lite and gemini-2.5-flash of the first version, which Google no longer gives to new keys.",
+      "default": "gemini-3.1-flash-lite",
+      "project_manager": "gemini-3.5-flash-lite",
+      "mcp_operator": "gemini-3.5-flash-lite"
     },
     "balanced": {
       "_about": "Cheap lite models for the small steps, a stronger Flash for planning, tools and writing. Untested. Prices of 3.6 to 3.8 Flash double on 2027-01-01.",
@@ -42,24 +42,45 @@
       "user_clarification": "gemini-3.5-flash-lite"
     },
     "budget50": {
-      "_about": "Fits 50 EUR for 1,000 messages even if every message has a plan of 30 actions. Google models only. Lite models for almost everything (they do not think, so they cost little), gemini-2.5-flash for the planner (the one step that needs reasoning, and the model tested for it). Untested as a combination.",
+      "_about": "Fits 50 EUR for 1,000 messages even if every message has a plan of 30 actions. Google models only. gemini-3.1-flash-lite for almost everything (it does not think, so it costs little), gemini-3.5-flash-lite for the planner (the one step that needs reasoning: a Lite model, rated ok). Untested as a combination. It replaces gemini-2.5-flash for the planner and gemini-2.5-flash-lite for three steps, which Google no longer gives to new keys.",
       "default": "gemini-3.1-flash-lite",
-      "project_manager": "gemini-2.5-flash",
-      "data_engineer": "gemini-2.5-flash-lite",
-      "answer_checker": "gemini-2.5-flash-lite",
-      "user_clarification": "gemini-2.5-flash-lite"
+      "project_manager": "gemini-3.5-flash-lite"
+    },
+    "claude_sonnet": {
+      "_about": "The same Claude Sonnet model on every step, for the Dynamics MCP epic (T-01). Needs ANTHROPIC_API_KEY. Untested; the id is confirmed in T-01.9. `claude-sonnet-5` is a legacy id (still available on 2026-10-27); the current one is `claude-sonnet-5-5`, which T-01.9 decides. Not the active profile: set `profile` to use it.",
+      "default": "claude-sonnet-5"
     },
     "budget50_groq": {
-      "_about": "Cheaper than budget50: the planner, the gate, the worker, the draft and the editor use openai/gpt-oss-120b on Groq (strong reasoning at 0.15 in and 0.60 out per 1M tokens, tested end to end). Triage, tools, cleaning, the checker and the question use Google lite models. Needs GROQ_API_KEY and GROQ_URL. Untested as a combination.",
+      "_about": "Cheaper than budget50: the planner, the gate, the worker, the draft and the editor use openai/gpt-oss-120b on Groq (strong reasoning at 0.15 in and 0.60 out per 1M tokens, tested end to end). Triage, tools, cleaning, the checker and the question use gemini-3.1-flash-lite. Needs GROQ_API_KEY and GROQ_URL. Untested as a combination.",
       "default": "gemini-3.1-flash-lite",
       "project_manager": "openai/gpt-oss-120b",
       "safety_quality_gatekeeper": "openai/gpt-oss-120b",
       "cognitive_worker": "openai/gpt-oss-120b",
       "draft_writer": "openai/gpt-oss-120b",
-      "editor_in_chief": "openai/gpt-oss-120b",
-      "data_engineer": "gemini-2.5-flash-lite",
-      "answer_checker": "gemini-2.5-flash-lite",
-      "user_clarification": "gemini-2.5-flash-lite"
+      "editor_in_chief": "openai/gpt-oss-120b"
+    },
+    "google_free": {
+      "_about": "Google models only, both with a free tier (no billing needed to run or test). The small steps (triage, cleaning, the checker, the question, the emotion reader) use gemini-3.1-flash-lite; the planner, the gate, the worker, the tool step, the draft, the editor and the motion planner use gemini-3.6-flash (the same price as gemini-3.8-flash, which was the first choice but answered 503 \"high demand\" on every try of 2026-10-28; change them back when it answers). Needs GOOGLE_API_KEY and GOOGLE_URL only. Untested as a combination. Free-tier content is used by Google to improve its products, and its rate limits are not published on Google's pricing page; with a billed key neither applies, but the price of gemini-3.6-flash doubles on 2027-01-01. Decided in PR-004 (2026-10-27). Not active since 2026-10-28: on the free tier gemini-3.6-flash returned 429 \"quota exceeded\" after about 7 calls in 30 s, and one message calls it about 6 times; proven (every step on gemini-3.1-flash-lite) is active instead.",
+      "default": "gemini-3.1-flash-lite",
+      "project_manager": "gemini-3.6-flash",
+      "safety_quality_gatekeeper": "gemini-3.6-flash",
+      "cognitive_worker": "gemini-3.6-flash",
+      "mcp_operator": "gemini-3.6-flash",
+      "draft_writer": "gemini-3.6-flash",
+      "editor_in_chief": "gemini-3.6-flash",
+      "motion_planner": "gemini-3.6-flash"
+    },
+    "claude_haiku": {
+      "_about": "Claude through Anthropic's OpenAI-compatible endpoint (ADR-013): claude-haiku-4-5 on every step, claude-sonnet-5-5 for the planner. Needs ANTHROPIC_API_KEY. Not the active profile. Every call carries a strict, sanitized schema (an action nests at most 3 levels), which adds about 2.8k input tokens to the four actions steps. Claude 5 models think by default and the endpoint hides it, so the cost tables understate the cost of the planner. Untested as a combination until T-03.6.",
+      "default": "claude-haiku-4-5",
+      "project_manager": "claude-sonnet-5-5"
+    },
+    "claude_mixed": {
+      "_about": "Claude through Anthropic's OpenAI-compatible endpoint (ADR-013): claude-haiku-4-5 on every step except the planner, the draft writer and the editor, which use claude-sonnet-5-5. Needs ANTHROPIC_API_KEY. Not the active profile. Run once on 2026-10-28 (T-03.6): three messages, 13 calls, 0 errors, about 6.6 cents, and the greeting that claude_haiku answered with a description got a real reply (one sample). Costs about 2.5 times claude_haiku. The strict, sanitized schema adds about 2.8k input tokens to the four actions steps, and the endpoint hides Claude's thinking, so the cost tables understate the cost of the Sonnet steps.",
+      "default": "claude-haiku-4-5",
+      "project_manager": "claude-sonnet-5-5",
+      "draft_writer": "claude-sonnet-5-5",
+      "editor_in_chief": "claude-sonnet-5-5"
     }
   }
 }

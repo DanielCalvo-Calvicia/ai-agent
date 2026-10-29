@@ -1,7 +1,7 @@
 # Phase 6 - Data Engineer
 # Cleans the raw result of an MCP tool call before other actions use it. One LLM call per MCP action.
 
-from domain.value_objects.llm_request.model import GithubModels
+from domain.value_objects.llm_request.model import GoogleModels
 
 from application.orchestration.phases.phase import ActionPhaseSpec
 from application.orchestration.support.schemas import ACTIONS_SCHEMA_FILE
@@ -10,7 +10,7 @@ from application.orchestration.support.schemas import ACTIONS_SCHEMA_FILE
 PHASE_ID = 6
 STEP_NAME = "data_engineer"
 MODEL_ENV_VAR = "AI_AGENT_MODEL_PHASE_6"
-DEFAULT_MODEL = GithubModels.GPT_4_1
+DEFAULT_MODEL = GoogleModels.GEMINI_3_1_FLASH_LITE
 PROMPT_FILE = "prompts/6_data_engineer.txt"
 FORMAT_NAME = "phase6_single_action_response_format"
 INTENT = ("decision_support", (), 0.9)
