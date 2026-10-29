@@ -4,6 +4,7 @@
 #  user message travels through the pipeline.
 # ===============================================
 
+import re
 from dataclasses import dataclass, field, fields
 from typing import List, Optional, Tuple
 
@@ -18,6 +19,18 @@ from domain.value_objects.llm_response.next_step.next_step import NextStep, crea
 from domain.value_objects.llm_response.safety_and_validation.safety_and_validation import SafetyAndValidation, create_safety_and_validation
 from domain.value_objects.llm_response.task_category.task_category import TaskCategory
 from domain.value_objects.llm_response.user_goal.user_goal import UserGoal
+
+
+# A tag such as </parameter> or <invoke name="x">: markup a model sometimes leaks into its text (seen once on Claude, T-01.9).
+# The reply is spoken aloud, so none of it may reach the user.
+_STRAY_TAG = re.compile(r"</?[A-Za-z][\w:.-]*(?:\s[^<>]*)?/?>")
+
+
+def strip_markup(text: str) -> str:
+    """The text without stray tags, and without the blanks they leave."""
+    if "<" not in text:
+        return text
+    return re.sub(r"[ 	]{2,}", " ", _STRAY_TAG.sub("", text)).strip()
 
 
 @dataclass
@@ -124,5 +137,5 @@ class FlowState:
     def final_text(self) -> str:
         """The reply for the user: the expected outcome written by the last phase."""
         if self.user_goal and self.user_goal.expected_outcome:
-            return self.user_goal.expected_outcome.get_value()
+            return strip_markup(self.user_goal.expected_outcome.get_value())
         return ""

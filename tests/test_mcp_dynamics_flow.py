@@ -510,7 +510,7 @@ def test_the_fake_server_has_the_parameters_the_snapshot_says_the_real_tools_hav
         assert set(tool.parameters.get("required", [])) == set(wanted["required"] or []), name
         compared += 1
 
-    assert compared == 2 and set(offered) <= set(snapshot())          # customer_orders and get_job_result
+    assert compared == 3 and set(offered) <= set(snapshot())          # customer_orders, get_guidance and get_job_result
 
 
 # ---------------------------------------------------------------- what the prompts say

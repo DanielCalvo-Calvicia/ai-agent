@@ -1,5 +1,5 @@
 {
-  "_about": "Snapshot of the MCP tools of dynamics_microservice: names and parameters, as documented in docs/api/mcp.md of that project (read-only, read on 2026-10-27). Placeholders only: no host, tenant, company or customer. A test checks that the allowed tools of mcps/dynamics_microservice.json are all in it and that the local fake server has the same parameters. Refresh it BY HAND at T-01.9 from the real tools/list. `parameters: null` means the document does not say, so no test compares them.",
+  "_about": "Snapshot of the MCP tools of dynamics_microservice: names and parameters, read from the real tools/list on 2026-10-29 (T-01.9; before, from docs/api/mcp.md of that project, 2026-10-27). Placeholders only: no host, tenant, company or customer. A test checks that the allowed tools of mcps/dynamics_microservice.json are all in it and that the local fake server has the same parameters. Refresh it by hand when the service changes its tools.",
   "tools": [
     {
       "name": "customer_orders",
@@ -21,13 +21,13 @@
     },
     {
       "name": "list_workflows",
-      "parameters": null,
-      "required": null
+      "parameters": [],
+      "required": []
     },
     {
       "name": "get_guidance",
-      "parameters": null,
-      "required": null
+      "parameters": ["topic"],
+      "required": []
     },
     {
       "name": "get_job_result",
@@ -43,7 +43,7 @@
       "name": "list_tables",
       "generic": true,
       "parameters": ["filter"],
-      "required": null
+      "required": []
     },
     {
       "name": "describe_table",
@@ -54,14 +54,14 @@
     {
       "name": "plan_query",
       "generic": true,
-      "parameters": null,
-      "required": null
+      "parameters": ["fields", "operation", "output", "table"],
+      "required": ["table"]
     },
     {
       "name": "run_query",
       "generic": true,
-      "parameters": null,
-      "required": null
+      "parameters": ["company", "environment", "fields", "operation", "output", "table"],
+      "required": ["table"]
     }
   ]
 }

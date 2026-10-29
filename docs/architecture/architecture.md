@@ -134,7 +134,7 @@ top (`PHASE_ID`, `STEP_NAME`, `MODEL_ENV_VAR`, `DEFAULT_MODEL`, `PROMPT_FILE`, `
 | 4 | `cognitive_worker` | `special/cognitive_worker.py` | special | Runs one non-MCP action given the outputs it depends on |
 | 5 | `mcp_operator` | `special/mcp_operator.py` | special | Runs one `mcp_tool_call` action with the tools of the MCP servers (blocked if a confirmation is pending); it follows a `running` answer up once, within the 60 s the tool calls of a message share |
 | 6 | `data_engineer` | `special/data_engineer.py` | special | Cleans the result of an MCP action |
-| 7 | `draft_writer` | `common/draft_writer.py` | conversation, special | Writes the first user-facing answer into `user_goal.expected_outcome`; reads the user's own words (`user_message`) so it answers in their language, short and speakable |
+| 7 | `draft_writer` | `common/draft_writer.py` | conversation, special | Writes the first user-facing answer into `user_goal.expected_outcome` (the reply read by `FlowState.final_text()` has stray model tags stripped); reads the user's own words (`user_message`) so it answers in their language, short and speakable |
 | 8 | `editor_in_chief` | `common/editor_in_chief.py` | conversation, special | Polishes it; the reply is `user_goal.expected_outcome` |
 | 9 | `answer_checker` | `common/answer_checker.py` | the engine | Reads the next message of a session with a saved run (answer / yes / no / not an answer / stop) |
 | 20 | `motion_planner` | `movement/motion_planner.py` | movement | Writes the ordered movement list, `is_motion_request` and a short `spoken_reply`; asks the user when the arm or the degrees are missing |
