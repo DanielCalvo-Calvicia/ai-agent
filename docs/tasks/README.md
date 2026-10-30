@@ -1,6 +1,6 @@
 # Tasks
 
-Hierarchical task plan, same format as `dynamics_microservice/docs/tasks`. Epics so far: **T-01 use the `dynamics_microservice` MCP tools from ai-agent** (done: T-01.9, the first real run, on 2026-10-29) and **T-03 Claude as a provider** (in progress: T-03.1 to T-03.5 and T-03.7 done, T-03.6 run twice and once with a Business Central request; `docs/decisions/ADR-013-claude-through-sanitized-structured-outputs.md`) and **T-02 refresh the model catalog: no GitHub Models, Google free tier by default** (done on 2026-10-30; created 2026-10-27, plan in `docs/proposals/PR-004-model-catalog-gemini-free-tier.md`). It is written to be executed step by step: every leaf task states what to create or change, what it must not do and how to prove it is done.
+Hierarchical task plan, same format as `dynamics_microservice/docs/tasks`. Epics so far: **T-01 use the `dynamics_microservice` MCP tools from ai-agent** (done: T-01.9, the first real run, on 2026-10-29) and **T-03 Claude as a provider** (done on 2026-10-30; `docs/decisions/ADR-013-claude-through-sanitized-structured-outputs.md`) and **T-02 refresh the model catalog: no GitHub Models, Google free tier by default** (done on 2026-10-30; created 2026-10-27, plan in `docs/proposals/PR-004-model-catalog-gemini-free-tier.md`). It is written to be executed step by step: every leaf task states what to create or change, what it must not do and how to prove it is done.
 
 The order, with the state and date of each task, is in [ORDER.md](ORDER.md). The board is in section 5. The prompts to start or resume the build in another session are in [PROMPTS.md](PROMPTS.md).
 
@@ -107,13 +107,13 @@ Verified on 2026-10-27 against both projects.
 | [T-02.8](T-02_model-catalog-refresh/T-02.8_generated-documents.md) | Generated documents | docs | done (2026-10-28) |
 | [T-02.9](T-02_model-catalog-refresh/T-02.9_documentation.md) | Documentation and ADR | docs | done (2026-10-28) |
 | [T-02.10](T-02_model-catalog-refresh/T-02.10_first-real-run.md) | First real run (on Claude since 2026-10-28) | manual | done (2026-10-28: the three messages on `claude_haiku` and `claude_mixed`, T-03.6) |
-| [T-03](T-03_claude-provider/T-03_claude-provider.md) | **Claude as a provider** (epic) | epic | in-progress (T-03.1 to T-03.5 done 2026-10-28; T-03.6 run twice on 2026-10-28, the second with Sonnet all right; see [ADR-013](../decisions/ADR-013-claude-through-sanitized-structured-outputs.md)) |
+| [T-03](T-03_claude-provider/T-03_claude-provider.md) | **Claude as a provider** (epic) | epic | done (all subtasks done, closed by the maintainer on 2026-10-30; see [ADR-013](../decisions/ADR-013-claude-through-sanitized-structured-outputs.md)) |
 | [T-03.1](T-03_claude-provider/T-03.1_decisions.md) | Decisions | decision | done (2026-10-28) |
 | [T-03.2](T-03_claude-provider/T-03.2_sanitizer-and-wiring.md) | The schema sanitizer and its wiring | code | done (2026-10-28) |
 | [T-03.3](T-03_claude-provider/T-03.3_tests.md) | Tests of the sanitizer and the wiring | test | done (2026-10-28) |
 | [T-03.4](T-03_claude-provider/T-03.4_profile-and-price-notes.md) | The profile, the Claude notes in the price file and the generated tables | code | done (2026-10-28) |
 | [T-03.5](T-03_claude-provider/T-03.5_documentation.md) | Documentation and ADR-013 | docs | done (2026-10-28) |
-| [T-03.6](T-03_claude-provider/T-03.6_first-real-run-on-claude.md) | First real run on Claude | manual | in-progress (kept open by the maintainer; 2026-10-30: six greetings on `claude_haiku` all right) |
+| [T-03.6](T-03_claude-provider/T-03.6_first-real-run-on-claude.md) | First real run on Claude | manual | done (2026-10-30) |
 | [T-03.7](T-03_claude-provider/T-03.7_prices-of-the-other-claude-ids.md) | Prices of the other Claude ids | code | done (2026-10-29) |
 | [T-04](T-04_llm-resilience/T-04_llm-resilience.md) | **A model out of capacity does not stop the message** (epic) | epic | done (2026-10-29; not provoked with a real 503) |
 | [T-04.1](T-04_llm-resilience/T-04.1_decisions.md) | Decisions | decision | done (2026-10-29) |

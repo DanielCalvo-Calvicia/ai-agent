@@ -54,13 +54,13 @@ Written on 2026-10-27.
 
 | # | Task | Name | Kind | State | Detail | Depends on | Last updated |
 |---|---|---|---|---|---|---|---|
-| 25 | [T-03](T-03_claude-provider/T-03_claude-provider.md) | Claude as a provider (epic) | epic | In progress | T-03.1 to T-03.5 done; T-03.6 run once with one wrong reply | T-02 | 2026-10-28 |
+| 25 | [T-03](T-03_claude-provider/T-03_claude-provider.md) | Claude as a provider (epic) | epic | Done | all subtasks done; closed by the maintainer on 2026-10-30 | T-02 | 2026-10-28 |
 | 26 | [T-03.1](T-03_claude-provider/T-03.1_decisions.md) | Decisions | decision | Done | in the conversation of 2026-10-28 | — | 2026-10-28 |
 | 27 | [T-03.2](T-03_claude-provider/T-03.2_sanitizer-and-wiring.md) | The schema sanitizer and its wiring | code | Done | `anthropic_schema.py`, `vercel.py` | T-03.1 | 2026-10-28 |
 | 28 | [T-03.3](T-03_claude-provider/T-03.3_tests.md) | Tests of the sanitizer and the wiring | test | Done | 23 tests | T-03.2 | 2026-10-28 |
 | 29 | [T-03.4](T-03_claude-provider/T-03.4_profile-and-price-notes.md) | The profile, the Claude notes in the price file and the generated tables | code | Done | `claude_haiku`, not active | T-03.2 | 2026-10-28 |
 | 30 | [T-03.5](T-03_claude-provider/T-03.5_documentation.md) | Documentation and ADR-013 | docs | Done | ADR-013 | T-03.2 to T-03.4 | 2026-10-28 |
-| 31 | [T-03.6](T-03_claude-provider/T-03.6_first-real-run-on-claude.md) | First real run on Claude | manual | In progress | kept open by the maintainer until the replies match the expected outcome; 2026-10-30: six greetings on `claude_haiku` all right, a Business Central request ran on Claude | T-03.2 to T-03.5 | 2026-10-28 |
+| 31 | [T-03.6](T-03_claude-provider/T-03.6_first-real-run-on-claude.md) | First real run on Claude | manual | Done | all four kinds of message correct on Claude; six greetings on `claude_haiku` all right; closed 2026-10-30 | T-03.2 to T-03.5 | 2026-10-28 |
 | 32 | [T-03.7](T-03_claude-provider/T-03.7_prices-of-the-other-claude-ids.md) | Prices of the other Claude ids | code | Done | the three ids priced from Anthropic's page of 2026-10-29 | T-03.4 | 2026-10-29 |
 
 ## D. T-04 A model out of capacity does not stop the message

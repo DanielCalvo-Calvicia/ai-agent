@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | in-progress (created 2026-10-28; T-03.1 to T-03.5 and T-03.7 done; T-03.6 run several times, the last six greetings on `claude_haiku` all right; kept open by the maintainer until the replies match the expected outcome) |
+| Status | done (created 2026-10-28; all subtasks done; closed by the maintainer on 2026-10-30) |
 | Kind | epic |
 | Parent | project |
 | Depends on | T-02 (the catalog and the profiles) |
@@ -32,7 +32,7 @@ The agent runs on Claude models through Anthropic's OpenAI-compatible endpoint, 
 | 3 | [T-03.3 Tests](T-03.3_tests.md) | test | done (2026-10-28) |
 | 4 | [T-03.4 Profile, price notes, generated tables](T-03.4_profile-and-price-notes.md) | code | done (2026-10-28) |
 | 5 | [T-03.5 Documentation and ADR-013](T-03.5_documentation.md) | docs | done (2026-10-28) |
-| 6 | [T-03.6 First real run on Claude](T-03.6_first-real-run-on-claude.md) | manual | in-progress (run twice; the second, with Sonnet, all right; a Business Central request ran on `claude_mixed` on 2026-10-29) |
+| 6 | [T-03.6 First real run on Claude](T-03.6_first-real-run-on-claude.md) | manual | done (2026-10-30) |
 | 7 | [T-03.7 Prices of the other Claude ids](T-03.7_prices-of-the-other-claude-ids.md) | code | done (2026-10-29) |
 
 ## Exit criteria
@@ -51,5 +51,5 @@ A Claude profile answers a conversation message, a task with a plan, a movement 
 ## Open points
 
 - The reply to a greeting on `claude-haiku-4-5` (known gap 13 of the requirements): the wrong reply of 2026-10-28 did not come back in six greetings on 2026-10-30, but the draft writer changed in between, so the cause is not known.
-- Kept open by the maintainer until the replies match the expected outcome.
+- Closed by the maintainer on 2026-10-30; a greeting that describes itself again would be a new finding (requirements gap 13).
 - Done since the first version of this epic: a plan, the Sonnet planner and the Business Central tools ran on Claude (`claude_mixed`, T-03.6 and T-01.9); the profile of T-01.9 was `claude_mixed`.
