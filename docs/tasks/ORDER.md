@@ -38,7 +38,7 @@ Written on 2026-10-27.
 
 | # | Task | Name | Kind | State | Detail | Depends on | Last updated |
 |---|---|---|---|---|---|---|---|
-| 14 | [T-02](T-02_model-catalog-refresh/T-02_model-catalog-refresh.md) | Model catalog refresh: no GitHub Models, Google free tier by default (epic) | epic | In progress | T-02.1, T-02.2 and T-02.4 to T-02.9 done on 2026-10-28; T-02.3 and T-02.10 done with the Anthropic models; the maintainer closes the epic | — | 2026-10-28 |
+| 14 | [T-02](T-02_model-catalog-refresh/T-02_model-catalog-refresh.md) | Model catalog refresh: no GitHub Models, Google free tier by default (epic) | epic | Done | all subtasks done; closed by the maintainer on 2026-10-30 (two exit criteria reworded in its closing note) | — | 2026-10-28 |
 | 15 | [T-02.1](T-02_model-catalog-refresh/T-02.1_decisions.md) | Decisions | decision | Done | decided in PR-004 section 8 (2026-10-27) | — | 2026-10-27 |
 | 16 | [T-02.2](T-02_model-catalog-refresh/T-02.2_profile-google-free.md) | Profile `google_free` | code | Done | verified with the suite | T-02.1 | 2026-10-28 |
 | 17 | [T-02.3](T-02_model-catalog-refresh/T-02.3_confirm-ids.md) | Confirm the ids with the real key | manual | Done | run on 2026-10-28: 4 free-tier Google ids answered, `gemini-3.8-flash` 503, `gemini-2.5-*` 404; the paid-only Google ids dropped; the six Anthropic ids answered | T-02.1 | 2026-10-28 |

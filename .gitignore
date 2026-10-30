@@ -4,3 +4,7 @@
 
 # Files written by the debugging tools of the tests
 tests/output/
+
+# Python bytecode
+__pycache__/
+*.pyc

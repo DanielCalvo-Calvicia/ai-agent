@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | in-progress (created 2026-10-27; T-02.1, T-02.2 and T-02.4 to T-02.9 done on 2026-10-28; T-02.3 and T-02.10 done on 2026-10-28 with the Anthropic models; the maintainer closes the epic) |
+| Status | done (created 2026-10-27; T-02.1, T-02.2 and T-02.4 to T-02.9 done on 2026-10-28; T-02.3 and T-02.10 done on 2026-10-28 with the Anthropic models; closed by the maintainer on 2026-10-30) |
 | Kind | epic |
 | Parent | project |
 | Depends on | — (it shares files with T-01, which is not committed: see Open points) |
@@ -67,3 +67,14 @@ T-02.4 to T-02.6 leave the suite red until T-02.7 ends; do them in one sitting.
 - **Free tier.** Google says free-tier content is used to improve its products, and its rate limits are not on the pricing page. Both go into `security.md` and `requirements.md` (T-02.9); the limits are checked at T-02.10.
 - **OpenAI adapter.** GPT-5 models reject `max_tokens`; whether GPT-6 and GPT-5.6 do too is unknown. None is a default; a model that needs an adapter change stays `needs adapter change`.
 - **Not decided here:** a dated price schedule (decision 4), and the real ids of the current Mistral models.
+
+## Closing note (2026-10-30)
+
+Closed by the maintainer. Two exit criteria above were overtaken by the maintainer's own later decisions and are met in their new form, not in the written one:
+
+- "the agent starts with `google_free`" and "`docs/models/*` name `google_free` as active": the active profile has been `proven` (every step on `gemini-3.1-flash-lite`) since 2026-10-28, after the free-tier probe (ADR-012, fourth dated note). `google_free` stays defined and tested.
+- "every id in `model_catalog.py` was found in the provider's documentation": `gemini-3.8-flash` kept answering 503 "high demand" and is not used by any profile; the paid-only ids (`gemini-4-argon`, `gemini-3.1-pro-preview`) were not called (T-02.3, changed scope).
+
+The "appears nowhere" criterion for the GitHub names also holds for tracked files: nine stale `__pycache__` files, two of them still holding `GithubModels` and `gpt-4.1`, were removed from git and the folder is ignored.
+
+Not scheduled (recorded in T-02.3, T-02.10 and ADR-012): a retry of `gemini-3.8-flash`, the run on `proven`, the token numbers of the Google profiles, the paid-only Google ids.

@@ -1,6 +1,6 @@
 # Tasks
 
-Hierarchical task plan, same format as `dynamics_microservice/docs/tasks`. Epics so far: **T-01 use the `dynamics_microservice` MCP tools from ai-agent** (in progress: everything but T-01.9, the maintainer's first real run, done on 2026-10-28; created 2026-10-27) and **T-03 Claude as a provider** (in progress: T-03.1 to T-03.5 done on 2026-10-28, T-03.6 run once; `docs/decisions/ADR-013-claude-through-sanitized-structured-outputs.md`) and **T-02 refresh the model catalog: no GitHub Models, Google free tier by default** (in progress: T-02.1, T-02.2 and T-02.4 to T-02.9 done on 2026-10-28; created 2026-10-27, plan in `docs/proposals/PR-004-model-catalog-gemini-free-tier.md`). It is written to be executed step by step: every leaf task states what to create or change, what it must not do and how to prove it is done.
+Hierarchical task plan, same format as `dynamics_microservice/docs/tasks`. Epics so far: **T-01 use the `dynamics_microservice` MCP tools from ai-agent** (done: T-01.9, the first real run, on 2026-10-29) and **T-03 Claude as a provider** (in progress: T-03.1 to T-03.5 and T-03.7 done, T-03.6 run twice and once with a Business Central request; `docs/decisions/ADR-013-claude-through-sanitized-structured-outputs.md`) and **T-02 refresh the model catalog: no GitHub Models, Google free tier by default** (done on 2026-10-30; created 2026-10-27, plan in `docs/proposals/PR-004-model-catalog-gemini-free-tier.md`). It is written to be executed step by step: every leaf task states what to create or change, what it must not do and how to prove it is done.
 
 The order, with the state and date of each task, is in [ORDER.md](ORDER.md). The board is in section 5. The prompts to start or resume the build in another session are in [PROMPTS.md](PROMPTS.md).
 
@@ -96,7 +96,7 @@ Verified on 2026-10-27 against both projects.
 | [T-01.7](T-01_dynamics-mcp/T-01.7_verification.md) | Verification with scripted LLMs | test | done (2026-10-28) |
 | [T-01.8](T-01_dynamics-mcp/T-01.8_documentation.md) | Documentation and ADR | docs | done (2026-10-28) |
 | [T-01.9](T-01_dynamics-mcp/T-01.9_first-real-run.md) | First real run | manual | done (2026-10-29: the tool path works; the open findings are in its Notes) |
-| [T-02](T-02_model-catalog-refresh/T-02_model-catalog-refresh.md) | **Model catalog refresh: no GitHub Models, Google free tier by default** (epic) | epic | in-progress (T-02.1, T-02.2 and T-02.4 to T-02.9 done on 2026-10-28; T-02.3 and T-02.10 done on 2026-10-28 with the Anthropic models; plan in [PR-004](../proposals/PR-004-model-catalog-gemini-free-tier.md)) |
+| [T-02](T-02_model-catalog-refresh/T-02_model-catalog-refresh.md) | **Model catalog refresh: no GitHub Models, Google free tier by default** (epic) | epic | done (all subtasks done on 2026-10-28, closed by the maintainer on 2026-10-30; plan in [PR-004](../proposals/PR-004-model-catalog-gemini-free-tier.md)) |
 | [T-02.1](T-02_model-catalog-refresh/T-02.1_decisions.md) | Decisions | decision | done (2026-10-27) |
 | [T-02.2](T-02_model-catalog-refresh/T-02.2_profile-google-free.md) | Profile `google_free` | code | done (2026-10-28) |
 | [T-02.3](T-02_model-catalog-refresh/T-02.3_confirm-ids.md) | Confirm the ids with the real key | manual | done (2026-10-28: free-tier Google ids and the six Anthropic ids; the paid-only Google ids dropped) |
