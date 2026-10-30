@@ -1,5 +1,7 @@
 > **REFERENCE (banner added 2026-10-01).** A list of GitHub Models ids. GitHub Models is retired (the old endpoint no longer resolves), so these models cannot be used today.
 
+> **Dated note 2026-10-28.** GitHub Models is retired (2026-07-30) and was removed from the service: `GithubModels`, `GITHUB_PAT` and `GITHUB_URL` no longer exist ([ADR-012](../decisions/ADR-012-gemini-free-tier-default-no-github-models.md)). This list is history.
+
 | Model ID | Provider | Category | Notes |
 |---|---|---|---|
 

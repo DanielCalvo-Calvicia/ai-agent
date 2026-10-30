@@ -200,7 +200,7 @@ class TestResponseObjects:
 
     def test_every_call_records_its_input_and_the_raw_json(self, full):
         call = full["project_manager"].calls[0]
-        assert call.model == "gpt-4.1" and call.system_prompt_chars > 1000
+        assert call.model == "gemini-3.6-flash" and call.system_prompt_chars > 1000
         assert call.user_message.startswith("{'user_goal':")
         assert set(call.raw) == {"actions", "next_step", "task_category_complexity"}
 
@@ -340,7 +340,7 @@ class TestMarkdownFiles:
     def test_the_top_holds_what_was_sent(self, tmp_path):
         text = write_files("full_path_with_mcp", tmp_path)["02_project_manager_phase2.md"]
         top = text.split("## 2.")[0]
-        assert "model: `gpt-4.1`" in top and "response format: `project_manager_phase2_response_format`" in top
+        assert "model: `gemini-3.6-flash`" in top and "response format: `project_manager_phase2_response_format`" in top
         assert "'available_mcp_servers'" in top                 # the user message
         assert "You are the PROJECT MANAGER." in top           # the system message
         assert '"$defs"' in top                                # the JSON schema

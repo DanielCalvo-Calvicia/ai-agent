@@ -18,6 +18,7 @@ import uuid
 from typing import Any, Dict, List, Optional, Tuple
 
 from application.orchestration.support.metrics import RequestRecord
+from application.outbound.ports.mcp_ports import ToolCallRecord
 from application.outbound.ports.usage_ports import CallDetails, UsageReporterPort
 from infrastructure.outbound.usage.prices import billed_output_tokens, cost_usd, load_prices
 from shared_logging import get_logger
@@ -55,29 +56,64 @@ class LangfuseUsageReporter(UsageReporterPort):
         except Exception:
             logger.exception("Could not queue the usage of an LLM call")
 
+    def report_tool_call(self, call: ToolCallRecord, trace_id: str, session_id: str, details: Optional[CallDetails] = None) -> None:
+        try:
+            self.queue.put(self.tool_call_payload(call, trace_id, session_id, details))
+        except Exception:
+            logger.exception("Could not queue a tool call")
+
+    def tool_call_payload(self, call: ToolCallRecord, trace_id: str, session_id: str,
+                          details: Optional[CallDetails] = None) -> Dict[str, Any]:
+        """The OTLP body of one tool call: a span named after the tool, with the outcome and the duration as metadata.
+        No input and no output (not the arguments, not the answer). The root span of the message comes first if no call
+        of the message was reported yet."""
+        otel_trace = _hex_id(trace_id, 32)
+        details = details or CallDetails()
+        started = call.started_ns or time.time_ns()
+        ended = call.ended_ns or started
+        spans = self._root_span_if_new(otel_trace, trace_id, session_id, details, started)
+
+        attributes = {
+            "langfuse.observation.type": "span",
+            "langfuse.session.id": session_id,
+            "langfuse.observation.metadata.kind": "mcp_tool_call",
+            "langfuse.observation.metadata.outcome": call.outcome,
+            "langfuse.observation.metadata.duration_ms": str(call.duration_ms),
+            "langfuse.observation.metadata.attempts": str(call.attempts),
+        }
+        if call.outcome != "ok":
+            attributes["langfuse.observation.level"] = "ERROR"
+        spans.append(_span(otel_trace, _hex_id(uuid.uuid4().hex, 16), self.root_spans[trace_id], call.tool, started, ended, attributes))
+        return {"resourceSpans": [{
+            "resource": {"attributes": [_attribute("service.name", SERVICE_NAME)]},
+            "scopeSpans": [{"scope": {"name": SERVICE_NAME}, "spans": spans}],
+        }]}
+
+    def _root_span_if_new(self, otel_trace: str, trace_id: str, session_id: str, details: CallDetails,
+                          started: int) -> List[Dict[str, Any]]:
+        """The root span of a message (what the user asked), the first time any call of the message is reported."""
+        if trace_id in self.root_spans:
+            return []
+        self.root_spans[trace_id] = _hex_id(uuid.uuid4().hex, 16)
+        trace_name = _trace_name(details.message)
+        root = {
+            "langfuse.observation.type": "span",
+            "langfuse.trace.name": trace_name,
+            "langfuse.session.id": session_id,
+        }
+        if details.message:
+            root["langfuse.trace.input"] = details.message
+            root["langfuse.observation.input"] = details.message
+        return [_span(otel_trace, self.root_spans[trace_id], "", trace_name, started, started, root)]
+
     def payload(self, record: RequestRecord, trace_id: str, session_id: str,
                 details: Optional[CallDetails] = None) -> Dict[str, Any]:
         """The OTLP body of one call: the root span of its message (first call only) and the generation."""
         otel_trace = _hex_id(trace_id, 32)
         details = details or CallDetails()
-        trace_name = _trace_name(details.message)
-        now = time.time_ns()
-        started = details.started_ns or now
+        started = details.started_ns or time.time_ns()
         ended = details.ended_ns or started
-        spans: List[Dict[str, Any]] = []
-
-        if trace_id not in self.root_spans:
-            self.root_spans[trace_id] = _hex_id(uuid.uuid4().hex, 16)
-            now = started                              # the message starts with its first call
-            root = {
-                "langfuse.observation.type": "span",
-                "langfuse.trace.name": trace_name,
-                "langfuse.session.id": session_id,
-            }
-            if details.message:
-                root["langfuse.trace.input"] = details.message
-                root["langfuse.observation.input"] = details.message
-            spans.append(_span(otel_trace, self.root_spans[trace_id], "", trace_name, now, now, root))
+        spans = self._root_span_if_new(otel_trace, trace_id, session_id, details, started)   # the message starts with its first call
 
         billed = billed_output_tokens(record.prompt_tokens, record.completion_tokens, record.total_tokens)
         attributes: Dict[str, Any] = {

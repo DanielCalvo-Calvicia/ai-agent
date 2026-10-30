@@ -20,7 +20,7 @@ from application.orchestration.phases.special import (
     project_manager,
     safety_gate,
 )
-from domain.value_objects.llm_request.model import GithubModels
+from domain.value_objects.llm_request.model import GoogleModels
 
 # The phases that are one LLM call (or one per action). The text ones (identification, conversation and special flows)
 # come first, in execution order: that order is the order of the step list in config/step_models.json.
@@ -51,7 +51,7 @@ class PhaseInfo:
     id: int
     step_name: str
     model_env_var: str
-    default_model: GithubModels
+    default_model: GoogleModels
     prompt_file: Optional[str]      # None for a phase whose prompt is a constant in its file
 
 

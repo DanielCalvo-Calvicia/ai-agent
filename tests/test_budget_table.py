@@ -9,8 +9,10 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from application.orchestration.support.model_selection import STEP_NAMES
-from budget_table import (DOC_PATH, MEASURED_PATH, WORKS_TEXT, budget_usd_per_message, combined, eur, load_budget,
-                          markdown, measured_cost, profile_choice, read)
+from budget_table import (DOC_PATH, MEASURED_PATH, OTHER_PATH, WORKS_TEXT, budget_usd_per_message, combined, eur,
+                          load_budget, markdown, measured_cost, profile_choice, read)
+from domain.value_objects.llm_request.model import get_selected_model
+from infrastructure.outbound.usage.prices import load_prices
 from cost_estimate import rows_for, total_row, usage
 from model_table import blended, read_config
 
@@ -42,7 +44,21 @@ class TestTheModelList:
         assert {m["works_today"] for m in DATA["models"]} <= set(WORKS_TEXT)
 
     def test_more_than_one_provider(self):
-        assert {m["provider"] for m in DATA["models"]} >= {"google", "openai", "anthropic", "mistral", "groq", "deepseek"}
+        assert {m["provider"] for m in DATA["models"]} >= {"google", "openai", "anthropic", "groq"}
+
+    def test_every_model_of_the_list_can_be_chosen(self):
+        for m in DATA["models"]:
+            assert get_selected_model(m["id"]).id == m["id"], m["id"]
+
+    def test_the_disabled_models_are_not_used_anywhere(self):
+        disabled = read(OTHER_PATH)["_disabled"]
+        assert disabled and all(m["disabled_reason"] for m in disabled)
+        ids = {m["id"] for m in disabled}
+        assert ids.isdisjoint(m["id"] for m in DATA["models"])
+        assert ids.isdisjoint(load_prices())
+        for model_id in ids:
+            with pytest.raises(TypeError):
+                get_selected_model(model_id)
 
 
 class TestTheBudget:
@@ -58,8 +74,11 @@ class TestTheBudget:
         for name in ("budget", "budget50", "budget50_groq"):
             assert big_total(name) <= limit, name
 
-    def test_the_default_profile_does_not_fit(self):
-        assert big_total("proven") > budget_usd_per_message(BUDGET)
+    def test_the_active_profile_fits_the_budget(self):
+        assert big_total(CONFIG["profile"]) <= budget_usd_per_message(BUDGET)
+
+    def test_google_free_does_not_fit_at_paid_prices(self):
+        assert big_total("google_free") > budget_usd_per_message(BUDGET)
 
     def test_a_small_plan_costs_less_than_a_big_one(self):
         b, s = BUDGET["big_plan"], BUDGET["small_plan"]

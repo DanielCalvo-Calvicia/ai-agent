@@ -1,0 +1,67 @@
+{
+  "_about": "Snapshot of the MCP tools of dynamics_microservice: names and parameters, read from the real tools/list on 2026-10-29 (T-01.9; before, from docs/api/mcp.md of that project, 2026-10-27). Placeholders only: no host, tenant, company or customer. A test checks that the allowed tools of mcps/dynamics_microservice.json are all in it and that the local fake server has the same parameters. Refresh it by hand when the service changes its tools.",
+  "tools": [
+    {
+      "name": "customer_orders",
+      "workflow": true,
+      "parameters": ["customer_no", "scope", "since", "environment", "company"],
+      "required": ["customer_no"]
+    },
+    {
+      "name": "order_status",
+      "workflow": true,
+      "parameters": ["customer_no", "order_no", "environment", "company"],
+      "required": ["customer_no", "order_no"]
+    },
+    {
+      "name": "customer_card",
+      "workflow": true,
+      "parameters": ["customer_no", "environment", "company"],
+      "required": ["customer_no"]
+    },
+    {
+      "name": "list_workflows",
+      "parameters": [],
+      "required": []
+    },
+    {
+      "name": "get_guidance",
+      "parameters": ["topic"],
+      "required": []
+    },
+    {
+      "name": "get_job_result",
+      "parameters": ["job_id", "offset_rows", "limit_rows", "environment", "company"],
+      "required": ["job_id"]
+    },
+    {
+      "name": "cancel_job",
+      "parameters": ["job_id", "environment", "company"],
+      "required": ["job_id"]
+    },
+    {
+      "name": "list_tables",
+      "generic": true,
+      "parameters": ["filter"],
+      "required": []
+    },
+    {
+      "name": "describe_table",
+      "generic": true,
+      "parameters": ["table"],
+      "required": ["table"]
+    },
+    {
+      "name": "plan_query",
+      "generic": true,
+      "parameters": ["fields", "operation", "output", "table"],
+      "required": ["table"]
+    },
+    {
+      "name": "run_query",
+      "generic": true,
+      "parameters": ["company", "environment", "fields", "operation", "output", "table"],
+      "required": ["table"]
+    }
+  ]
+}

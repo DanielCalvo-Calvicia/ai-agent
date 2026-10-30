@@ -115,7 +115,7 @@ tests/              pytest (all mock-based); tests/manual has scripts that call 
 
 ## Tests
 
-All run without keys, network or cost (about 640 tests, 25 s).
+All run without keys, network or cost (about 880 tests, a few minutes).
 
 | File | Covers |
 |---|---|
@@ -126,7 +126,7 @@ All run without keys, network or cost (about 640 tests, 25 s).
 | `test_parallel_actions.py`, `test_failures.py` | the action executor and the apologies for each kind of failure |
 | `test_schema_tree.py`, `test_phase_structure.py`, `test_orchestration_layout.py` | the structure: schema tree, one phase per file, one-way dependencies |
 | `test_model_config.py`, `test_budget_table.py`, `test_cost_estimate.py`, `test_usage_report.py` | model choice, cost tables, Langfuse reporting |
-| `test_agent_behavior.py`, `test_units.py`, `test_session_fastapi.py`, `test_tracing.py`, `test_mcp_*` | settings, providers, tools, the mapper, the HTTP layer, tracing, a real local MCP server |
+| `test_agent_behavior.py`, `test_units.py`, `test_session_fastapi.py`, `test_tracing.py`, `test_mcp_*` | settings, providers, tools, the mapper, the HTTP layer, tracing, a real local MCP server, and `test_mcp_dynamics_flow.py`: the Dynamics scenarios with a fake of the Go service |
 
 `tests/manual/` scripts call real LLMs and MCP servers; pytest does not collect them. They were not re-run after the redesign.
 The cross-service tests (a real ai-agent process, Brain's real composition root) are in `contracts/tests/e2e/` at the workspace root.
@@ -135,20 +135,22 @@ The cross-service tests (a real ai-agent process, Brain's real composition root)
 
 Open:
 
-1. **No real LLM call since the four-flow redesign.** The only real run was `gemini-2.5-flash` on 2026-09-21, before the flows
-   existed. The configured profile (`budget50_groq`) was never run as a combination, and GitHub Models, the code default, is retired.
-   Do one real call first (`tests/manual/full_flow_real_llm.py`; it costs money).
+1. **One real run since the four-flow redesign (2026-10-28), not on the active profile.** Three messages (a greeting, a request for three tips, a movement) went through the whole agent on `gemini-3-flash-preview` and were answered correctly; the active profile could not finish because Google answered 503 "high demand" for `gemini-3.1-flash-lite` that day (T-02.10). The profile `claude_haiku` (Claude, [ADR-013](docs/decisions/ADR-013-claude-through-sanitized-structured-outputs.md)) also ran once, on 2026-10-28 (three messages, 10 calls, no error; the greeting was answered with a description) and again with `claude-sonnet-5-5` on the planner, the draft writer and the editor (profile `claude_mixed`: 13 calls, no error, all three replies right, the first plan run on Claude). Before that the only real run was `gemini-2.5-flash` (a model Google no longer gives to new keys) on 2026-09-21, before the flows
+   existed. The configured profile (`proven`, active since 2026-10-28: every step on `gemini-3.1-flash-lite`, Google free tier) was never run on a whole message. The code defaults are `gemini-3.1-flash-lite` for the small steps and `gemini-3.6-flash` for the rest ([ADR-012](docs/decisions/ADR-012-gemini-free-tier-default-no-github-models.md)), which the free tier cuts off after about 7 calls a minute; GitHub Models is retired and gone from the service.
+   Repeat the run on the active profile when Google serves it (`tests/manual/chat_session.py`; free tier, small cost on a billed key).
 2. **The routing is only as good as triage's `domain`.** Everything depends on triage separating `communication` from a task ("make a
    table of my family" must be `writing`, not `communication`) and recognising a movement. The prompt explains each value, but only a
    real model can prove it. A wrong domain sends the message to the wrong flow, and a message that mixes a reply and a movement
    goes to one flow only. The movement flow answers a non-movement message with the planner's honest line, never silence.
 3. **stdio MCP servers** (`fetch`, `filesystem`) are not supported, but the project manager is still told they exist, so it may plan
-   actions that cannot run. `mcps/aws_microservice.json` hardcodes `http://localhost:8080/mcp/sse` (the Go service is unused today).
+   actions that cannot run. `mcps/aws_microservice.json` (SSE, hardcoded to `http://localhost:8080/mcp/sse`) is used by nothing; the Dynamics tools are `mcps/dynamics_microservice.json` (Streamable HTTP, the URL in `DYNAMICS_MCP_URL`).
 4. **Langfuse receives the user's text and the prompts** (not only metadata) when its keys are set. Use a project you trust.
 5. `SessionService` builds a `MessageFlowService` (a router and four pipelines) per message. It is cheap, but it is not "once".
 6. `constraints`, `mcp_routing` and `missing_information` are in the schemas and the domain but no phase writes them; `next_step.retry_action_id`
    is read but nothing acts on it.
 7. The movement flow was exercised only with scripted LLMs and fake hardware (never a real LLM or a real stepper).
+8. **The Dynamics tools** (read-only Business Central data: orders of a customer, the state of an order, a customer card; [ADR-011](docs/decisions/ADR-011-mcp-streamable-http.md)) were run only with scripted LLMs and a local fake of the Go service. No real model has picked a tool, followed a `running` answer up or worded an error; that is the first real run (T-01.9), done by the maintainer.
+9. **Known limits of those tools:** no authentication in either service (the Go endpoint is open, reached by a public IP and port over plain HTTP), no masking of customer data sent to the model provider and, on purpose in the prototype, to Langfuse, and no row limit in ai-agent. Details: [security](docs/security/security.md).
 
 Decisions worth knowing: Brain makes one call per utterance (it used to ask two flows in order); the fast-path heuristic and
 `robot_context` were removed; the answer schemas are one file per node, generated from `full.schema.json`;

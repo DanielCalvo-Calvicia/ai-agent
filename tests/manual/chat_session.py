@@ -5,6 +5,7 @@ message is a generation inside that trace. It costs money (cents) and needs the 
 
     windows/Scripts/python.exe tests/manual/chat_session.py --name="Weather chat"            the weather example
     windows/Scripts/python.exe tests/manual/chat_session.py --name="My chat" "hi" "and now?"  your own messages
+    windows/Scripts/python.exe tests/manual/chat_session.py --mcp "..."                         with the real MCP servers of mcps/*.json (without --mcp no tool is wired)
 
 Writes tests/output/chat_session/<name>.md with the conversation, and for every message the time, the LLM calls, the
 tokens and the cost (from config/*.json prices). Never prints keys. Not collected by pytest.
@@ -31,6 +32,7 @@ from budget_run import Collector, usd
 from infrastructure.outbound.llm.config import VercelAIConfig
 from infrastructure.outbound.llm.vercel import VercelAIAdapter
 from infrastructure.outbound.mcp.client_manager import MCPClientManager
+from infrastructure.outbound.mcp.config import load_supported_mcp_configs
 from infrastructure.outbound.mcp.tool_executor import MCPToolExecutor
 from infrastructure.outbound.usage.langfuse import LangfuseUsageReporter
 from infrastructure.outbound.usage.prices import cost_usd, load_prices
@@ -53,9 +55,11 @@ def main():
     prices = load_prices()
     langfuse = LangfuseUsageReporter.from_env()
     collector = Collector(langfuse)
-    executor = MCPToolExecutor(MCPClientManager([]))
+    # --mcp: the real MCP servers of mcps/*.json (DYNAMICS_MCP_URL...), as composition_root/main.py builds them; without it no tool is wired
+    mcp_list = load_supported_mcp_configs() if "--mcp" in args else []
+    executor = MCPToolExecutor(MCPClientManager(mcp_list))
     service = SessionService(outbound_port=VercelAIAdapter(Config=VercelAIConfig.from_env(tool_executor=executor)),
-                             mcp_list=[], mcp_tools=executor, usage_reporter=collector)
+                             mcp_list=mcp_list, mcp_tools=executor, usage_reporter=collector)
     session_id = service.start_session(
         StartSessionRequestDTO(user_id="tester", username="tester", session_name=name)).session_id
 

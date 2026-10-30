@@ -1,0 +1,15 @@
+{
+    "dynamics_microservice": {
+        "type": "streamable_http",
+        "url": "${DYNAMICS_MCP_URL}",
+        "allowed_tools": [
+            "customer_orders",
+            "order_status",
+            "customer_card",
+            "get_guidance",
+            "list_workflows",
+            "get_job_result",
+            "cancel_job"
+        ]
+    }
+}

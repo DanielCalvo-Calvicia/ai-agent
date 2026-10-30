@@ -1,7 +1,7 @@
 # Phase 3 - Safety & Quality Gatekeeper
 # Validates actions for safety and decides if user confirmation is needed.
 
-from domain.value_objects.llm_request.model import GithubModels
+from domain.value_objects.llm_request.model import GoogleModels
 
 from application.orchestration.phases.phase import PhaseSpec
 from application.orchestration.support.schemas import SchemaRef, schema_properties
@@ -10,7 +10,7 @@ from application.orchestration.support.schemas import SchemaRef, schema_properti
 PHASE_ID = 3
 STEP_NAME = "safety_quality_gatekeeper"
 MODEL_ENV_VAR = "AI_AGENT_MODEL_PHASE_3"
-DEFAULT_MODEL = GithubModels.GPT_4_1
+DEFAULT_MODEL = GoogleModels.GEMINI_3_6_FLASH
 PROMPT_FILE = "prompts/3_safety_quality_gatekeeper.txt"
 FORMAT_NAME = "safety_quality_gatekeeper_phase3_response_format"
 INTENT = ("decision_support", ("information_request",), 0.9)

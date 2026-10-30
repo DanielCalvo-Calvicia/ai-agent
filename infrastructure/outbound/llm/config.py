@@ -13,13 +13,11 @@ class VercelAIConfig:
     mistral_api_key: str = ""
     groq_api_key: str = ""
     cohere_api_key: str = ""
-    github_api_key: str = ""
     # Base URLs of the OpenAI-compatible endpoints.
     google_url: str = ""
     mistral_url: str = ""
     groq_url: str = ""
     cohere_url: str = ""
-    github_url: str = ""
     OLLAMA_URL: str = ""
     tool_executor: Optional[Any] = None
 
@@ -37,12 +35,10 @@ class VercelAIConfig:
             mistral_api_key=env("MISTRAL_API_KEY", ""),
             groq_api_key=env("GROQ_API_KEY", ""),
             cohere_api_key=env("COHERE_API_KEY", ""),
-            github_api_key=env("GITHUB_PAT", "") or env("GITHUB_API_KEY", ""),
             google_url=env("GOOGLE_URL", ""),
             mistral_url=env("MISTRAL_URL", ""),
             groq_url=env("GROQ_URL", ""),
             cohere_url=env("COHERE_URL", ""),
-            github_url=env("GITHUB_URL", ""),
             OLLAMA_URL=env("OLLAMA_URL", ""),
             tool_executor=tool_executor,
         )

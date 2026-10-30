@@ -5,7 +5,7 @@
 from application.orchestration.state.flow_state import FlowState
 from application.orchestration.state.paused_run import PausedRun
 from application.orchestration.phases.phase import PhaseSpec
-from domain.value_objects.llm_request.model import GithubModels
+from domain.value_objects.llm_request.model import GoogleModels
 
 # What the user's reply is.
 ANSWERED = "answered"
@@ -18,7 +18,7 @@ STOP = "stop"
 PHASE_ID = 9
 STEP_NAME = "answer_checker"
 MODEL_ENV_VAR = "AI_AGENT_MODEL_PHASE_9"
-DEFAULT_MODEL = GithubModels.GPT_4_1_MINI
+DEFAULT_MODEL = GoogleModels.GEMINI_3_1_FLASH_LITE
 PROMPT_FILE = "prompts/9_answer_checker.txt"
 FORMAT_NAME = "answer_checker_phase9_response_format"
 INTENT = ("clarification_request", (), 0.9)

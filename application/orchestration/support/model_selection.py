@@ -13,11 +13,15 @@ import json
 import os
 from typing import Any, Dict, Optional, Tuple
 
+from shared_logging import get_logger
+
 from application.orchestration.support.metrics import ALL_PHASE_NAMES, PHASE_NAMES
 from application.orchestration.phases.catalog import PHASES
-from domain.value_objects.llm_request.model import GithubModels, SelectedModel, get_selected_model
+from domain.value_objects.llm_request.model import GoogleModels, SelectedModel, get_selected_model
 
 MODELS_FILE_VARIABLE = "AI_AGENT_MODELS_FILE"
+FALLBACK_VARIABLE = "AI_AGENT_FALLBACK_MODELS"      # comma-separated ids; wins over the `fallback_models` of the active profile
+FALLBACK_KEY = "fallback_models"                    # in a profile: a list of ids tried, in order, when the chosen model is out of capacity
 DEFAULT_MODELS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', 'config', 'step_models.json')
 
 # The steps of the text flows (identification, conversation, special): what the cost, budget and ratings tables cover. A step of the movement flow
@@ -25,6 +29,8 @@ DEFAULT_MODELS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '
 STEP_NAMES = list(PHASE_NAMES.values())
 ALL_STEP_NAMES = list(ALL_PHASE_NAMES.values())
 _PHASE_OF = {name: phase for phase, name in PHASE_NAMES.items()}
+
+logger = get_logger(__name__)
 
 _cache: Dict[str, Tuple[float, dict]] = {}
 
@@ -70,7 +76,7 @@ def _check(config: dict, path: str) -> None:
     """Fails with a clear message on an unknown step, profile or model, so a typo is not silently ignored."""
     def check_step_names(names, where):
         for name in names:
-            if not name.startswith("_") and name not in ALL_STEP_NAMES and name != "default":
+            if not name.startswith("_") and name not in ALL_STEP_NAMES and name not in ("default", FALLBACK_KEY):
                 raise ValueError(f"{path}: {where} has an unknown step {name!r}. Steps: {', '.join(ALL_STEP_NAMES)}")
 
     steps = config.get("steps") or {}
@@ -84,6 +90,12 @@ def _check(config: dict, path: str) -> None:
     for profile_name, profile in profiles.items():
         check_step_names(profile, f"profile {profile_name!r}")
         for name, model in profile.items():
+            if name == FALLBACK_KEY:
+                if not isinstance(model, list):
+                    raise ValueError(f"{path}: profiles.{profile_name}.{FALLBACK_KEY} must be a list of model ids")
+                for item in model:
+                    _as_selected(str(item), f"{path}: profiles.{profile_name}.{FALLBACK_KEY}")
+                continue
             chosen = _model(model)
             if not name.startswith("_") and chosen:
                 _as_selected(chosen, f"{path}: profiles.{profile_name}.{name}")
@@ -122,11 +134,11 @@ def choose(phase_id: int) -> Tuple[Optional[str], str]:
     return None, "code default"
 
 
-def model_for_phase(phase_id: int, default: GithubModels) -> SelectedModel:
+def model_for_phase(phase_id: int, default: GoogleModels) -> SelectedModel:
     """
     The model of a phase (see the order of precedence at the top of this file).
     The provider is the first one of the catalog that lists the id (OpenAI, Google, Anthropic, Mistral, Cohere,
-    Groq, Ollama, then GitHub), and it needs that provider's key and URL.
+    Groq, Ollama), and it needs that provider's key and URL.
     """
     chosen, source = choose(phase_id)
     if chosen is None:
@@ -134,6 +146,26 @@ def model_for_phase(phase_id: int, default: GithubModels) -> SelectedModel:
 
     where = source if source.startswith("env") else f"{models_file()} ({source})"
     return _as_selected(chosen, where)
+
+
+def fallback_models() -> list:
+    """
+    The models to try, in order, when the chosen one is out of capacity: AI_AGENT_FALLBACK_MODELS (an empty value means
+    none), else `fallback_models` of the active profile, else none. An id of the variable that is not in the catalog is skipped
+    (the failure that led here must not be hidden by a typo); one of the config file was already checked when it was loaded.
+    """
+    if FALLBACK_VARIABLE in os.environ:
+        chosen = []
+        for model_id in [i.strip() for i in os.environ[FALLBACK_VARIABLE].split(",") if i.strip()]:
+            try:
+                chosen.append(get_selected_model(model_id))
+            except (ValueError, TypeError):
+                logger.warning("Fallback model is not in the catalog, skipping it", variable=FALLBACK_VARIABLE)
+        return chosen
+
+    config = load_config()
+    profile = (config.get("profiles") or {}).get(_model(config.get("profile")) or "", {})
+    return [get_selected_model(str(i)) for i in profile.get(FALLBACK_KEY) or []]
 
 
 def effective_models() -> Dict[str, Tuple[str, str]]:

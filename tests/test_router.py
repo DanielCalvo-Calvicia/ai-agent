@@ -257,3 +257,65 @@ class TestNoMovementLeftInTheTextFlows:
 
     def test_the_writer_prompt_knows_nothing_about_a_robot_context(self):
         assert "robot_context" not in LoadSystemPrompt(7)
+
+
+
+# ===============================================
+#  BUSINESS CENTRAL DATA (T-01.5)
+# ===============================================
+
+TOOL_NAMES = ("customer_orders", "order_status", "customer_card", "get_guidance", "list_workflows", "get_job_result",
+              "cancel_job", "run_query", "list_tables", "describe_table", "plan_query")
+
+
+class TestBusinessCentralData:
+    def test_the_capabilities_no_longer_deny_every_external_service(self):
+        text = LoadCapabilities()
+        assert "No external service is connected" not in text
+        assert "No other external service is connected" in text
+
+    def test_the_capabilities_list_reading_business_data_and_only_reading(self):
+        text = LoadCapabilities()
+        assert "Business Central" in text and "orders of a customer" in text and "customer card" in text
+        assert "can only READ" in text and "create, change or delete business data" in text
+        assert "never from memory or a guess" in text                      # never invent data stays
+
+    def test_what_the_robot_still_cannot_do_is_still_refused(self):
+        text = LoadCapabilities()
+        for cannot in ("read, create, change or delete files", "read email, calendar", "browse the internet"):
+            assert cannot in text
+        prompt = LoadSystemPrompt(1)
+        assert "files, email, calendar" in prompt                          # the capability check keeps those
+
+    def test_the_triage_prompt_sends_business_data_to_a_non_communication_domain(self):
+        prompt = " ".join(LoadSystemPrompt(1).split())          # the sentences wrap across lines in the file
+        assert 'is "data"' in prompt and 'never "communication"' in prompt
+        assert "orders of customer X" in prompt
+        assert "it is not impossible" in prompt
+
+    def test_the_new_lines_speak_of_the_user_and_name_no_tool_host_or_company(self):
+        for text in (LoadCapabilities(), LoadSystemPrompt(1)):
+            assert not any(name in text for name in TOOL_NAMES)
+            assert "http" not in text and "://" not in text
+
+    def test_a_request_for_the_orders_of_a_customer_is_routed_to_the_special_flow_and_planned_as_a_tool_call(self):
+        llm = ScriptedLLM(overrides={TRIAGE: triage("data", summary="orders of customer X"),
+                                     PM: _plan(_action("1", "mcp_tool_call"))})
+
+        result = route(llm, "what are the open orders of customer X?")
+
+        names = [short(f) for f in formats(llm)]
+        assert result.flow == "special"
+        assert names[:2] == ["triage_specialist_phase1", "project_manager_phase2"]
+        assert any(n.startswith("phase5") or "single_action" in n for n in names)      # the tool step ran
+        assert names[-2:] == ["draft_writer_phase7", "editor_in_chief_phase8"]
+        assert not any("motion" in n for n in names)
+
+    def test_a_request_the_robot_still_cannot_do_is_still_answered_by_telling_so_not_by_a_tool(self):
+        refusal = _plan(_action("1", "generation"))
+        llm = ScriptedLLM(overrides={TRIAGE: triage("communication"), PM: refusal})
+
+        result = route(llm, "can you read my email?")
+
+        assert result.flow == "conversation"
+        assert not any("single_action" in f or "project_manager" in f for f in formats(llm))

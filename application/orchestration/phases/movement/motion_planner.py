@@ -3,7 +3,7 @@
 # (which arm, how far) it says so in next_step and the flow asks the user. A message that asks for
 # no movement at all (triage can be wrong about the domain) gets an empty list and a spoken line.
 
-from domain.value_objects.llm_request.model import GithubModels
+from domain.value_objects.llm_request.model import GoogleModels
 from domain.value_objects.movement.movement import Movement
 
 from application.orchestration.state.flow_state import FlowState
@@ -15,7 +15,7 @@ from application.orchestration.support.schemas import SchemaRef, schema_properti
 PHASE_ID = 20
 STEP_NAME = "motion_planner"
 MODEL_ENV_VAR = "AI_AGENT_MODEL_PHASE_20"
-DEFAULT_MODEL = GithubModels.GPT_4_1
+DEFAULT_MODEL = GoogleModels.GEMINI_3_6_FLASH
 PROMPT_FILE = "prompts/20_motion_planner.txt"
 FORMAT_NAME = "motion_planner_phase20_response_format"
 INTENT = ("decision_support", ("information_request",), 0.9)

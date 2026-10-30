@@ -5,12 +5,12 @@
         "format": "triage_specialist_phase1_response_format",
         "intent": "Intent(primary='clarification_request', secondary=('information_request',), confidence=1.0)",
         "max_tokens": 10000,
-        "model": "gpt-4.1-mini",
+        "model": "gemini-3.1-flash-lite",
         "reasoning": "None",
         "schema_sha": "d6b3ecff99bbab3abfc35d5a58ccef96e90a296bab320f00520283454bafb161",
         "seed": null,
-        "system_prompt_len": 5567,
-        "system_prompt_sha": "3037a179f8579e61518133f734bea03b98a3b97466bdbfc60d51aeff8bb5be48",
+        "system_prompt_len": 6491,
+        "system_prompt_sha": "d22db688326b2f35b1a560f44347b03e108ccfdb9f970d7605ee2634fc7fc053",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -20,12 +20,12 @@
         "format": "project_manager_phase2_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "481c93c6013cdc3882a717292063a81f361bb46c5cd04833a8d1638b9cf407c3",
         "seed": null,
-        "system_prompt_len": 5885,
-        "system_prompt_sha": "515e4292435e6ef2a38c7450e1e0d8fa3baf94d536c978620baff1fd4f7276bb",
+        "system_prompt_len": 7366,
+        "system_prompt_sha": "3605ff95f57704bc50c6a5c2de039764756f9f0b234d660273a557f1b566bab9",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -35,12 +35,12 @@
         "format": "safety_quality_gatekeeper_phase3_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "60be9fff021c79ce230339ae0da57527504778cf03aa4285241483b61f01070e",
         "seed": null,
-        "system_prompt_len": 3796,
-        "system_prompt_sha": "5c2668f74b2961b00b6925476b246c8c73e035c35a213d04fa0790a77986ea72",
+        "system_prompt_len": 4578,
+        "system_prompt_sha": "6d2e7ccfe35f999798c9eabf6f784e899ca437582b9f4c53a46d55deefaf9228",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -50,12 +50,12 @@
         "format": "phase4_single_action_response_format",
         "intent": "Intent(primary='decision_support', secondary=(), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "18fe8573d8a9f260a671fa2eab4371f1b17ff98341a9883e54c560f3932cf271",
         "seed": null,
-        "system_prompt_len": 3478,
-        "system_prompt_sha": "07df5c2daf93e31038ab08cf24f7eba23c4039a42bcb80617abeb53cd9ede09c",
+        "system_prompt_len": 3917,
+        "system_prompt_sha": "70befbfcb34d31a792cce12a2513164d1ea6a4a6cf4e7225d1e2ba3282282517",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -65,12 +65,12 @@
         "format": "phase4_single_action_response_format",
         "intent": "Intent(primary='decision_support', secondary=(), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "18fe8573d8a9f260a671fa2eab4371f1b17ff98341a9883e54c560f3932cf271",
         "seed": null,
-        "system_prompt_len": 3478,
-        "system_prompt_sha": "07df5c2daf93e31038ab08cf24f7eba23c4039a42bcb80617abeb53cd9ede09c",
+        "system_prompt_len": 3917,
+        "system_prompt_sha": "70befbfcb34d31a792cce12a2513164d1ea6a4a6cf4e7225d1e2ba3282282517",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -80,12 +80,12 @@
         "format": "phase4_single_action_response_format",
         "intent": "Intent(primary='decision_support', secondary=(), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "18fe8573d8a9f260a671fa2eab4371f1b17ff98341a9883e54c560f3932cf271",
         "seed": null,
-        "system_prompt_len": 3478,
-        "system_prompt_sha": "07df5c2daf93e31038ab08cf24f7eba23c4039a42bcb80617abeb53cd9ede09c",
+        "system_prompt_len": 3917,
+        "system_prompt_sha": "70befbfcb34d31a792cce12a2513164d1ea6a4a6cf4e7225d1e2ba3282282517",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -95,12 +95,12 @@
         "format": "phase4_single_action_response_format",
         "intent": "Intent(primary='decision_support', secondary=(), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "18fe8573d8a9f260a671fa2eab4371f1b17ff98341a9883e54c560f3932cf271",
         "seed": null,
-        "system_prompt_len": 3478,
-        "system_prompt_sha": "07df5c2daf93e31038ab08cf24f7eba23c4039a42bcb80617abeb53cd9ede09c",
+        "system_prompt_len": 3917,
+        "system_prompt_sha": "70befbfcb34d31a792cce12a2513164d1ea6a4a6cf4e7225d1e2ba3282282517",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -110,27 +110,27 @@
         "format": "draft_writer_phase7_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "bbe08f1c92d789b4ce521e7fc8786fd56a525623386354344d4ebdfc612eebc9",
         "seed": null,
-        "system_prompt_len": 2882,
-        "system_prompt_sha": "8f9ed2e14a1eaef888148ba541a2230f28d23ae9604819ec62b92cf91858980e",
+        "system_prompt_len": 5619,
+        "system_prompt_sha": "024088541fa5e77163a818d44c851ef0b0b91d5b18a248a5d9954df165e1a422",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
-        "user_message": "{'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.SYSTEM: 'system'>), type=Type(value=<Types.ANALYSIS: 'analysis'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'actions': [Action(id=Id(value='1'), description=Description(value='step 1'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=None, required_inputs=None, output=Output(value='out-p4-1'), error=None, subactions={'1.1': Action(id=Id(value='1.1'), description=Description(value='step 1.1'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=None, required_inputs=None, output=Output(value='out-p4-1.1'), error=None, subactions=None), '1.2': Action(id=Id(value='1.2'), description=Description(value='step 1.2'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=Dependencies(value=['1.1']), required_inputs=None, output=Output(value='out-p4-1.2'), error=None, subactions=None)}), Action(id=Id(value='2'), description=Description(value='step 2'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=Dependencies(value=['1']), required_inputs=None, output=Output(value='out-p4-2'), error=None, subactions=None)], 'constraints': None}"
+        "user_message": "{'user_message': 'plan my day', 'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.SYSTEM: 'system'>), type=Type(value=<Types.ANALYSIS: 'analysis'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'actions': [Action(id=Id(value='1'), description=Description(value='step 1'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=None, required_inputs=None, output=Output(value='out-p4-1'), error=None, subactions={'1.1': Action(id=Id(value='1.1'), description=Description(value='step 1.1'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=None, required_inputs=None, output=Output(value='out-p4-1.1'), error=None, subactions=None), '1.2': Action(id=Id(value='1.2'), description=Description(value='step 1.2'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=Dependencies(value=['1.1']), required_inputs=None, output=Output(value='out-p4-1.2'), error=None, subactions=None)}), Action(id=Id(value='2'), description=Description(value='step 2'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=Dependencies(value=['1']), required_inputs=None, output=Output(value='out-p4-2'), error=None, subactions=None)], 'constraints': None}"
       },
       {
         "format": "editor_in_chief_phase8_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "5cb5aad982bc0d9e94c099fa2ec75d6b1d4340a7fa8c7881ad499298b95daccb",
         "seed": null,
-        "system_prompt_len": 3362,
-        "system_prompt_sha": "c6325a4919439f9b3eabbf91382dec831a152507fb8a5bdd221c2bda4f2ec504",
+        "system_prompt_len": 4320,
+        "system_prompt_sha": "44042e332561e9ab3b90cb1094a42e4b0aeec96604891e9489125ac3bc3b3c7e",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -139,22 +139,22 @@
     ],
     "metrics": {
       "by_model": {
-        "gpt-4.1": {
-          "completion": 40,
-          "prompt": 80,
-          "requests": 8,
-          "total": 120
-        },
-        "gpt-4.1-mini": {
+        "gemini-3.1-flash-lite": {
           "completion": 5,
           "prompt": 10,
           "requests": 1,
           "total": 15
+        },
+        "gemini-3.6-flash": {
+          "completion": 40,
+          "prompt": 80,
+          "requests": 8,
+          "total": 120
         }
       },
       "by_phase": {
         "cognitive_worker": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 20,
             "prompt": 40,
             "requests": 4,
@@ -162,7 +162,7 @@
           }
         },
         "draft_writer": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -170,7 +170,7 @@
           }
         },
         "editor_in_chief": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -178,7 +178,7 @@
           }
         },
         "project_manager": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -186,7 +186,7 @@
           }
         },
         "safety_quality_gatekeeper": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -194,7 +194,7 @@
           }
         },
         "triage_specialist": {
-          "gpt-4.1-mini": {
+          "gemini-3.1-flash-lite": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -206,7 +206,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1-mini",
+          "model": "gemini-3.1-flash-lite",
           "phase_id": 1,
           "phase_name": "triage_specialist",
           "prompt_tokens": 10,
@@ -215,7 +215,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 2,
           "phase_name": "project_manager",
           "prompt_tokens": 10,
@@ -224,7 +224,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 3,
           "phase_name": "safety_quality_gatekeeper",
           "prompt_tokens": 10,
@@ -233,7 +233,7 @@
         {
           "action_id": "1.1",
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 4,
           "phase_name": "cognitive_worker",
           "prompt_tokens": 10,
@@ -242,7 +242,7 @@
         {
           "action_id": "1.2",
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 4,
           "phase_name": "cognitive_worker",
           "prompt_tokens": 10,
@@ -251,7 +251,7 @@
         {
           "action_id": "1",
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 4,
           "phase_name": "cognitive_worker",
           "prompt_tokens": 10,
@@ -260,7 +260,7 @@
         {
           "action_id": "2",
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 4,
           "phase_name": "cognitive_worker",
           "prompt_tokens": 10,
@@ -269,7 +269,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 7,
           "phase_name": "draft_writer",
           "prompt_tokens": 10,
@@ -278,13 +278,14 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 8,
           "phase_name": "editor_in_chief",
           "prompt_tokens": 10,
           "total_tokens": 15
         }
       ],
+      "tool_calls": [],
       "total_completion_tokens": 45,
       "total_prompt_tokens": 90,
       "total_requests": 9,
@@ -298,12 +299,12 @@
         "format": "triage_specialist_phase1_response_format",
         "intent": "Intent(primary='clarification_request', secondary=('information_request',), confidence=1.0)",
         "max_tokens": 10000,
-        "model": "gpt-4.1-mini",
+        "model": "gemini-3.1-flash-lite",
         "reasoning": "None",
         "schema_sha": "d6b3ecff99bbab3abfc35d5a58ccef96e90a296bab320f00520283454bafb161",
         "seed": null,
-        "system_prompt_len": 5567,
-        "system_prompt_sha": "3037a179f8579e61518133f734bea03b98a3b97466bdbfc60d51aeff8bb5be48",
+        "system_prompt_len": 6491,
+        "system_prompt_sha": "d22db688326b2f35b1a560f44347b03e108ccfdb9f970d7605ee2634fc7fc053",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -313,27 +314,27 @@
         "format": "draft_writer_phase7_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "bbe08f1c92d789b4ce521e7fc8786fd56a525623386354344d4ebdfc612eebc9",
         "seed": null,
-        "system_prompt_len": 2882,
-        "system_prompt_sha": "8f9ed2e14a1eaef888148ba541a2230f28d23ae9604819ec62b92cf91858980e",
+        "system_prompt_len": 5619,
+        "system_prompt_sha": "024088541fa5e77163a818d44c851ef0b0b91d5b18a248a5d9954df165e1a422",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
-        "user_message": "{'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.COMUNICATION: 'communication'>), type=Type(value=<Types.GENERATION: 'generation'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'actions': None, 'constraints': None}"
+        "user_message": "{'user_message': 'hello there', 'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.COMUNICATION: 'communication'>), type=Type(value=<Types.GENERATION: 'generation'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'actions': None, 'constraints': None}"
       },
       {
         "format": "editor_in_chief_phase8_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "5cb5aad982bc0d9e94c099fa2ec75d6b1d4340a7fa8c7881ad499298b95daccb",
         "seed": null,
-        "system_prompt_len": 3362,
-        "system_prompt_sha": "c6325a4919439f9b3eabbf91382dec831a152507fb8a5bdd221c2bda4f2ec504",
+        "system_prompt_len": 4320,
+        "system_prompt_sha": "44042e332561e9ab3b90cb1094a42e4b0aeec96604891e9489125ac3bc3b3c7e",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -342,22 +343,22 @@
     ],
     "metrics": {
       "by_model": {
-        "gpt-4.1": {
-          "completion": 10,
-          "prompt": 20,
-          "requests": 2,
-          "total": 30
-        },
-        "gpt-4.1-mini": {
+        "gemini-3.1-flash-lite": {
           "completion": 5,
           "prompt": 10,
           "requests": 1,
           "total": 15
+        },
+        "gemini-3.6-flash": {
+          "completion": 10,
+          "prompt": 20,
+          "requests": 2,
+          "total": 30
         }
       },
       "by_phase": {
         "draft_writer": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -365,7 +366,7 @@
           }
         },
         "editor_in_chief": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -373,7 +374,7 @@
           }
         },
         "triage_specialist": {
-          "gpt-4.1-mini": {
+          "gemini-3.1-flash-lite": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -385,7 +386,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1-mini",
+          "model": "gemini-3.1-flash-lite",
           "phase_id": 1,
           "phase_name": "triage_specialist",
           "prompt_tokens": 10,
@@ -394,7 +395,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 7,
           "phase_name": "draft_writer",
           "prompt_tokens": 10,
@@ -403,13 +404,14 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 8,
           "phase_name": "editor_in_chief",
           "prompt_tokens": 10,
           "total_tokens": 15
         }
       ],
+      "tool_calls": [],
       "total_completion_tokens": 15,
       "total_prompt_tokens": 30,
       "total_requests": 3,
@@ -423,12 +425,12 @@
         "format": "triage_specialist_phase1_response_format",
         "intent": "Intent(primary='clarification_request', secondary=('information_request',), confidence=1.0)",
         "max_tokens": 10000,
-        "model": "gpt-4.1-mini",
+        "model": "gemini-3.1-flash-lite",
         "reasoning": "None",
         "schema_sha": "d6b3ecff99bbab3abfc35d5a58ccef96e90a296bab320f00520283454bafb161",
         "seed": null,
-        "system_prompt_len": 5567,
-        "system_prompt_sha": "3037a179f8579e61518133f734bea03b98a3b97466bdbfc60d51aeff8bb5be48",
+        "system_prompt_len": 6491,
+        "system_prompt_sha": "d22db688326b2f35b1a560f44347b03e108ccfdb9f970d7605ee2634fc7fc053",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -438,12 +440,12 @@
         "format": "project_manager_phase2_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "481c93c6013cdc3882a717292063a81f361bb46c5cd04833a8d1638b9cf407c3",
         "seed": null,
-        "system_prompt_len": 5885,
-        "system_prompt_sha": "515e4292435e6ef2a38c7450e1e0d8fa3baf94d536c978620baff1fd4f7276bb",
+        "system_prompt_len": 7366,
+        "system_prompt_sha": "3605ff95f57704bc50c6a5c2de039764756f9f0b234d660273a557f1b566bab9",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -453,12 +455,12 @@
         "format": "safety_quality_gatekeeper_phase3_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "60be9fff021c79ce230339ae0da57527504778cf03aa4285241483b61f01070e",
         "seed": null,
-        "system_prompt_len": 3796,
-        "system_prompt_sha": "5c2668f74b2961b00b6925476b246c8c73e035c35a213d04fa0790a77986ea72",
+        "system_prompt_len": 4578,
+        "system_prompt_sha": "6d2e7ccfe35f999798c9eabf6f784e899ca437582b9f4c53a46d55deefaf9228",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -468,12 +470,12 @@
         "format": "phase4_single_action_response_format",
         "intent": "Intent(primary='decision_support', secondary=(), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "18fe8573d8a9f260a671fa2eab4371f1b17ff98341a9883e54c560f3932cf271",
         "seed": null,
-        "system_prompt_len": 3478,
-        "system_prompt_sha": "07df5c2daf93e31038ab08cf24f7eba23c4039a42bcb80617abeb53cd9ede09c",
+        "system_prompt_len": 3917,
+        "system_prompt_sha": "70befbfcb34d31a792cce12a2513164d1ea6a4a6cf4e7225d1e2ba3282282517",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -483,12 +485,12 @@
         "format": "phase5_single_action_response_format",
         "intent": "Intent(primary='decision_support', secondary=(), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "18fe8573d8a9f260a671fa2eab4371f1b17ff98341a9883e54c560f3932cf271",
         "seed": null,
-        "system_prompt_len": 3384,
-        "system_prompt_sha": "4c3df2a24aab9dd7fb5ca22ca56926f3886a09b34f7bce13c4bafb632aa6c8a9",
+        "system_prompt_len": 4961,
+        "system_prompt_sha": "d5f002ccac434b365b5924271fad1caa3842f94a08ab1eb9188ae8be733f1f19",
         "temperature": 1.0,
         "tools": "[{\"config\": {\"type\": \"sse\", \"url\": \"http://example.invalid/mcp/sse\"}, \"name\": \"aws_microservice\", \"type\": \"sse\"}]",
         "top_p": null,
@@ -498,12 +500,12 @@
         "format": "phase6_single_action_response_format",
         "intent": "Intent(primary='decision_support', secondary=(), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.1-flash-lite",
         "reasoning": "None",
         "schema_sha": "18fe8573d8a9f260a671fa2eab4371f1b17ff98341a9883e54c560f3932cf271",
         "seed": null,
-        "system_prompt_len": 3250,
-        "system_prompt_sha": "171711df23960b3e1adab51b336354d8c0feac5d3ed99699f865ddc1e4baf502",
+        "system_prompt_len": 3979,
+        "system_prompt_sha": "84abe6c6a36e27cda011108f301ac859881d0524195794c92cff30472146b206",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -513,27 +515,27 @@
         "format": "draft_writer_phase7_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "bbe08f1c92d789b4ce521e7fc8786fd56a525623386354344d4ebdfc612eebc9",
         "seed": null,
-        "system_prompt_len": 2882,
-        "system_prompt_sha": "8f9ed2e14a1eaef888148ba541a2230f28d23ae9604819ec62b92cf91858980e",
+        "system_prompt_len": 5619,
+        "system_prompt_sha": "024088541fa5e77163a818d44c851ef0b0b91d5b18a248a5d9954df165e1a422",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
-        "user_message": "{'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.SYSTEM: 'system'>), type=Type(value=<Types.ANALYSIS: 'analysis'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'actions': [Action(id=Id(value='a1'), description=Description(value='think'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=None, required_inputs=None, output=Output(value='out-p4-a1'), error=None, subactions=None), Action(id=Id(value='a2'), description=Description(value='call tool'), action_type=ActionType(value='mcp_tool_call'), mcp_context=McpContext(server_id='aws_microservice', tool_name='get_weather', parameters={'city': 'Madrid'}), dependencies=Dependencies(value=['a1']), required_inputs=None, output=Output(value='out-p6-a2'), error=None, subactions=None)], 'constraints': None}"
+        "user_message": "{'user_message': 'what is the weather', 'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.SYSTEM: 'system'>), type=Type(value=<Types.ANALYSIS: 'analysis'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'actions': [Action(id=Id(value='a1'), description=Description(value='think'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=None, required_inputs=None, output=Output(value='out-p4-a1'), error=None, subactions=None), Action(id=Id(value='a2'), description=Description(value='call tool'), action_type=ActionType(value='mcp_tool_call'), mcp_context=McpContext(server_id='aws_microservice', tool_name='get_weather', parameters={'city': 'Madrid'}), dependencies=Dependencies(value=['a1']), required_inputs=None, output=Output(value='out-p6-a2'), error=None, subactions=None)], 'constraints': None}"
       },
       {
         "format": "editor_in_chief_phase8_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "5cb5aad982bc0d9e94c099fa2ec75d6b1d4340a7fa8c7881ad499298b95daccb",
         "seed": null,
-        "system_prompt_len": 3362,
-        "system_prompt_sha": "c6325a4919439f9b3eabbf91382dec831a152507fb8a5bdd221c2bda4f2ec504",
+        "system_prompt_len": 4320,
+        "system_prompt_sha": "44042e332561e9ab3b90cb1094a42e4b0aeec96604891e9489125ac3bc3b3c7e",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -542,22 +544,22 @@
     ],
     "metrics": {
       "by_model": {
-        "gpt-4.1": {
-          "completion": 35,
-          "prompt": 70,
-          "requests": 7,
-          "total": 105
+        "gemini-3.1-flash-lite": {
+          "completion": 10,
+          "prompt": 20,
+          "requests": 2,
+          "total": 30
         },
-        "gpt-4.1-mini": {
-          "completion": 5,
-          "prompt": 10,
-          "requests": 1,
-          "total": 15
+        "gemini-3.6-flash": {
+          "completion": 30,
+          "prompt": 60,
+          "requests": 6,
+          "total": 90
         }
       },
       "by_phase": {
         "cognitive_worker": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -565,7 +567,7 @@
           }
         },
         "data_engineer": {
-          "gpt-4.1": {
+          "gemini-3.1-flash-lite": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -573,7 +575,7 @@
           }
         },
         "draft_writer": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -581,7 +583,7 @@
           }
         },
         "editor_in_chief": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -589,7 +591,7 @@
           }
         },
         "mcp_operator": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -597,7 +599,7 @@
           }
         },
         "project_manager": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -605,7 +607,7 @@
           }
         },
         "safety_quality_gatekeeper": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -613,7 +615,7 @@
           }
         },
         "triage_specialist": {
-          "gpt-4.1-mini": {
+          "gemini-3.1-flash-lite": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -625,7 +627,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1-mini",
+          "model": "gemini-3.1-flash-lite",
           "phase_id": 1,
           "phase_name": "triage_specialist",
           "prompt_tokens": 10,
@@ -634,7 +636,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 2,
           "phase_name": "project_manager",
           "prompt_tokens": 10,
@@ -643,7 +645,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 3,
           "phase_name": "safety_quality_gatekeeper",
           "prompt_tokens": 10,
@@ -652,7 +654,7 @@
         {
           "action_id": "a1",
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 4,
           "phase_name": "cognitive_worker",
           "prompt_tokens": 10,
@@ -661,7 +663,7 @@
         {
           "action_id": "a2",
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 5,
           "phase_name": "mcp_operator",
           "prompt_tokens": 10,
@@ -670,7 +672,7 @@
         {
           "action_id": "a2",
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.1-flash-lite",
           "phase_id": 6,
           "phase_name": "data_engineer",
           "prompt_tokens": 10,
@@ -679,7 +681,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 7,
           "phase_name": "draft_writer",
           "prompt_tokens": 10,
@@ -688,13 +690,14 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 8,
           "phase_name": "editor_in_chief",
           "prompt_tokens": 10,
           "total_tokens": 15
         }
       ],
+      "tool_calls": [],
       "total_completion_tokens": 40,
       "total_prompt_tokens": 80,
       "total_requests": 8,
@@ -708,12 +711,12 @@
         "format": "triage_specialist_phase1_response_format",
         "intent": "Intent(primary='clarification_request', secondary=('information_request',), confidence=1.0)",
         "max_tokens": 10000,
-        "model": "gpt-4.1-mini",
+        "model": "gemini-3.1-flash-lite",
         "reasoning": "None",
         "schema_sha": "d6b3ecff99bbab3abfc35d5a58ccef96e90a296bab320f00520283454bafb161",
         "seed": null,
-        "system_prompt_len": 5567,
-        "system_prompt_sha": "3037a179f8579e61518133f734bea03b98a3b97466bdbfc60d51aeff8bb5be48",
+        "system_prompt_len": 6491,
+        "system_prompt_sha": "d22db688326b2f35b1a560f44347b03e108ccfdb9f970d7605ee2634fc7fc053",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -723,12 +726,12 @@
         "format": "project_manager_phase2_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "481c93c6013cdc3882a717292063a81f361bb46c5cd04833a8d1638b9cf407c3",
         "seed": null,
-        "system_prompt_len": 5885,
-        "system_prompt_sha": "515e4292435e6ef2a38c7450e1e0d8fa3baf94d536c978620baff1fd4f7276bb",
+        "system_prompt_len": 7366,
+        "system_prompt_sha": "3605ff95f57704bc50c6a5c2de039764756f9f0b234d660273a557f1b566bab9",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -738,12 +741,12 @@
         "format": "safety_quality_gatekeeper_phase3_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "60be9fff021c79ce230339ae0da57527504778cf03aa4285241483b61f01070e",
         "seed": null,
-        "system_prompt_len": 3796,
-        "system_prompt_sha": "5c2668f74b2961b00b6925476b246c8c73e035c35a213d04fa0790a77986ea72",
+        "system_prompt_len": 4578,
+        "system_prompt_sha": "6d2e7ccfe35f999798c9eabf6f784e899ca437582b9f4c53a46d55deefaf9228",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -753,12 +756,12 @@
         "format": "phase4_single_action_response_format",
         "intent": "Intent(primary='decision_support', secondary=(), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "18fe8573d8a9f260a671fa2eab4371f1b17ff98341a9883e54c560f3932cf271",
         "seed": null,
-        "system_prompt_len": 3478,
-        "system_prompt_sha": "07df5c2daf93e31038ab08cf24f7eba23c4039a42bcb80617abeb53cd9ede09c",
+        "system_prompt_len": 3917,
+        "system_prompt_sha": "70befbfcb34d31a792cce12a2513164d1ea6a4a6cf4e7225d1e2ba3282282517",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -768,27 +771,27 @@
         "format": "draft_writer_phase7_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "bbe08f1c92d789b4ce521e7fc8786fd56a525623386354344d4ebdfc612eebc9",
         "seed": null,
-        "system_prompt_len": 2882,
-        "system_prompt_sha": "8f9ed2e14a1eaef888148ba541a2230f28d23ae9604819ec62b92cf91858980e",
+        "system_prompt_len": 5619,
+        "system_prompt_sha": "024088541fa5e77163a818d44c851ef0b0b91d5b18a248a5d9954df165e1a422",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
-        "user_message": "{'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.SYSTEM: 'system'>), type=Type(value=<Types.ANALYSIS: 'analysis'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'actions': [Action(id=Id(value='a1'), description=Description(value='think'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=None, required_inputs=None, output=Output(value='out-p4-a1'), error=None, subactions=None), Action(id=Id(value='a2'), description=Description(value='call tool'), action_type=ActionType(value='mcp_tool_call'), mcp_context=McpContext(server_id='aws_microservice', tool_name='get_weather', parameters={'city': 'Madrid'}), dependencies=Dependencies(value=['a1']), required_inputs=None, output=None, error=Error(value='Execution blocked: requires user confirmation before running MCP tools.'), subactions=None)], 'constraints': None}"
+        "user_message": "{'user_message': 'read my files', 'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.SYSTEM: 'system'>), type=Type(value=<Types.ANALYSIS: 'analysis'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'actions': [Action(id=Id(value='a1'), description=Description(value='think'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=None, required_inputs=None, output=Output(value='out-p4-a1'), error=None, subactions=None), Action(id=Id(value='a2'), description=Description(value='call tool'), action_type=ActionType(value='mcp_tool_call'), mcp_context=McpContext(server_id='aws_microservice', tool_name='get_weather', parameters={'city': 'Madrid'}), dependencies=Dependencies(value=['a1']), required_inputs=None, output=None, error=Error(value='Execution blocked: requires user confirmation before running MCP tools.'), subactions=None)], 'constraints': None}"
       },
       {
         "format": "editor_in_chief_phase8_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "5cb5aad982bc0d9e94c099fa2ec75d6b1d4340a7fa8c7881ad499298b95daccb",
         "seed": null,
-        "system_prompt_len": 3362,
-        "system_prompt_sha": "c6325a4919439f9b3eabbf91382dec831a152507fb8a5bdd221c2bda4f2ec504",
+        "system_prompt_len": 4320,
+        "system_prompt_sha": "44042e332561e9ab3b90cb1094a42e4b0aeec96604891e9489125ac3bc3b3c7e",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -797,22 +800,22 @@
     ],
     "metrics": {
       "by_model": {
-        "gpt-4.1": {
-          "completion": 25,
-          "prompt": 50,
-          "requests": 5,
-          "total": 75
-        },
-        "gpt-4.1-mini": {
+        "gemini-3.1-flash-lite": {
           "completion": 5,
           "prompt": 10,
           "requests": 1,
           "total": 15
+        },
+        "gemini-3.6-flash": {
+          "completion": 25,
+          "prompt": 50,
+          "requests": 5,
+          "total": 75
         }
       },
       "by_phase": {
         "cognitive_worker": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -820,7 +823,7 @@
           }
         },
         "draft_writer": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -828,7 +831,7 @@
           }
         },
         "editor_in_chief": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -836,7 +839,7 @@
           }
         },
         "project_manager": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -844,7 +847,7 @@
           }
         },
         "safety_quality_gatekeeper": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -852,7 +855,7 @@
           }
         },
         "triage_specialist": {
-          "gpt-4.1-mini": {
+          "gemini-3.1-flash-lite": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -864,7 +867,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1-mini",
+          "model": "gemini-3.1-flash-lite",
           "phase_id": 1,
           "phase_name": "triage_specialist",
           "prompt_tokens": 10,
@@ -873,7 +876,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 2,
           "phase_name": "project_manager",
           "prompt_tokens": 10,
@@ -882,7 +885,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 3,
           "phase_name": "safety_quality_gatekeeper",
           "prompt_tokens": 10,
@@ -891,7 +894,7 @@
         {
           "action_id": "a1",
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 4,
           "phase_name": "cognitive_worker",
           "prompt_tokens": 10,
@@ -900,7 +903,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 7,
           "phase_name": "draft_writer",
           "prompt_tokens": 10,
@@ -909,13 +912,14 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 8,
           "phase_name": "editor_in_chief",
           "prompt_tokens": 10,
           "total_tokens": 15
         }
       ],
+      "tool_calls": [],
       "total_completion_tokens": 30,
       "total_prompt_tokens": 60,
       "total_requests": 6,
@@ -929,12 +933,12 @@
         "format": "triage_specialist_phase1_response_format",
         "intent": "Intent(primary='clarification_request', secondary=('information_request',), confidence=1.0)",
         "max_tokens": 10000,
-        "model": "gpt-4.1-mini",
+        "model": "gemini-3.1-flash-lite",
         "reasoning": "None",
         "schema_sha": "d6b3ecff99bbab3abfc35d5a58ccef96e90a296bab320f00520283454bafb161",
         "seed": null,
-        "system_prompt_len": 5567,
-        "system_prompt_sha": "3037a179f8579e61518133f734bea03b98a3b97466bdbfc60d51aeff8bb5be48",
+        "system_prompt_len": 6491,
+        "system_prompt_sha": "d22db688326b2f35b1a560f44347b03e108ccfdb9f970d7605ee2634fc7fc053",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -944,12 +948,12 @@
         "format": "project_manager_phase2_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "481c93c6013cdc3882a717292063a81f361bb46c5cd04833a8d1638b9cf407c3",
         "seed": null,
-        "system_prompt_len": 5885,
-        "system_prompt_sha": "515e4292435e6ef2a38c7450e1e0d8fa3baf94d536c978620baff1fd4f7276bb",
+        "system_prompt_len": 7366,
+        "system_prompt_sha": "3605ff95f57704bc50c6a5c2de039764756f9f0b234d660273a557f1b566bab9",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -959,12 +963,12 @@
         "format": "safety_quality_gatekeeper_phase3_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "60be9fff021c79ce230339ae0da57527504778cf03aa4285241483b61f01070e",
         "seed": null,
-        "system_prompt_len": 3796,
-        "system_prompt_sha": "5c2668f74b2961b00b6925476b246c8c73e035c35a213d04fa0790a77986ea72",
+        "system_prompt_len": 4578,
+        "system_prompt_sha": "6d2e7ccfe35f999798c9eabf6f784e899ca437582b9f4c53a46d55deefaf9228",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -974,12 +978,12 @@
         "format": "phase5_single_action_response_format",
         "intent": "Intent(primary='decision_support', secondary=(), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "18fe8573d8a9f260a671fa2eab4371f1b17ff98341a9883e54c560f3932cf271",
         "seed": null,
-        "system_prompt_len": 3384,
-        "system_prompt_sha": "4c3df2a24aab9dd7fb5ca22ca56926f3886a09b34f7bce13c4bafb632aa6c8a9",
+        "system_prompt_len": 4961,
+        "system_prompt_sha": "d5f002ccac434b365b5924271fad1caa3842f94a08ab1eb9188ae8be733f1f19",
         "temperature": 1.0,
         "tools": "[{\"config\": {\"type\": \"sse\", \"url\": \"http://example.invalid/mcp/sse\"}, \"name\": \"aws_microservice\", \"type\": \"sse\"}]",
         "top_p": null,
@@ -989,12 +993,12 @@
         "format": "phase6_single_action_response_format",
         "intent": "Intent(primary='decision_support', secondary=(), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.1-flash-lite",
         "reasoning": "None",
         "schema_sha": "18fe8573d8a9f260a671fa2eab4371f1b17ff98341a9883e54c560f3932cf271",
         "seed": null,
-        "system_prompt_len": 3250,
-        "system_prompt_sha": "171711df23960b3e1adab51b336354d8c0feac5d3ed99699f865ddc1e4baf502",
+        "system_prompt_len": 3979,
+        "system_prompt_sha": "84abe6c6a36e27cda011108f301ac859881d0524195794c92cff30472146b206",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -1004,12 +1008,12 @@
         "format": "phase4_single_action_response_format",
         "intent": "Intent(primary='decision_support', secondary=(), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "18fe8573d8a9f260a671fa2eab4371f1b17ff98341a9883e54c560f3932cf271",
         "seed": null,
-        "system_prompt_len": 3478,
-        "system_prompt_sha": "07df5c2daf93e31038ab08cf24f7eba23c4039a42bcb80617abeb53cd9ede09c",
+        "system_prompt_len": 3917,
+        "system_prompt_sha": "70befbfcb34d31a792cce12a2513164d1ea6a4a6cf4e7225d1e2ba3282282517",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -1019,27 +1023,27 @@
         "format": "draft_writer_phase7_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "bbe08f1c92d789b4ce521e7fc8786fd56a525623386354344d4ebdfc612eebc9",
         "seed": null,
-        "system_prompt_len": 2882,
-        "system_prompt_sha": "8f9ed2e14a1eaef888148ba541a2230f28d23ae9604819ec62b92cf91858980e",
+        "system_prompt_len": 5619,
+        "system_prompt_sha": "024088541fa5e77163a818d44c851ef0b0b91d5b18a248a5d9954df165e1a422",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
-        "user_message": "{'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.SYSTEM: 'system'>), type=Type(value=<Types.ANALYSIS: 'analysis'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'actions': [Action(id=Id(value='2'), description=Description(value='step 2'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=Dependencies(value=['1']), required_inputs=None, output=Output(value='out-p4-2'), error=None, subactions=None), Action(id=Id(value='1'), description=Description(value='step 1'), action_type=ActionType(value='mcp_tool_call'), mcp_context=McpContext(server_id='aws_microservice', tool_name='get_weather', parameters={'city': 'Madrid'}), dependencies=None, required_inputs=None, output=Output(value='out-p6-1'), error=None, subactions=None)], 'constraints': None}"
+        "user_message": "{'user_message': 'tell me if I need an umbrella', 'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.SYSTEM: 'system'>), type=Type(value=<Types.ANALYSIS: 'analysis'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'actions': [Action(id=Id(value='2'), description=Description(value='step 2'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=Dependencies(value=['1']), required_inputs=None, output=Output(value='out-p4-2'), error=None, subactions=None), Action(id=Id(value='1'), description=Description(value='step 1'), action_type=ActionType(value='mcp_tool_call'), mcp_context=McpContext(server_id='aws_microservice', tool_name='get_weather', parameters={'city': 'Madrid'}), dependencies=None, required_inputs=None, output=Output(value='out-p6-1'), error=None, subactions=None)], 'constraints': None}"
       },
       {
         "format": "editor_in_chief_phase8_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "5cb5aad982bc0d9e94c099fa2ec75d6b1d4340a7fa8c7881ad499298b95daccb",
         "seed": null,
-        "system_prompt_len": 3362,
-        "system_prompt_sha": "c6325a4919439f9b3eabbf91382dec831a152507fb8a5bdd221c2bda4f2ec504",
+        "system_prompt_len": 4320,
+        "system_prompt_sha": "44042e332561e9ab3b90cb1094a42e4b0aeec96604891e9489125ac3bc3b3c7e",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -1048,22 +1052,22 @@
     ],
     "metrics": {
       "by_model": {
-        "gpt-4.1": {
-          "completion": 35,
-          "prompt": 70,
-          "requests": 7,
-          "total": 105
+        "gemini-3.1-flash-lite": {
+          "completion": 10,
+          "prompt": 20,
+          "requests": 2,
+          "total": 30
         },
-        "gpt-4.1-mini": {
-          "completion": 5,
-          "prompt": 10,
-          "requests": 1,
-          "total": 15
+        "gemini-3.6-flash": {
+          "completion": 30,
+          "prompt": 60,
+          "requests": 6,
+          "total": 90
         }
       },
       "by_phase": {
         "cognitive_worker": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -1071,7 +1075,7 @@
           }
         },
         "data_engineer": {
-          "gpt-4.1": {
+          "gemini-3.1-flash-lite": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -1079,7 +1083,7 @@
           }
         },
         "draft_writer": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -1087,7 +1091,7 @@
           }
         },
         "editor_in_chief": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -1095,7 +1099,7 @@
           }
         },
         "mcp_operator": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -1103,7 +1107,7 @@
           }
         },
         "project_manager": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -1111,7 +1115,7 @@
           }
         },
         "safety_quality_gatekeeper": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -1119,7 +1123,7 @@
           }
         },
         "triage_specialist": {
-          "gpt-4.1-mini": {
+          "gemini-3.1-flash-lite": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -1131,7 +1135,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1-mini",
+          "model": "gemini-3.1-flash-lite",
           "phase_id": 1,
           "phase_name": "triage_specialist",
           "prompt_tokens": 10,
@@ -1140,7 +1144,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 2,
           "phase_name": "project_manager",
           "prompt_tokens": 10,
@@ -1149,7 +1153,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 3,
           "phase_name": "safety_quality_gatekeeper",
           "prompt_tokens": 10,
@@ -1158,7 +1162,7 @@
         {
           "action_id": "1",
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 5,
           "phase_name": "mcp_operator",
           "prompt_tokens": 10,
@@ -1167,7 +1171,7 @@
         {
           "action_id": "1",
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.1-flash-lite",
           "phase_id": 6,
           "phase_name": "data_engineer",
           "prompt_tokens": 10,
@@ -1176,7 +1180,7 @@
         {
           "action_id": "2",
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 4,
           "phase_name": "cognitive_worker",
           "prompt_tokens": 10,
@@ -1185,7 +1189,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 7,
           "phase_name": "draft_writer",
           "prompt_tokens": 10,
@@ -1194,13 +1198,14 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 8,
           "phase_name": "editor_in_chief",
           "prompt_tokens": 10,
           "total_tokens": 15
         }
       ],
+      "tool_calls": [],
       "total_completion_tokens": 40,
       "total_prompt_tokens": 80,
       "total_requests": 8,
@@ -1214,12 +1219,12 @@
         "format": "triage_specialist_phase1_response_format",
         "intent": "Intent(primary='clarification_request', secondary=('information_request',), confidence=1.0)",
         "max_tokens": 10000,
-        "model": "gpt-4.1-mini",
+        "model": "gemini-3.1-flash-lite",
         "reasoning": "None",
         "schema_sha": "d6b3ecff99bbab3abfc35d5a58ccef96e90a296bab320f00520283454bafb161",
         "seed": null,
-        "system_prompt_len": 5567,
-        "system_prompt_sha": "3037a179f8579e61518133f734bea03b98a3b97466bdbfc60d51aeff8bb5be48",
+        "system_prompt_len": 6491,
+        "system_prompt_sha": "d22db688326b2f35b1a560f44347b03e108ccfdb9f970d7605ee2634fc7fc053",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -1229,12 +1234,12 @@
         "format": "project_manager_phase2_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "481c93c6013cdc3882a717292063a81f361bb46c5cd04833a8d1638b9cf407c3",
         "seed": null,
-        "system_prompt_len": 5885,
-        "system_prompt_sha": "515e4292435e6ef2a38c7450e1e0d8fa3baf94d536c978620baff1fd4f7276bb",
+        "system_prompt_len": 7366,
+        "system_prompt_sha": "3605ff95f57704bc50c6a5c2de039764756f9f0b234d660273a557f1b566bab9",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -1244,12 +1249,12 @@
         "format": "safety_quality_gatekeeper_phase3_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "60be9fff021c79ce230339ae0da57527504778cf03aa4285241483b61f01070e",
         "seed": null,
-        "system_prompt_len": 3796,
-        "system_prompt_sha": "5c2668f74b2961b00b6925476b246c8c73e035c35a213d04fa0790a77986ea72",
+        "system_prompt_len": 4578,
+        "system_prompt_sha": "6d2e7ccfe35f999798c9eabf6f784e899ca437582b9f4c53a46d55deefaf9228",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -1259,12 +1264,12 @@
         "format": "phase5_single_action_response_format",
         "intent": "Intent(primary='decision_support', secondary=(), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "18fe8573d8a9f260a671fa2eab4371f1b17ff98341a9883e54c560f3932cf271",
         "seed": null,
-        "system_prompt_len": 3384,
-        "system_prompt_sha": "4c3df2a24aab9dd7fb5ca22ca56926f3886a09b34f7bce13c4bafb632aa6c8a9",
+        "system_prompt_len": 4961,
+        "system_prompt_sha": "d5f002ccac434b365b5924271fad1caa3842f94a08ab1eb9188ae8be733f1f19",
         "temperature": 1.0,
         "tools": "[{\"config\": {\"type\": \"sse\", \"url\": \"http://example.invalid/mcp/sse\"}, \"name\": \"aws_microservice\", \"type\": \"sse\"}]",
         "top_p": null,
@@ -1274,12 +1279,12 @@
         "format": "phase5_single_action_response_format",
         "intent": "Intent(primary='decision_support', secondary=(), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "18fe8573d8a9f260a671fa2eab4371f1b17ff98341a9883e54c560f3932cf271",
         "seed": null,
-        "system_prompt_len": 3384,
-        "system_prompt_sha": "4c3df2a24aab9dd7fb5ca22ca56926f3886a09b34f7bce13c4bafb632aa6c8a9",
+        "system_prompt_len": 4961,
+        "system_prompt_sha": "d5f002ccac434b365b5924271fad1caa3842f94a08ab1eb9188ae8be733f1f19",
         "temperature": 1.0,
         "tools": "[{\"config\": {\"type\": \"sse\", \"url\": \"http://example.invalid/mcp/sse\"}, \"name\": \"aws_microservice\", \"type\": \"sse\"}]",
         "top_p": null,
@@ -1289,12 +1294,12 @@
         "format": "phase5_single_action_response_format",
         "intent": "Intent(primary='decision_support', secondary=(), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "18fe8573d8a9f260a671fa2eab4371f1b17ff98341a9883e54c560f3932cf271",
         "seed": null,
-        "system_prompt_len": 3384,
-        "system_prompt_sha": "4c3df2a24aab9dd7fb5ca22ca56926f3886a09b34f7bce13c4bafb632aa6c8a9",
+        "system_prompt_len": 4961,
+        "system_prompt_sha": "d5f002ccac434b365b5924271fad1caa3842f94a08ab1eb9188ae8be733f1f19",
         "temperature": 1.0,
         "tools": "[{\"config\": {\"type\": \"sse\", \"url\": \"http://example.invalid/mcp/sse\"}, \"name\": \"aws_microservice\", \"type\": \"sse\"}]",
         "top_p": null,
@@ -1304,12 +1309,12 @@
         "format": "phase4_single_action_response_format",
         "intent": "Intent(primary='decision_support', secondary=(), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "18fe8573d8a9f260a671fa2eab4371f1b17ff98341a9883e54c560f3932cf271",
         "seed": null,
-        "system_prompt_len": 3478,
-        "system_prompt_sha": "07df5c2daf93e31038ab08cf24f7eba23c4039a42bcb80617abeb53cd9ede09c",
+        "system_prompt_len": 3917,
+        "system_prompt_sha": "70befbfcb34d31a792cce12a2513164d1ea6a4a6cf4e7225d1e2ba3282282517",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -1319,27 +1324,27 @@
         "format": "draft_writer_phase7_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "bbe08f1c92d789b4ce521e7fc8786fd56a525623386354344d4ebdfc612eebc9",
         "seed": null,
-        "system_prompt_len": 2882,
-        "system_prompt_sha": "8f9ed2e14a1eaef888148ba541a2230f28d23ae9604819ec62b92cf91858980e",
+        "system_prompt_len": 5619,
+        "system_prompt_sha": "024088541fa5e77163a818d44c851ef0b0b91d5b18a248a5d9954df165e1a422",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
-        "user_message": "{'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.SYSTEM: 'system'>), type=Type(value=<Types.ANALYSIS: 'analysis'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'actions': [Action(id=Id(value='1'), description=Description(value='step 1'), action_type=ActionType(value='mcp_tool_call'), mcp_context=McpContext(server_id='aws_microservice', tool_name='get_weather', parameters={'city': 'Madrid'}), dependencies=None, required_inputs=None, output=None, error=Error(value='tool unavailable'), subactions=None), Action(id=Id(value='2'), description=Description(value='step 2'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=Dependencies(value=['1']), required_inputs=None, output=None, error=Error(value='The step was skipped because a step it needs failed: 1.'), subactions=None), Action(id=Id(value='3'), description=Description(value='step 3'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=None, required_inputs=None, output=Output(value='out-p4-3'), error=None, subactions=None)], 'constraints': None}"
+        "user_message": "{'user_message': 'tell me if I need an umbrella', 'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.SYSTEM: 'system'>), type=Type(value=<Types.ANALYSIS: 'analysis'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'actions': [Action(id=Id(value='1'), description=Description(value='step 1'), action_type=ActionType(value='mcp_tool_call'), mcp_context=McpContext(server_id='aws_microservice', tool_name='get_weather', parameters={'city': 'Madrid'}), dependencies=None, required_inputs=None, output=None, error=Error(value='tool unavailable'), subactions=None), Action(id=Id(value='2'), description=Description(value='step 2'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=Dependencies(value=['1']), required_inputs=None, output=None, error=Error(value='The step was skipped because a step it needs failed: 1.'), subactions=None), Action(id=Id(value='3'), description=Description(value='step 3'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=None, required_inputs=None, output=Output(value='out-p4-3'), error=None, subactions=None)], 'constraints': None}"
       },
       {
         "format": "editor_in_chief_phase8_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "5cb5aad982bc0d9e94c099fa2ec75d6b1d4340a7fa8c7881ad499298b95daccb",
         "seed": null,
-        "system_prompt_len": 3362,
-        "system_prompt_sha": "c6325a4919439f9b3eabbf91382dec831a152507fb8a5bdd221c2bda4f2ec504",
+        "system_prompt_len": 4320,
+        "system_prompt_sha": "44042e332561e9ab3b90cb1094a42e4b0aeec96604891e9489125ac3bc3b3c7e",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -1348,22 +1353,22 @@
     ],
     "metrics": {
       "by_model": {
-        "gpt-4.1": {
-          "completion": 40,
-          "prompt": 80,
-          "requests": 8,
-          "total": 120
-        },
-        "gpt-4.1-mini": {
+        "gemini-3.1-flash-lite": {
           "completion": 5,
           "prompt": 10,
           "requests": 1,
           "total": 15
+        },
+        "gemini-3.6-flash": {
+          "completion": 40,
+          "prompt": 80,
+          "requests": 8,
+          "total": 120
         }
       },
       "by_phase": {
         "cognitive_worker": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -1371,7 +1376,7 @@
           }
         },
         "draft_writer": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -1379,7 +1384,7 @@
           }
         },
         "editor_in_chief": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -1387,7 +1392,7 @@
           }
         },
         "mcp_operator": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 15,
             "prompt": 30,
             "requests": 3,
@@ -1395,7 +1400,7 @@
           }
         },
         "project_manager": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -1403,7 +1408,7 @@
           }
         },
         "safety_quality_gatekeeper": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -1411,7 +1416,7 @@
           }
         },
         "triage_specialist": {
-          "gpt-4.1-mini": {
+          "gemini-3.1-flash-lite": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -1423,7 +1428,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1-mini",
+          "model": "gemini-3.1-flash-lite",
           "phase_id": 1,
           "phase_name": "triage_specialist",
           "prompt_tokens": 10,
@@ -1432,7 +1437,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 2,
           "phase_name": "project_manager",
           "prompt_tokens": 10,
@@ -1441,7 +1446,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 3,
           "phase_name": "safety_quality_gatekeeper",
           "prompt_tokens": 10,
@@ -1450,7 +1455,7 @@
         {
           "action_id": "1",
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 5,
           "phase_name": "mcp_operator",
           "prompt_tokens": 10,
@@ -1459,7 +1464,7 @@
         {
           "action_id": "1",
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 5,
           "phase_name": "mcp_operator",
           "prompt_tokens": 10,
@@ -1468,7 +1473,7 @@
         {
           "action_id": "1",
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 5,
           "phase_name": "mcp_operator",
           "prompt_tokens": 10,
@@ -1477,7 +1482,7 @@
         {
           "action_id": "3",
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 4,
           "phase_name": "cognitive_worker",
           "prompt_tokens": 10,
@@ -1486,7 +1491,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 7,
           "phase_name": "draft_writer",
           "prompt_tokens": 10,
@@ -1495,13 +1500,14 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 8,
           "phase_name": "editor_in_chief",
           "prompt_tokens": 10,
           "total_tokens": 15
         }
       ],
+      "tool_calls": [],
       "total_completion_tokens": 45,
       "total_prompt_tokens": 90,
       "total_requests": 9,
@@ -1515,12 +1521,12 @@
         "format": "triage_specialist_phase1_response_format",
         "intent": "Intent(primary='clarification_request', secondary=('information_request',), confidence=1.0)",
         "max_tokens": 10000,
-        "model": "gpt-4.1-mini",
+        "model": "gemini-3.1-flash-lite",
         "reasoning": "None",
         "schema_sha": "d6b3ecff99bbab3abfc35d5a58ccef96e90a296bab320f00520283454bafb161",
         "seed": null,
-        "system_prompt_len": 5567,
-        "system_prompt_sha": "3037a179f8579e61518133f734bea03b98a3b97466bdbfc60d51aeff8bb5be48",
+        "system_prompt_len": 6491,
+        "system_prompt_sha": "d22db688326b2f35b1a560f44347b03e108ccfdb9f970d7605ee2634fc7fc053",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -1530,12 +1536,12 @@
         "format": "motion_planner_phase20_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "44d4859dcb6742b134af4eabe11eee8ad41252ba90aaf877c9cc15873556b34b",
         "seed": null,
-        "system_prompt_len": 5237,
-        "system_prompt_sha": "e378db5d51d7054e668d4375ecd7393ab8f097a3f02bfcd97927216626e63191",
+        "system_prompt_len": 5676,
+        "system_prompt_sha": "2f646698bd38c2d85e79cc696ad7319dfd76c942b8386503d733d3a98266e062",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -1544,13 +1550,13 @@
     ],
     "metrics": {
       "by_model": {
-        "gpt-4.1": {
+        "gemini-3.1-flash-lite": {
           "completion": 5,
           "prompt": 10,
           "requests": 1,
           "total": 15
         },
-        "gpt-4.1-mini": {
+        "gemini-3.6-flash": {
           "completion": 5,
           "prompt": 10,
           "requests": 1,
@@ -1559,7 +1565,7 @@
       },
       "by_phase": {
         "motion_planner": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -1567,7 +1573,7 @@
           }
         },
         "triage_specialist": {
-          "gpt-4.1-mini": {
+          "gemini-3.1-flash-lite": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -1579,7 +1585,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1-mini",
+          "model": "gemini-3.1-flash-lite",
           "phase_id": 1,
           "phase_name": "triage_specialist",
           "prompt_tokens": 10,
@@ -1588,13 +1594,14 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 20,
           "phase_name": "motion_planner",
           "prompt_tokens": 10,
           "total_tokens": 15
         }
       ],
+      "tool_calls": [],
       "total_completion_tokens": 10,
       "total_prompt_tokens": 20,
       "total_requests": 2,
@@ -1608,12 +1615,12 @@
         "format": "triage_specialist_phase1_response_format",
         "intent": "Intent(primary='clarification_request', secondary=('information_request',), confidence=1.0)",
         "max_tokens": 10000,
-        "model": "gpt-4.1-mini",
+        "model": "gemini-3.1-flash-lite",
         "reasoning": "None",
         "schema_sha": "d6b3ecff99bbab3abfc35d5a58ccef96e90a296bab320f00520283454bafb161",
         "seed": null,
-        "system_prompt_len": 5567,
-        "system_prompt_sha": "3037a179f8579e61518133f734bea03b98a3b97466bdbfc60d51aeff8bb5be48",
+        "system_prompt_len": 6491,
+        "system_prompt_sha": "d22db688326b2f35b1a560f44347b03e108ccfdb9f970d7605ee2634fc7fc053",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -1623,12 +1630,12 @@
         "format": "motion_planner_phase20_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "44d4859dcb6742b134af4eabe11eee8ad41252ba90aaf877c9cc15873556b34b",
         "seed": null,
-        "system_prompt_len": 5237,
-        "system_prompt_sha": "e378db5d51d7054e668d4375ecd7393ab8f097a3f02bfcd97927216626e63191",
+        "system_prompt_len": 5676,
+        "system_prompt_sha": "2f646698bd38c2d85e79cc696ad7319dfd76c942b8386503d733d3a98266e062",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -1637,13 +1644,13 @@
     ],
     "metrics": {
       "by_model": {
-        "gpt-4.1": {
+        "gemini-3.1-flash-lite": {
           "completion": 5,
           "prompt": 10,
           "requests": 1,
           "total": 15
         },
-        "gpt-4.1-mini": {
+        "gemini-3.6-flash": {
           "completion": 5,
           "prompt": 10,
           "requests": 1,
@@ -1652,7 +1659,7 @@
       },
       "by_phase": {
         "motion_planner": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -1660,7 +1667,7 @@
           }
         },
         "triage_specialist": {
-          "gpt-4.1-mini": {
+          "gemini-3.1-flash-lite": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -1672,7 +1679,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1-mini",
+          "model": "gemini-3.1-flash-lite",
           "phase_id": 1,
           "phase_name": "triage_specialist",
           "prompt_tokens": 10,
@@ -1681,13 +1688,14 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 20,
           "phase_name": "motion_planner",
           "prompt_tokens": 10,
           "total_tokens": 15
         }
       ],
+      "tool_calls": [],
       "total_completion_tokens": 10,
       "total_prompt_tokens": 20,
       "total_requests": 2,
@@ -1701,12 +1709,12 @@
         "format": "triage_specialist_phase1_response_format",
         "intent": "Intent(primary='clarification_request', secondary=('information_request',), confidence=1.0)",
         "max_tokens": 10000,
-        "model": "gpt-4.1-mini",
+        "model": "gemini-3.1-flash-lite",
         "reasoning": "None",
         "schema_sha": "d6b3ecff99bbab3abfc35d5a58ccef96e90a296bab320f00520283454bafb161",
         "seed": null,
-        "system_prompt_len": 5567,
-        "system_prompt_sha": "3037a179f8579e61518133f734bea03b98a3b97466bdbfc60d51aeff8bb5be48",
+        "system_prompt_len": 6491,
+        "system_prompt_sha": "d22db688326b2f35b1a560f44347b03e108ccfdb9f970d7605ee2634fc7fc053",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -1716,12 +1724,12 @@
         "format": "project_manager_phase2_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "481c93c6013cdc3882a717292063a81f361bb46c5cd04833a8d1638b9cf407c3",
         "seed": null,
-        "system_prompt_len": 5885,
-        "system_prompt_sha": "515e4292435e6ef2a38c7450e1e0d8fa3baf94d536c978620baff1fd4f7276bb",
+        "system_prompt_len": 7366,
+        "system_prompt_sha": "3605ff95f57704bc50c6a5c2de039764756f9f0b234d660273a557f1b566bab9",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -1731,12 +1739,12 @@
         "format": "safety_quality_gatekeeper_phase3_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "60be9fff021c79ce230339ae0da57527504778cf03aa4285241483b61f01070e",
         "seed": null,
-        "system_prompt_len": 3796,
-        "system_prompt_sha": "5c2668f74b2961b00b6925476b246c8c73e035c35a213d04fa0790a77986ea72",
+        "system_prompt_len": 4578,
+        "system_prompt_sha": "6d2e7ccfe35f999798c9eabf6f784e899ca437582b9f4c53a46d55deefaf9228",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -1746,27 +1754,27 @@
         "format": "draft_writer_phase7_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "bbe08f1c92d789b4ce521e7fc8786fd56a525623386354344d4ebdfc612eebc9",
         "seed": null,
-        "system_prompt_len": 2882,
-        "system_prompt_sha": "8f9ed2e14a1eaef888148ba541a2230f28d23ae9604819ec62b92cf91858980e",
+        "system_prompt_len": 5619,
+        "system_prompt_sha": "024088541fa5e77163a818d44c851ef0b0b91d5b18a248a5d9954df165e1a422",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
-        "user_message": "{'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.SYSTEM: 'system'>), type=Type(value=<Types.ANALYSIS: 'analysis'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'actions': [], 'constraints': None}"
+        "user_message": "{'user_message': 'hello', 'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.SYSTEM: 'system'>), type=Type(value=<Types.ANALYSIS: 'analysis'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'actions': [], 'constraints': None}"
       },
       {
         "format": "editor_in_chief_phase8_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "5cb5aad982bc0d9e94c099fa2ec75d6b1d4340a7fa8c7881ad499298b95daccb",
         "seed": null,
-        "system_prompt_len": 3362,
-        "system_prompt_sha": "c6325a4919439f9b3eabbf91382dec831a152507fb8a5bdd221c2bda4f2ec504",
+        "system_prompt_len": 4320,
+        "system_prompt_sha": "44042e332561e9ab3b90cb1094a42e4b0aeec96604891e9489125ac3bc3b3c7e",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -1775,22 +1783,22 @@
     ],
     "metrics": {
       "by_model": {
-        "gpt-4.1": {
-          "completion": 20,
-          "prompt": 40,
-          "requests": 4,
-          "total": 60
-        },
-        "gpt-4.1-mini": {
+        "gemini-3.1-flash-lite": {
           "completion": 5,
           "prompt": 10,
           "requests": 1,
           "total": 15
+        },
+        "gemini-3.6-flash": {
+          "completion": 20,
+          "prompt": 40,
+          "requests": 4,
+          "total": 60
         }
       },
       "by_phase": {
         "draft_writer": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -1798,7 +1806,7 @@
           }
         },
         "editor_in_chief": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -1806,7 +1814,7 @@
           }
         },
         "project_manager": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -1814,7 +1822,7 @@
           }
         },
         "safety_quality_gatekeeper": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -1822,7 +1830,7 @@
           }
         },
         "triage_specialist": {
-          "gpt-4.1-mini": {
+          "gemini-3.1-flash-lite": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -1834,7 +1842,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1-mini",
+          "model": "gemini-3.1-flash-lite",
           "phase_id": 1,
           "phase_name": "triage_specialist",
           "prompt_tokens": 10,
@@ -1843,7 +1851,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 2,
           "phase_name": "project_manager",
           "prompt_tokens": 10,
@@ -1852,7 +1860,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 3,
           "phase_name": "safety_quality_gatekeeper",
           "prompt_tokens": 10,
@@ -1861,7 +1869,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 7,
           "phase_name": "draft_writer",
           "prompt_tokens": 10,
@@ -1870,13 +1878,14 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 8,
           "phase_name": "editor_in_chief",
           "prompt_tokens": 10,
           "total_tokens": 15
         }
       ],
+      "tool_calls": [],
       "total_completion_tokens": 25,
       "total_prompt_tokens": 50,
       "total_requests": 5,
@@ -1890,12 +1899,12 @@
         "format": "triage_specialist_phase1_response_format",
         "intent": "Intent(primary='clarification_request', secondary=('information_request',), confidence=1.0)",
         "max_tokens": 10000,
-        "model": "gpt-4.1-mini",
+        "model": "gemini-3.1-flash-lite",
         "reasoning": "None",
         "schema_sha": "d6b3ecff99bbab3abfc35d5a58ccef96e90a296bab320f00520283454bafb161",
         "seed": null,
-        "system_prompt_len": 5567,
-        "system_prompt_sha": "3037a179f8579e61518133f734bea03b98a3b97466bdbfc60d51aeff8bb5be48",
+        "system_prompt_len": 6491,
+        "system_prompt_sha": "d22db688326b2f35b1a560f44347b03e108ccfdb9f970d7605ee2634fc7fc053",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -1905,12 +1914,12 @@
         "format": "project_manager_phase2_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "481c93c6013cdc3882a717292063a81f361bb46c5cd04833a8d1638b9cf407c3",
         "seed": null,
-        "system_prompt_len": 5885,
-        "system_prompt_sha": "515e4292435e6ef2a38c7450e1e0d8fa3baf94d536c978620baff1fd4f7276bb",
+        "system_prompt_len": 7366,
+        "system_prompt_sha": "3605ff95f57704bc50c6a5c2de039764756f9f0b234d660273a557f1b566bab9",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -1920,12 +1929,12 @@
         "format": "safety_quality_gatekeeper_phase3_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "60be9fff021c79ce230339ae0da57527504778cf03aa4285241483b61f01070e",
         "seed": null,
-        "system_prompt_len": 3796,
-        "system_prompt_sha": "5c2668f74b2961b00b6925476b246c8c73e035c35a213d04fa0790a77986ea72",
+        "system_prompt_len": 4578,
+        "system_prompt_sha": "6d2e7ccfe35f999798c9eabf6f784e899ca437582b9f4c53a46d55deefaf9228",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -1935,7 +1944,7 @@
         "format": "<text>",
         "intent": "Intent(primary='clarification_request', secondary=(), confidence=1.0)",
         "max_tokens": 2000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.1-flash-lite",
         "reasoning": "None",
         "schema_sha": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
         "seed": null,
@@ -1949,22 +1958,22 @@
     ],
     "metrics": {
       "by_model": {
-        "gpt-4.1": {
-          "completion": 15,
-          "prompt": 30,
-          "requests": 3,
-          "total": 45
+        "gemini-3.1-flash-lite": {
+          "completion": 10,
+          "prompt": 20,
+          "requests": 2,
+          "total": 30
         },
-        "gpt-4.1-mini": {
-          "completion": 5,
-          "prompt": 10,
-          "requests": 1,
-          "total": 15
+        "gemini-3.6-flash": {
+          "completion": 10,
+          "prompt": 20,
+          "requests": 2,
+          "total": 30
         }
       },
       "by_phase": {
         "project_manager": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -1972,7 +1981,7 @@
           }
         },
         "safety_quality_gatekeeper": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -1980,7 +1989,7 @@
           }
         },
         "triage_specialist": {
-          "gpt-4.1-mini": {
+          "gemini-3.1-flash-lite": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -1988,7 +1997,7 @@
           }
         },
         "user_clarification": {
-          "gpt-4.1": {
+          "gemini-3.1-flash-lite": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -2000,7 +2009,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1-mini",
+          "model": "gemini-3.1-flash-lite",
           "phase_id": 1,
           "phase_name": "triage_specialist",
           "prompt_tokens": 10,
@@ -2009,7 +2018,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 2,
           "phase_name": "project_manager",
           "prompt_tokens": 10,
@@ -2018,7 +2027,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 3,
           "phase_name": "safety_quality_gatekeeper",
           "prompt_tokens": 10,
@@ -2027,13 +2036,14 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.1-flash-lite",
           "phase_id": 99,
           "phase_name": "user_clarification",
           "prompt_tokens": 10,
           "total_tokens": 15
         }
       ],
+      "tool_calls": [],
       "total_completion_tokens": 20,
       "total_prompt_tokens": 40,
       "total_requests": 4,
@@ -2047,12 +2057,12 @@
         "format": "triage_specialist_phase1_response_format",
         "intent": "Intent(primary='clarification_request', secondary=('information_request',), confidence=1.0)",
         "max_tokens": 10000,
-        "model": "gpt-4.1-mini",
+        "model": "gemini-3.1-flash-lite",
         "reasoning": "None",
         "schema_sha": "d6b3ecff99bbab3abfc35d5a58ccef96e90a296bab320f00520283454bafb161",
         "seed": null,
-        "system_prompt_len": 5567,
-        "system_prompt_sha": "3037a179f8579e61518133f734bea03b98a3b97466bdbfc60d51aeff8bb5be48",
+        "system_prompt_len": 6491,
+        "system_prompt_sha": "d22db688326b2f35b1a560f44347b03e108ccfdb9f970d7605ee2634fc7fc053",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -2062,12 +2072,12 @@
         "format": "project_manager_phase2_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "481c93c6013cdc3882a717292063a81f361bb46c5cd04833a8d1638b9cf407c3",
         "seed": null,
-        "system_prompt_len": 5885,
-        "system_prompt_sha": "515e4292435e6ef2a38c7450e1e0d8fa3baf94d536c978620baff1fd4f7276bb",
+        "system_prompt_len": 7366,
+        "system_prompt_sha": "3605ff95f57704bc50c6a5c2de039764756f9f0b234d660273a557f1b566bab9",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -2077,7 +2087,7 @@
         "format": "<text>",
         "intent": "Intent(primary='clarification_request', secondary=(), confidence=1.0)",
         "max_tokens": 2000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.1-flash-lite",
         "reasoning": "None",
         "schema_sha": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
         "seed": null,
@@ -2091,13 +2101,13 @@
     ],
     "metrics": {
       "by_model": {
-        "gpt-4.1": {
+        "gemini-3.1-flash-lite": {
           "completion": 10,
           "prompt": 20,
           "requests": 2,
           "total": 30
         },
-        "gpt-4.1-mini": {
+        "gemini-3.6-flash": {
           "completion": 5,
           "prompt": 10,
           "requests": 1,
@@ -2106,7 +2116,7 @@
       },
       "by_phase": {
         "project_manager": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -2114,7 +2124,7 @@
           }
         },
         "triage_specialist": {
-          "gpt-4.1-mini": {
+          "gemini-3.1-flash-lite": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -2122,7 +2132,7 @@
           }
         },
         "user_clarification": {
-          "gpt-4.1": {
+          "gemini-3.1-flash-lite": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -2134,7 +2144,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1-mini",
+          "model": "gemini-3.1-flash-lite",
           "phase_id": 1,
           "phase_name": "triage_specialist",
           "prompt_tokens": 10,
@@ -2143,7 +2153,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 2,
           "phase_name": "project_manager",
           "prompt_tokens": 10,
@@ -2152,13 +2162,14 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.1-flash-lite",
           "phase_id": 99,
           "phase_name": "user_clarification",
           "prompt_tokens": 10,
           "total_tokens": 15
         }
       ],
+      "tool_calls": [],
       "total_completion_tokens": 15,
       "total_prompt_tokens": 30,
       "total_requests": 3,
@@ -2172,12 +2183,12 @@
         "format": "triage_specialist_phase1_response_format",
         "intent": "Intent(primary='clarification_request', secondary=('information_request',), confidence=1.0)",
         "max_tokens": 10000,
-        "model": "gpt-4.1-mini",
+        "model": "gemini-3.1-flash-lite",
         "reasoning": "None",
         "schema_sha": "d6b3ecff99bbab3abfc35d5a58ccef96e90a296bab320f00520283454bafb161",
         "seed": null,
-        "system_prompt_len": 5567,
-        "system_prompt_sha": "3037a179f8579e61518133f734bea03b98a3b97466bdbfc60d51aeff8bb5be48",
+        "system_prompt_len": 6491,
+        "system_prompt_sha": "d22db688326b2f35b1a560f44347b03e108ccfdb9f970d7605ee2634fc7fc053",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -2187,7 +2198,7 @@
         "format": "<text>",
         "intent": "Intent(primary='clarification_request', secondary=(), confidence=1.0)",
         "max_tokens": 2000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.1-flash-lite",
         "reasoning": "None",
         "schema_sha": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
         "seed": null,
@@ -2201,22 +2212,16 @@
     ],
     "metrics": {
       "by_model": {
-        "gpt-4.1": {
-          "completion": 5,
-          "prompt": 10,
-          "requests": 1,
-          "total": 15
-        },
-        "gpt-4.1-mini": {
-          "completion": 5,
-          "prompt": 10,
-          "requests": 1,
-          "total": 15
+        "gemini-3.1-flash-lite": {
+          "completion": 10,
+          "prompt": 20,
+          "requests": 2,
+          "total": 30
         }
       },
       "by_phase": {
         "triage_specialist": {
-          "gpt-4.1-mini": {
+          "gemini-3.1-flash-lite": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -2224,7 +2229,7 @@
           }
         },
         "user_clarification": {
-          "gpt-4.1": {
+          "gemini-3.1-flash-lite": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -2236,7 +2241,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1-mini",
+          "model": "gemini-3.1-flash-lite",
           "phase_id": 1,
           "phase_name": "triage_specialist",
           "prompt_tokens": 10,
@@ -2245,13 +2250,14 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.1-flash-lite",
           "phase_id": 99,
           "phase_name": "user_clarification",
           "prompt_tokens": 10,
           "total_tokens": 15
         }
       ],
+      "tool_calls": [],
       "total_completion_tokens": 10,
       "total_prompt_tokens": 20,
       "total_requests": 2,
@@ -2265,12 +2271,12 @@
         "format": "triage_specialist_phase1_response_format",
         "intent": "Intent(primary='clarification_request', secondary=('information_request',), confidence=1.0)",
         "max_tokens": 10000,
-        "model": "gpt-4.1-mini",
+        "model": "gemini-3.1-flash-lite",
         "reasoning": "None",
         "schema_sha": "d6b3ecff99bbab3abfc35d5a58ccef96e90a296bab320f00520283454bafb161",
         "seed": null,
-        "system_prompt_len": 5567,
-        "system_prompt_sha": "3037a179f8579e61518133f734bea03b98a3b97466bdbfc60d51aeff8bb5be48",
+        "system_prompt_len": 6491,
+        "system_prompt_sha": "d22db688326b2f35b1a560f44347b03e108ccfdb9f970d7605ee2634fc7fc053",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -2280,12 +2286,12 @@
         "format": "project_manager_phase2_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "481c93c6013cdc3882a717292063a81f361bb46c5cd04833a8d1638b9cf407c3",
         "seed": null,
-        "system_prompt_len": 5885,
-        "system_prompt_sha": "515e4292435e6ef2a38c7450e1e0d8fa3baf94d536c978620baff1fd4f7276bb",
+        "system_prompt_len": 7366,
+        "system_prompt_sha": "3605ff95f57704bc50c6a5c2de039764756f9f0b234d660273a557f1b566bab9",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -2294,13 +2300,13 @@
     ],
     "metrics": {
       "by_model": {
-        "gpt-4.1": {
+        "gemini-3.1-flash-lite": {
           "completion": 5,
           "prompt": 10,
           "requests": 1,
           "total": 15
         },
-        "gpt-4.1-mini": {
+        "gemini-3.6-flash": {
           "completion": 5,
           "prompt": 10,
           "requests": 1,
@@ -2309,7 +2315,7 @@
       },
       "by_phase": {
         "project_manager": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -2317,7 +2323,7 @@
           }
         },
         "triage_specialist": {
-          "gpt-4.1-mini": {
+          "gemini-3.1-flash-lite": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -2329,7 +2335,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1-mini",
+          "model": "gemini-3.1-flash-lite",
           "phase_id": 1,
           "phase_name": "triage_specialist",
           "prompt_tokens": 10,
@@ -2338,13 +2344,14 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 2,
           "phase_name": "project_manager",
           "prompt_tokens": 10,
           "total_tokens": 15
         }
       ],
+      "tool_calls": [],
       "total_completion_tokens": 10,
       "total_prompt_tokens": 20,
       "total_requests": 2,
@@ -2358,12 +2365,12 @@
         "format": "triage_specialist_phase1_response_format",
         "intent": "Intent(primary='clarification_request', secondary=('information_request',), confidence=1.0)",
         "max_tokens": 10000,
-        "model": "gpt-4.1-mini",
+        "model": "gemini-3.1-flash-lite",
         "reasoning": "None",
         "schema_sha": "d6b3ecff99bbab3abfc35d5a58ccef96e90a296bab320f00520283454bafb161",
         "seed": null,
-        "system_prompt_len": 5567,
-        "system_prompt_sha": "3037a179f8579e61518133f734bea03b98a3b97466bdbfc60d51aeff8bb5be48",
+        "system_prompt_len": 6491,
+        "system_prompt_sha": "d22db688326b2f35b1a560f44347b03e108ccfdb9f970d7605ee2634fc7fc053",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -2373,12 +2380,12 @@
         "format": "project_manager_phase2_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "481c93c6013cdc3882a717292063a81f361bb46c5cd04833a8d1638b9cf407c3",
         "seed": null,
-        "system_prompt_len": 5885,
-        "system_prompt_sha": "515e4292435e6ef2a38c7450e1e0d8fa3baf94d536c978620baff1fd4f7276bb",
+        "system_prompt_len": 7366,
+        "system_prompt_sha": "3605ff95f57704bc50c6a5c2de039764756f9f0b234d660273a557f1b566bab9",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -2388,12 +2395,12 @@
         "format": "safety_quality_gatekeeper_phase3_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "60be9fff021c79ce230339ae0da57527504778cf03aa4285241483b61f01070e",
         "seed": null,
-        "system_prompt_len": 3796,
-        "system_prompt_sha": "5c2668f74b2961b00b6925476b246c8c73e035c35a213d04fa0790a77986ea72",
+        "system_prompt_len": 4578,
+        "system_prompt_sha": "6d2e7ccfe35f999798c9eabf6f784e899ca437582b9f4c53a46d55deefaf9228",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -2403,12 +2410,12 @@
         "format": "phase4_single_action_response_format",
         "intent": "Intent(primary='decision_support', secondary=(), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "18fe8573d8a9f260a671fa2eab4371f1b17ff98341a9883e54c560f3932cf271",
         "seed": null,
-        "system_prompt_len": 3478,
-        "system_prompt_sha": "07df5c2daf93e31038ab08cf24f7eba23c4039a42bcb80617abeb53cd9ede09c",
+        "system_prompt_len": 3917,
+        "system_prompt_sha": "70befbfcb34d31a792cce12a2513164d1ea6a4a6cf4e7225d1e2ba3282282517",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -2418,27 +2425,27 @@
         "format": "draft_writer_phase7_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "bbe08f1c92d789b4ce521e7fc8786fd56a525623386354344d4ebdfc612eebc9",
         "seed": null,
-        "system_prompt_len": 2882,
-        "system_prompt_sha": "8f9ed2e14a1eaef888148ba541a2230f28d23ae9604819ec62b92cf91858980e",
+        "system_prompt_len": 5619,
+        "system_prompt_sha": "024088541fa5e77163a818d44c851ef0b0b91d5b18a248a5d9954df165e1a422",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
-        "user_message": "{'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.SYSTEM: 'system'>), type=Type(value=<Types.ANALYSIS: 'analysis'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'actions': [Action(id=Id(value='1'), description=Description(value='step 1'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=Dependencies(value=['9']), required_inputs=None, output=None, error=Error(value='The step depends on unknown steps: 9.'), subactions=None), Action(id=Id(value='2'), description=Description(value='step 2'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=Dependencies(value=['3']), required_inputs=None, output=None, error=Error(value='The step could not run: circular or unknown dependencies.'), subactions=None), Action(id=Id(value='3'), description=Description(value='step 3'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=Dependencies(value=['2']), required_inputs=None, output=None, error=Error(value='The step could not run: circular or unknown dependencies.'), subactions=None), Action(id=Id(value='4'), description=Description(value='step 4'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=None, required_inputs=None, output=Output(value='out-p4-4'), error=None, subactions=None)], 'constraints': None}"
+        "user_message": "{'user_message': 'do it', 'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.SYSTEM: 'system'>), type=Type(value=<Types.ANALYSIS: 'analysis'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'actions': [Action(id=Id(value='1'), description=Description(value='step 1'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=Dependencies(value=['9']), required_inputs=None, output=None, error=Error(value='The step depends on unknown steps: 9.'), subactions=None), Action(id=Id(value='2'), description=Description(value='step 2'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=Dependencies(value=['3']), required_inputs=None, output=None, error=Error(value='The step could not run: circular or unknown dependencies.'), subactions=None), Action(id=Id(value='3'), description=Description(value='step 3'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=Dependencies(value=['2']), required_inputs=None, output=None, error=Error(value='The step could not run: circular or unknown dependencies.'), subactions=None), Action(id=Id(value='4'), description=Description(value='step 4'), action_type=ActionType(value='analysis'), mcp_context=None, dependencies=None, required_inputs=None, output=Output(value='out-p4-4'), error=None, subactions=None)], 'constraints': None}"
       },
       {
         "format": "editor_in_chief_phase8_response_format",
         "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
         "max_tokens": 10000,
-        "model": "gpt-4.1",
+        "model": "gemini-3.6-flash",
         "reasoning": "None",
         "schema_sha": "5cb5aad982bc0d9e94c099fa2ec75d6b1d4340a7fa8c7881ad499298b95daccb",
         "seed": null,
-        "system_prompt_len": 3362,
-        "system_prompt_sha": "c6325a4919439f9b3eabbf91382dec831a152507fb8a5bdd221c2bda4f2ec504",
+        "system_prompt_len": 4320,
+        "system_prompt_sha": "44042e332561e9ab3b90cb1094a42e4b0aeec96604891e9489125ac3bc3b3c7e",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
@@ -2447,22 +2454,22 @@
     ],
     "metrics": {
       "by_model": {
-        "gpt-4.1": {
-          "completion": 25,
-          "prompt": 50,
-          "requests": 5,
-          "total": 75
-        },
-        "gpt-4.1-mini": {
+        "gemini-3.1-flash-lite": {
           "completion": 5,
           "prompt": 10,
           "requests": 1,
           "total": 15
+        },
+        "gemini-3.6-flash": {
+          "completion": 25,
+          "prompt": 50,
+          "requests": 5,
+          "total": 75
         }
       },
       "by_phase": {
         "cognitive_worker": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -2470,7 +2477,7 @@
           }
         },
         "draft_writer": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -2478,7 +2485,7 @@
           }
         },
         "editor_in_chief": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -2486,7 +2493,7 @@
           }
         },
         "project_manager": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -2494,7 +2501,7 @@
           }
         },
         "safety_quality_gatekeeper": {
-          "gpt-4.1": {
+          "gemini-3.6-flash": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -2502,7 +2509,7 @@
           }
         },
         "triage_specialist": {
-          "gpt-4.1-mini": {
+          "gemini-3.1-flash-lite": {
             "completion": 5,
             "prompt": 10,
             "requests": 1,
@@ -2514,7 +2521,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1-mini",
+          "model": "gemini-3.1-flash-lite",
           "phase_id": 1,
           "phase_name": "triage_specialist",
           "prompt_tokens": 10,
@@ -2523,7 +2530,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 2,
           "phase_name": "project_manager",
           "prompt_tokens": 10,
@@ -2532,7 +2539,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 3,
           "phase_name": "safety_quality_gatekeeper",
           "prompt_tokens": 10,
@@ -2541,7 +2548,7 @@
         {
           "action_id": "4",
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 4,
           "phase_name": "cognitive_worker",
           "prompt_tokens": 10,
@@ -2550,7 +2557,7 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 7,
           "phase_name": "draft_writer",
           "prompt_tokens": 10,
@@ -2559,13 +2566,14 @@
         {
           "action_id": null,
           "completion_tokens": 5,
-          "model": "gpt-4.1",
+          "model": "gemini-3.6-flash",
           "phase_id": 8,
           "phase_name": "editor_in_chief",
           "prompt_tokens": 10,
           "total_tokens": 15
         }
       ],
+      "tool_calls": [],
       "total_completion_tokens": 30,
       "total_prompt_tokens": 60,
       "total_requests": 6,

@@ -22,9 +22,18 @@ copy .env.example .env          # fill in at least one provider key and its URL;
 | Provider keys and URLs | environment or `.env` (see [environment-variables](../configuration/environment-variables.md)) |
 | Which model answers each step | `config/step_models.json` or `AI_AGENT_MODEL_PHASE_<n>` |
 | Prompts and schemas | `prompts/`, `schema/response/` (files read at run time, committed) |
-| MCP servers (optional) | `mcps/*.json`; only `type: sse` works |
+| MCP servers (optional) | `mcps/*.json`; `type: sse` and `type: streamable_http` work. `DYNAMICS_MCP_URL` is the full URL (with `/mcp`) of `dynamics_microservice`; unset, that server is skipped with a warning |
 | `contracts` | the wheel in `vendor/` |
 | `shared-logging` | `../shared-logging` (editable install) |
+
+## Reaching `dynamics_microservice`
+
+- Today the Go service is open and ai-agent reaches it by a **public IP and port over plain HTTP**, set only in `DYNAMICS_MCP_URL` (never in git). That is accepted for the first stage ([ADR-011](../decisions/ADR-011-mcp-streamable-http.md)).
+- When ai-agent runs **inside the Kubernetes network** (a web chat as the client), the value becomes a cluster service name: change the variable, nothing else. That step is documented here, not built.
+- The Go service is started with `MCP_EXPOSE_GENERIC_TOOLS=false` (the agent only needs the workflows; ai-agent also hides every tool outside `allowed_tools`) and with its own `MCP_ENVIRONMENT` and `MCP_COMPANY` (the sandbox): ai-agent never sends an environment or a company.
+- Neither service authenticates yet; see [security](../security/security.md).
+- A deployment with **no robot connected** (a web chat) sets `AI_AGENT_EXPRESSION=0`: the expression flow would spend one more model call per reply on a gesture nobody runs.
+- Model: the profile `claude_sonnet` (one Claude Sonnet model on every step) needs `ANTHROPIC_API_KEY`; it is not the active profile until the maintainer sets `profile` after the first real run.
 
 ## State
 

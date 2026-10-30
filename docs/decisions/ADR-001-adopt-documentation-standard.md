@@ -22,6 +22,10 @@ ai-agent uses the same folders. Mapping from the old layout:
 
 The generated tables stay in `docs/models/`: the tests and the scripts in `tests/manual/` read and write them there (`DOC_PATH`).
 
+> **Update 2026-10-27:** `tasks/` was adopted too (README with protocol and board, `ORDER.md`, one folder per epic), for epic T-01 (the `dynamics_microservice` MCP tools), and `setup/questionnaires/` for the questions asked before building (Q01).
+
+Still not adopted: the rest of `setup/` (the Engram intake sub-forms).
+
 Not adopted: `setup/` (the Engram intake sub-forms) and `changes/` (the change report of the Go generator). ai-agent has no code generator and no Engram intake yet.
 
 ## Consequences

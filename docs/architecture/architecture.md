@@ -38,7 +38,7 @@ flow to the next**.
 composition_root/main.py          builds the app (run this one)
 application/
   inbound/{ports,dto}/            what the HTTP layer and the services implement and exchange
-  outbound/ports/                 LLMOutboundPort, McpToolsPort, UsageReporterPort
+  outbound/ports/                 LLMOutboundPort, McpToolsPort (and the signal a tool failure for good leaves for the step loop), UsageReporterPort (LLM calls and, optionally, MCP tool calls)
   service/                        session_service, message_flow_service, user_session
   system_prompts/general.py       builds the system message of a phase
   orchestration/                  the agents (section 3 to 8)
@@ -62,7 +62,7 @@ flows/    WHAT each agent is        one file per flow, the router, the registry,
 phases/   the steps                 one phase per file, constants first; the catalog; the shape of a phase
 engine/   HOW any flow runs         Pipeline, Flow, PhaseRunner, clarification, answer check; knows no particular flow
 state/    WHAT travels through a run  FlowState, MotionFlowState, PausedRun, FlowResult
-support/  shared helpers            model choice, metrics, failures, schemas, action tree, MCP server list, clock
+support/  shared helpers            model choice, metrics, failures, schemas, action tree, MCP server list (a server with no tools is left out), clock
 ```
 
 `flows` use everything below; `engine` never imports a flow; `phases` never import the engine; `state` and `support`
@@ -132,9 +132,9 @@ top (`PHASE_ID`, `STEP_NAME`, `MODEL_ENV_VAR`, `DEFAULT_MODEL`, `PROMPT_FILE`, `
 | 2 | `project_manager` | `special/project_manager.py` | special | Splits the goal into a tree of `actions` (with subactions) and sets `next_step`. Sees the MCP servers and the history |
 | 3 | `safety_quality_gatekeeper` | `special/safety_gate.py` | special | Fills `safety_and_validation`; may require a confirmation |
 | 4 | `cognitive_worker` | `special/cognitive_worker.py` | special | Runs one non-MCP action given the outputs it depends on |
-| 5 | `mcp_operator` | `special/mcp_operator.py` | special | Runs one `mcp_tool_call` action with the tools of the MCP servers (blocked if a confirmation is pending) |
+| 5 | `mcp_operator` | `special/mcp_operator.py` | special | Runs one `mcp_tool_call` action with the tools of the MCP servers (blocked if a confirmation is pending); it follows a `running` answer up once, within the 60 s the tool calls of a message share |
 | 6 | `data_engineer` | `special/data_engineer.py` | special | Cleans the result of an MCP action |
-| 7 | `draft_writer` | `common/draft_writer.py` | conversation, special | Writes the first user-facing answer into `user_goal.expected_outcome` |
+| 7 | `draft_writer` | `common/draft_writer.py` | conversation, special | Writes the first user-facing answer into `user_goal.expected_outcome` (the reply read by `FlowState.final_text()` has stray model tags stripped); reads the user's own words (`user_message`) so it answers in their language, short and speakable |
 | 8 | `editor_in_chief` | `common/editor_in_chief.py` | conversation, special | Polishes it; the reply is `user_goal.expected_outcome` |
 | 9 | `answer_checker` | `common/answer_checker.py` | the engine | Reads the next message of a session with a saved run (answer / yes / no / not an answer / stop) |
 | 20 | `motion_planner` | `movement/motion_planner.py` | movement | Writes the ordered movement list, `is_motion_request` and a short `spoken_reply`; asks the user when the arm or the degrees are missing |
@@ -146,8 +146,9 @@ top (`PHASE_ID`, `STEP_NAME`, `MODEL_ENV_VAR`, `DEFAULT_MODEL`, `PROMPT_FILE`, `
 A phase's answer is one JSON object built from the schema pieces it names in `SCHEMAS` (section 5.1 of
 `rules/schemas-and-prompts.md`). Phases 4, 5 and 6 answer with the actions schema, one call per action.
 
-The code defaults of `DEFAULT_MODEL` are GitHub Models ids (a retired service). The model really used is chosen by
-`AI_AGENT_MODEL_PHASE_<id>` or `config/step_models.json` (see `configuration.md`).
+The code defaults of `DEFAULT_MODEL` are Google models with a free tier: `gemini-3.1-flash-lite` for triage, data engineer, answer
+checker, clarification and emotion reader, `gemini-3.6-flash` for the others ([ADR-012](../decisions/ADR-012-gemini-free-tier-default-no-github-models.md)). The model really used is chosen by
+`AI_AGENT_MODEL_PHASE_<id>` or `config/step_models.json` (see `configuration.md`); the active profile `proven` puts `gemini-3.1-flash-lite` on every step ([ADR-012](../decisions/ADR-012-gemini-free-tier-default-no-github-models.md)).
 
 ## 6. The engine
 
@@ -172,11 +173,11 @@ There is no default flow: `Pipeline` needs its `flow`.
 | User message | one string: phase 1 the user text with the conversation so far; other phases `str()` of a dict of domain objects (the prompts are written against that format) |
 | Response format | `json_schema` named by the phase's `FORMAT_NAME`, built by `object_schema(required, properties)` from the schema pieces (the actions' `$defs` are moved to the root) |
 | Sampling | temperature 1.0, max tokens 10000 (phase 99: 0.7 and 2000) |
-| Tools | none, except phase 5: the MCP servers, expanded by the adapter into the tools of each reachable SSE server |
+| Tools | none, except phase 5: the MCP servers, expanded by the adapter into the tools of each reachable `sse` or `streamable_http` server |
 | Model | `model_for_phase`: env variable, then `config/step_models.json`, then the code default |
 
 `send()` asks the LLM, retries a failed call up to `AI_AGENT_MAX_ATTEMPTS` unless the error cannot get better
-(`failure.worth_retrying`), records the token usage in `SessionMetrics`, and raises an `AgentFailure` that says what
+(`failure.worth_retrying`; after a lack of capacity it waits first, and then asks the `fallback_models` of the active profile once each, ADR-014), records the token usage in `SessionMetrics`, and raises an `AgentFailure` that says what
 happened and in which activity (`PHASE_ACTIVITIES`).
 
 ### 6.3 Failures
@@ -211,6 +212,8 @@ other type to the cognitive worker (4). Rules:
   are marked as failed, not run);
 - `AI_AGENT_PARALLEL_ACTIONS=<n>` runs independent actions together (default 1; tool calls stay sequential);
 - an MCP action is **blocked** while `requires_confirmation` is set (the run pauses at the safety gate first);
+- the tool calls of one message may wait **60 s in total** (`MAX_TOOL_WAIT_SECONDS`, a budget the action loop opens for the run and the MCP adapter spends from: each call gets what is left, and with nothing left it is not made and answers a timeout). A query that is still running is followed up by the **operator step itself** (it may chain tool calls: `ai_sdk` allows 8 steps in one call), once, with `get_job_result`; it is not a second planned action;
+- at most `AI_AGENT_MAX_MCP_CALLS_PER_MESSAGE` (default 5, `0` = no limit) MCP actions run in one message, counted when an action starts (its retries do not count); the others fail with "the limit ... was reached, so only the first N could be done" and their dependants are skipped. The prompt wording that makes the reply say so is T-01.6;
 - a failed action never stops the others: its dependants are skipped and the writer is told what worked.
 
 ## 9. `domain/`
@@ -242,16 +245,18 @@ response mapper builds them from the LLM's JSON, one function per section.
 | `outbound/llm/vercel.py` | `VercelAIAdapter.ask`: one stateless call (messages in, `Response` out) through `ai_sdk` |
 | `outbound/llm/config.py` | `VercelAIConfig`: provider keys and URLs from the environment |
 | `outbound/llm/provider_models.py` | domain model to `ai_sdk` model; a table of OpenAI-compatible routes (add a provider by adding a row) |
+| `outbound/llm/anthropic_schema.py` | the schema a Claude model receives: `strict`, `additionalProperties: false`, the keywords Anthropic refuses removed, the action recursion unrolled to 3 levels ([ADR-013](../decisions/ADR-013-claude-through-sanitized-structured-outputs.md)) |
 | `outbound/llm/tools.py` | `resolve_tools`: turns the MCP server list of phase 5 into real tools |
 | `outbound/llm/response_mapper.py` | LLM JSON to `Response`, one function per section |
-| `outbound/mcp/` | `config.py` (reads `mcps/*.json`), `client_manager.py` (SSE connection, forwards the trace headers), `tool_catalog.py` (which server offers which tool; cached, 10 s timeout), `tool_executor.py` (what the LLM adapter calls) |
+| `outbound/mcp/` | `config.py` (reads `mcps/*.json`, skips a server whose `${NAME}` url is not filled), `client_manager.py` (SSE or Streamable HTTP connection by `type`, forwards the trace headers, keeps `httpx`, `httpcore` and `mcp.client` out of the logs), `tool_catalog.py` (which server offers which tool, only those in its `allowed_tools`; a listing is kept, a failed one is not retried for 60 s; 10 s listing limit), `availability.py` (the optional `AI_AGENT_CHECK_MCP_<NAME>` check, log only), `tool_executor.py` (what the LLM adapter calls: a 30 s call limit, `AI_AGENT_MCP_CALL_TIMEOUT_SECONDS`, and one retry after a transport error or `retry_later`) |
 | `outbound/usage/langfuse.py`, `prices.py` | optional cost reporting to Langfuse (section 11) |
 
 ## 11. Observability
 
 - **Logging and tracing:** `shared_logging` (`init_logging("ai-agent")`, `TracingMiddleware`); messages are constant strings with
   keyword fields. The trace headers are forwarded to MCP servers.
-- **Metrics:** `SessionMetrics` records tokens per phase, per model and per call for each message.
+- **Metrics:** `SessionMetrics` records tokens per phase, per model and per call for each message, and the MCP tool calls of the message (tool, outcome, duration, tries; never a value).
+- **No value in any log, metric or span:** a tool argument or a tool answer is never logged, measured or traced; the libraries under the MCP client are kept at WARNING for that reason (see [monitoring](../operations/monitoring.md)).
 - **Langfuse (optional, `LANGFUSE_PUBLIC_KEY` and `LANGFUSE_SECRET_KEY` set):** each message is a trace and each LLM call a
   `generation` named after its step, with model, tokens (thinking tokens included), cost, **and the payload sent and the
   answer received, which include the user's text and the prompts**. Use a Langfuse project you trust with them. A failure
@@ -278,7 +283,7 @@ response mapper builds them from the LLM's JSON, one function per section.
 - **A new field in an answer:** the full schema, the prompt, the domain object and the response mapper, together
   (`rules/schemas-and-prompts.md`, section 4).
 - **A new provider:** a row in `infrastructure/outbound/llm/provider_models.py`, its key and URL in `VercelAIConfig`, its
-  models in `domain/value_objects/llm_request/model_catalog.py`.
+  models in `domain/value_objects/llm_request/model_catalog.py`. A provider with limits of its own on the schema (Claude) gets its own copy of it inside the adapter (`anthropic_schema.py`), never a change of the schemas of the phases.
 
 If a change alters a prompt, a schema, a model or a message format, regenerate the golden file on purpose
 (`UPDATE_GOLDEN=1 python -m pytest tests/test_flow_golden.py`) and read the diff first.

@@ -24,7 +24,7 @@ from application.service.user_session import UserSession
 from domain.entities.llm_response.action import create_action
 from domain.value_objects.llm_request.message import Role
 from domain.value_objects.llm_request.tool import ToolDefinition
-from domain.value_objects.llm_request.model import GithubModels, get_selected_model
+from domain.value_objects.llm_request.model import get_selected_model
 from infrastructure.outbound.llm.config import VercelAIConfig
 from infrastructure.outbound.llm.provider_models import resolve_provider_model
 from infrastructure.outbound.llm.response_mapper import build_response
@@ -151,7 +151,6 @@ CONFIG = VercelAIConfig(
     mistral_api_key="m-key", mistral_url="https://mistral.example/v1",
     groq_api_key="q-key", groq_url="https://groq.example/v1",
     cohere_api_key="c-key", cohere_url="https://cohere.example/v1",
-    github_api_key="h-key", github_url="https://github.example/v1",
     OLLAMA_URL="https://ollama.example/v1",
     openai_api_key="o-key", anthropic_api_key="a-key",
 )
@@ -160,11 +159,9 @@ CONFIG = VercelAIConfig(
 class TestProviderRoutes:
     @pytest.mark.parametrize("model_id,key,url", [
         ("gemini-3.8-flash", "g-key", "https://google.example/v1"),
-        ("mistral-large-2411", "m-key", "https://mistral.example/v1"),
         ("llama-3.3-70b-versatile", "q-key", "https://groq.example/v1"),
-        ("command-r7", "c-key", "https://cohere.example/v1"),
+        ("command-a-03-2025", "c-key", "https://cohere.example/v1"),
         ("llama3.3", "ollama", "https://ollama.example/v1"),
-        ("gpt-4.1", "h-key", "https://github.example/v1"),
     ])
     def test_each_provider_gets_its_key_and_url(self, model_id, key, url):
         model = resolve_provider_model(get_selected_model(model_id), CONFIG, {})
@@ -176,8 +173,20 @@ class TestProviderRoutes:
         assert model._client.api_key == "o-key"
 
     def test_native_anthropic_uses_its_key(self):
-        model = resolve_provider_model(get_selected_model("claude-3-5-haiku-latest"), CONFIG, {})
+        model = resolve_provider_model(get_selected_model("claude-sonnet-5-5"), CONFIG, {})
         assert model._client.api_key == "a-key"
+
+    @pytest.mark.parametrize("model_id", [
+        "gpt-4.1",                    # the old GitHub Models default: GitHub Models is retired, the route is gone
+        "gpt-4.1-mini",
+        "mistral-large-2411",         # Mistral has no selectable model until an API id is verified
+        "command-r7",                 # not an id of Cohere any more
+        "claude-3-5-haiku-latest",    # the "-latest" ids of the old generations are not listed
+        "gemini-3.7-flash",
+    ])
+    def test_a_model_that_is_gone_is_not_in_the_catalog(self, model_id):
+        with pytest.raises(TypeError):
+            get_selected_model(model_id)
 
 
 # ===============================================

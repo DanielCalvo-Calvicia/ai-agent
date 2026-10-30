@@ -22,7 +22,7 @@ from application.service.session_service import SessionService
 from application.system_prompts.general import LoadSystemPrompt
 from domain.entities.llm_request.payload import Payload
 from domain.entities.llm_response.response import Response
-from domain.value_objects.llm_request.model import GithubModels, get_selected_model
+from domain.value_objects.llm_request.model import GoogleModels, get_selected_model
 from domain.value_objects.llm_request.tool import ToolDefinition
 from infrastructure.inbound.http.fastapi import SessionFastAPI
 from infrastructure.outbound.llm.config import VercelAIConfig
@@ -46,35 +46,35 @@ def _project_cwd(monkeypatch):
 
 class TestConfigFromEnv:
     def test_reads_the_environment_when_called(self, monkeypatch):
-        monkeypatch.delenv("GITHUB_API_KEY", raising=False)
         monkeypatch.setenv("OPENAI_API_KEY", "openai-key")
-        monkeypatch.setenv("GITHUB_PAT", "github-pat")
-        monkeypatch.setenv("GITHUB_URL", "https://models.example/inference")
+        monkeypatch.setenv("GOOGLE_API_KEY", "google-key")
+        monkeypatch.setenv("GOOGLE_URL", "https://models.example/inference")
         monkeypatch.setenv("OLLAMA_URL", "http://ollama.example/v1")
 
         config = VercelAIConfig.from_env()
 
         assert config.openai_api_key == "openai-key"
-        assert config.github_api_key == "github-pat"
-        assert config.github_url == "https://models.example/inference"
+        assert config.google_api_key == "google-key"
+        assert config.google_url == "https://models.example/inference"
         assert config.OLLAMA_URL == "http://ollama.example/v1"
 
-    def test_github_pat_wins_over_the_old_name(self, monkeypatch):
-        monkeypatch.setenv("GITHUB_PAT", "new")
+    def test_the_retired_github_variables_are_not_read(self, monkeypatch):
+        for name in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GOOGLE_API_KEY", "MISTRAL_API_KEY", "GROQ_API_KEY",
+                     "COHERE_API_KEY", "OLLAMA_URL"):
+            monkeypatch.delenv(name, raising=False)
+        monkeypatch.setenv("GITHUB_PAT", "pat")
         monkeypatch.setenv("GITHUB_API_KEY", "old")
-        assert VercelAIConfig.from_env().github_api_key == "new"
-
-    def test_old_github_name_still_works(self, monkeypatch):
-        monkeypatch.delenv("GITHUB_PAT", raising=False)
-        monkeypatch.setenv("GITHUB_API_KEY", "old")
-        assert VercelAIConfig.from_env().github_api_key == "old"
+        monkeypatch.setenv("GITHUB_URL", "https://models.example/inference")
+        config = VercelAIConfig.from_env()
+        assert not hasattr(config, "github_api_key") and not hasattr(config, "github_url")
+        assert VercelAIAdapter(Config=config).is_available() is False
 
     def test_missing_variables_become_empty_strings(self, monkeypatch):
-        for name in ("OPENAI_API_KEY", "GITHUB_PAT", "GITHUB_API_KEY", "GITHUB_URL"):
+        for name in ("OPENAI_API_KEY", "GOOGLE_API_KEY", "GOOGLE_URL"):
             monkeypatch.delenv(name, raising=False)
         config = VercelAIConfig.from_env()
         assert config.openai_api_key == ""
-        assert config.github_url == ""
+        assert config.google_url == ""
 
     def test_passes_the_tool_executor_through(self):
         marker = object()
@@ -87,7 +87,7 @@ class TestVercelAdapterAvailability:
 
     @pytest.mark.parametrize("field", [
         "openai_api_key", "anthropic_api_key", "google_api_key", "mistral_api_key",
-        "groq_api_key", "cohere_api_key", "github_api_key", "OLLAMA_URL",
+        "groq_api_key", "cohere_api_key", "OLLAMA_URL",
     ])
     def test_available_when_any_single_provider_setting_is_present(self, field):
         config = VercelAIConfig(**{field: "set"})
@@ -106,11 +106,11 @@ class TestVercelAdapterAvailability:
 # ===============================================
 
 class TestProviderResolution:
-    def test_github_models_use_the_github_url_and_key(self):
-        config = VercelAIConfig(github_api_key="pat", github_url="https://models.example/inference")
-        model = resolve_provider_model(get_selected_model(GithubModels.GPT_4_1), config, {})
+    def test_google_models_use_the_google_url_and_key(self):
+        config = VercelAIConfig(google_api_key="key", google_url="https://models.example/inference")
+        model = resolve_provider_model(get_selected_model(GoogleModels.GEMINI_3_8_FLASH), config, {})
         assert str(model._client.base_url).startswith("https://models.example/inference")
-        assert model._client.api_key == "pat"
+        assert model._client.api_key == "key"
 
     def test_ollama_uses_the_configured_url_instead_of_raising_key_error(self):
         config = VercelAIConfig(OLLAMA_URL="http://ollama.example/v1")
@@ -118,9 +118,9 @@ class TestProviderResolution:
         assert str(model._client.base_url).startswith("http://ollama.example/v1")
 
     def test_sampling_options_are_passed_to_the_model(self):
-        config = VercelAIConfig(github_api_key="pat", github_url="https://models.example/inference")
+        config = VercelAIConfig(google_api_key="key", google_url="https://models.example/inference")
         model = resolve_provider_model(
-            get_selected_model(GithubModels.GPT_4_1), config, {"temperature": 0.3, "max_tokens": 50}
+            get_selected_model(GoogleModels.GEMINI_3_8_FLASH), config, {"temperature": 0.3, "max_tokens": 50}
         )
         assert model._default_kwargs == {"temperature": 0.3, "max_tokens": 50}
 
@@ -439,33 +439,33 @@ class TestSessionMemory:
 class TestModelPerPhase:
     def test_default_is_used_without_override(self, monkeypatch):
         monkeypatch.delenv("AI_AGENT_MODEL_PHASE_2", raising=False)
-        assert model_for_phase(2, GithubModels.GPT_4_1).id == "gpt-4.1"
+        assert model_for_phase(2, GoogleModels.GEMINI_3_8_FLASH).id == "gemini-3.8-flash"
 
     def test_override_replaces_the_default(self, monkeypatch):
-        monkeypatch.setenv("AI_AGENT_MODEL_PHASE_2", "gpt-4.1-mini")
-        assert model_for_phase(2, GithubModels.GPT_4_1).id == "gpt-4.1-mini"
+        monkeypatch.setenv("AI_AGENT_MODEL_PHASE_2", "gemini-3.1-flash-lite")
+        assert model_for_phase(2, GoogleModels.GEMINI_3_8_FLASH).id == "gemini-3.1-flash-lite"
 
     def test_override_of_one_phase_does_not_touch_the_others(self, monkeypatch):
-        monkeypatch.setenv("AI_AGENT_MODEL_PHASE_2", "gpt-4.1-mini")
+        monkeypatch.setenv("AI_AGENT_MODEL_PHASE_2", "gemini-3.1-flash-lite")
         monkeypatch.delenv("AI_AGENT_MODEL_PHASE_3", raising=False)
-        assert model_for_phase(3, GithubModels.GPT_4_1).id == "gpt-4.1"
+        assert model_for_phase(3, GoogleModels.GEMINI_3_8_FLASH).id == "gemini-3.8-flash"
 
     def test_a_model_of_another_provider_can_be_used(self, monkeypatch):
-        monkeypatch.setenv("AI_AGENT_MODEL_PHASE_2", "gemini-2.5-flash")
-        model = model_for_phase(2, GithubModels.GPT_4_1)
-        assert model.id == "gemini-2.5-flash" and model.is_google()
+        monkeypatch.setenv("AI_AGENT_MODEL_PHASE_2", "llama-3.3-70b-versatile")
+        model = model_for_phase(2, GoogleModels.GEMINI_3_8_FLASH)
+        assert model.id == "llama-3.3-70b-versatile" and model.is_groq()
 
     def test_unknown_override_fails_loudly(self, monkeypatch):
         monkeypatch.setenv("AI_AGENT_MODEL_PHASE_2", "not-a-model")
         with pytest.raises(ValueError, match="AI_AGENT_MODEL_PHASE_2"):
-            model_for_phase(2, GithubModels.GPT_4_1)
+            model_for_phase(2, GoogleModels.GEMINI_3_8_FLASH)
 
     def test_override_reaches_the_llm_call(self, monkeypatch):
-        monkeypatch.setenv("AI_AGENT_MODEL_PHASE_1", "gpt-4.1-nano")
+        monkeypatch.setenv("AI_AGENT_MODEL_PHASE_1", "gemini-3.5-flash-lite")
         llm = ScriptedLLM()
         service, sid = _service(llm)
         _say(service, sid, "hi")
-        assert llm.calls[0]["model"] == "gpt-4.1-nano"
+        assert llm.calls[0]["model"] == "gemini-3.5-flash-lite"
 
 
 class TestPrompts:

@@ -15,6 +15,8 @@ def _no_model_config_file(monkeypatch, tmp_path_factory):
     """
     monkeypatch.setenv("AI_AGENT_MODELS_FILE", os.path.join(str(tmp_path_factory.getbasetemp()), "no_such_step_models.json"))
     monkeypatch.delenv("AI_AGENT_PARALLEL_ACTIONS", raising=False)
+    monkeypatch.setenv("AI_AGENT_RETRY_WAIT_SECONDS", "0")      # no waiting between the tries of a failed call (tests/test_fallback.py sets its own)
+    monkeypatch.delenv("AI_AGENT_FALLBACK_MODELS", raising=False)
     for phase in list(range(1, 10)) + [20, 30, 99]:
         monkeypatch.delenv(f"AI_AGENT_MODEL_PHASE_{phase}", raising=False)
 

@@ -11,7 +11,7 @@ DEFAULT_MCPS_DIR = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'mc
 
 
 # Protocols the MCP client can talk to. Servers of other types are ignored.
-SUPPORTED_TYPES = ("sse",)
+SUPPORTED_TYPES = ("sse", "streamable_http")
 
 _ENV_REFERENCE = re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*)\}")
 
@@ -30,12 +30,21 @@ def expand_env(value: Any) -> Any:
     return value
 
 
+def _unset_variables(value: Any) -> List[str]:
+    """Names of the ``${NAME}`` references still in a value after expand_env (their variable is not set)."""
+    return _ENV_REFERENCE.findall(value) if isinstance(value, str) else []
+
+
 def load_supported_mcp_configs(mcps_dir: Optional[str] = None) -> List[Dict[str, Any]]:
     """The configured MCP servers the agent can actually use (see SUPPORTED_TYPES)."""
     supported: List[Dict[str, Any]] = []
 
     for server in load_mcp_configs(mcps_dir):
         if server["type"] in SUPPORTED_TYPES:
+            unset = _unset_variables(server["config"].get("url"))
+            if unset:
+                logger.warning("MCP server url is not set, ignoring the server", server_name=server["name"], variables=unset)
+                continue
             supported.append(server)
         else:
             logger.warning("MCP server type is not supported, ignoring it", server_name=server["name"], server_type=server["type"])

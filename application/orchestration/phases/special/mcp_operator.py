@@ -3,7 +3,7 @@
 
 from typing import Dict, Optional
 
-from domain.value_objects.llm_request.model import GithubModels
+from domain.value_objects.llm_request.model import GoogleModels
 
 from application.orchestration.support.action_tree import with_outputs
 from application.orchestration.state.flow_state import FlowState
@@ -16,7 +16,7 @@ from application.outbound.ports.mcp_ports import McpToolsPort
 PHASE_ID = 5
 STEP_NAME = "mcp_operator"
 MODEL_ENV_VAR = "AI_AGENT_MODEL_PHASE_5"
-DEFAULT_MODEL = GithubModels.GPT_4_1
+DEFAULT_MODEL = GoogleModels.GEMINI_3_6_FLASH
 PROMPT_FILE = "prompts/5_mcp_operator.txt"
 FORMAT_NAME = "phase5_single_action_response_format"
 INTENT = ("decision_support", (), 0.9)

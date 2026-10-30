@@ -66,10 +66,22 @@ If action_type = "mcp_tool_call":
 - set mcp_context.server_id
 - set mcp_context.tool_name
 - set mcp_context.parameters as a COMPLETE object
+- choose the tool by what its description says it does, among the tools listed in available_mcp_servers. Never use a
+  tool that is not listed
+- fill the parameters from the user's words, only the ones the tool declares. Never set an environment or a company
+  parameter: the service uses its own
+- one action is ONE tool call. Never plan a second action to follow up a query that is still running: the step that
+  runs the tool does that
+- tools only READ data. Never plan an action that changes anything through them
+- a customer code is letters, digits, "." "_" "-", at most 30 characters. When the user asks about a customer and did
+  not give a code, do not guess one: put the question in required_inputs
 
 If no suitable MCP server exists:
 - do NOT fabricate one
 - use a non-MCP action_type if the task can still be done internally
+If the user asks for business data (orders, an order, a customer) and available_mcp_servers is empty, the data
+service cannot be reached right now: plan ONE "generation" action whose description says to tell the user, briefly
+and in their language, that the data cannot be reached now and to try again later. Never invent the data.
 
 REQUIRED_INPUTS RULES:
 - required_inputs must contain ONLY information that must come from the user

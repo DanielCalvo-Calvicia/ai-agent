@@ -3,13 +3,6 @@
   "message": "Compare Python, Go and Rust. For each language give two strengths and two weaknesses, then recommend one for a beginner and explain why.",
   "runs": [
     {
-      "id": "gemini-2.5-flash-lite",
-      "calls": 10,
-      "sent": 11672,
-      "answered": 2310,
-      "thinking": 2
-    },
-    {
       "id": "openai/gpt-oss-20b",
       "calls": 6,
       "sent": 10161,
@@ -31,13 +24,6 @@
       "thinking": 0
     },
     {
-      "id": "gemini-2.5-flash",
-      "calls": 10,
-      "sent": 12305,
-      "answered": 3194,
-      "thinking": 2484
-    },
-    {
       "id": "gemini-3.8-flash",
       "calls": 7,
       "sent": 9757,
@@ -48,27 +34,58 @@
   "thinking_per_call_measured": {
     "_about": "Thinking tokens per call, measured with gemini-2.5-flash and gemini-3.8-flash (the models that think). The lite models measured 0.",
     "triage_specialist": {
-      "gemini-2.5-flash": 300,
       "gemini-3.8-flash": 489
     },
     "project_manager": {
-      "gemini-2.5-flash": 977,
       "gemini-3.8-flash": 985
     },
     "safety_quality_gatekeeper": {
-      "gemini-2.5-flash": 114,
       "gemini-3.8-flash": 231
     },
     "cognitive_worker": {
-      "gemini-2.5-flash": 203,
       "gemini-3.8-flash": 724
     },
     "draft_writer": {
-      "gemini-2.5-flash": 79,
       "gemini-3.8-flash": 344
     },
     "editor_in_chief": {
       "gemini-3.8-flash": 115
+    }
+  },
+  "_retired": {
+    "_about": "Runs of 2026-09-21 with models that Google no longer gives to new keys (404 on 2026-10-28, T-02.3): kept for the record. Nothing reads this key: the cost tables and the tests use `runs` and `thinking_per_call_measured` only.",
+    "runs": [
+      {
+        "id": "gemini-2.5-flash-lite",
+        "calls": 10,
+        "sent": 11672,
+        "answered": 2310,
+        "thinking": 2
+      },
+      {
+        "id": "gemini-2.5-flash",
+        "calls": 10,
+        "sent": 12305,
+        "answered": 3194,
+        "thinking": 2484
+      }
+    ],
+    "thinking_per_call_measured": {
+      "triage_specialist": {
+        "gemini-2.5-flash": 300
+      },
+      "project_manager": {
+        "gemini-2.5-flash": 977
+      },
+      "safety_quality_gatekeeper": {
+        "gemini-2.5-flash": 114
+      },
+      "cognitive_worker": {
+        "gemini-2.5-flash": 203
+      },
+      "draft_writer": {
+        "gemini-2.5-flash": 79
+      }
     }
   }
 }
