@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | in-progress (created 2026-10-28; T-03.1 to T-03.5 done; T-03.6 run twice: one wrong reply on Haiku, all right with Sonnet for planner, writer and editor) |
+| Status | in-progress (created 2026-10-28; T-03.1 to T-03.5 and T-03.7 done; T-03.6 run several times, the last six greetings on `claude_haiku` all right; kept open by the maintainer until the replies match the expected outcome) |
 | Kind | epic |
 | Parent | project |
 | Depends on | T-02 (the catalog and the profiles) |
@@ -50,6 +50,6 @@ A Claude profile answers a conversation message, a task with a plan, a movement 
 
 ## Open points
 
-- The reply to a greeting on `claude-haiku-4-5` (known gap 13 of the requirements).
-- A plan, the Business Central tools and the Sonnet planner were not run on Claude.
-- Whether to make Claude the profile of T-01.9 (decided there).
+- The reply to a greeting on `claude-haiku-4-5` (known gap 13 of the requirements): the wrong reply of 2026-10-28 did not come back in six greetings on 2026-10-30, but the draft writer changed in between, so the cause is not known.
+- Kept open by the maintainer until the replies match the expected outcome.
+- Done since the first version of this epic: a plan, the Sonnet planner and the Business Central tools ran on Claude (`claude_mixed`, T-03.6 and T-01.9); the profile of T-01.9 was `claude_mixed`.

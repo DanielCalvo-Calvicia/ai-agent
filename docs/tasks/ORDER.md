@@ -60,7 +60,7 @@ Written on 2026-10-27.
 | 28 | [T-03.3](T-03_claude-provider/T-03.3_tests.md) | Tests of the sanitizer and the wiring | test | Done | 23 tests | T-03.2 | 2026-10-28 |
 | 29 | [T-03.4](T-03_claude-provider/T-03.4_profile-and-price-notes.md) | The profile, the Claude notes in the price file and the generated tables | code | Done | `claude_haiku`, not active | T-03.2 | 2026-10-28 |
 | 30 | [T-03.5](T-03_claude-provider/T-03.5_documentation.md) | Documentation and ADR-013 | docs | Done | ADR-013 | T-03.2 to T-03.4 | 2026-10-28 |
-| 31 | [T-03.6](T-03_claude-provider/T-03.6_first-real-run-on-claude.md) | First real run on Claude | manual | In progress | run twice: Haiku answered the greeting with a description; Sonnet for planner, writer and editor got all three right | T-03.2 to T-03.5 | 2026-10-28 |
+| 31 | [T-03.6](T-03_claude-provider/T-03.6_first-real-run-on-claude.md) | First real run on Claude | manual | In progress | kept open by the maintainer until the replies match the expected outcome; 2026-10-30: six greetings on `claude_haiku` all right, a Business Central request ran on Claude | T-03.2 to T-03.5 | 2026-10-28 |
 | 32 | [T-03.7](T-03_claude-provider/T-03.7_prices-of-the-other-claude-ids.md) | Prices of the other Claude ids | code | Done | the three ids priced from Anthropic's page of 2026-10-29 | T-03.4 | 2026-10-29 |
 
 ## D. T-04 A model out of capacity does not stop the message

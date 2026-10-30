@@ -113,7 +113,7 @@ Verified on 2026-10-27 against both projects.
 | [T-03.3](T-03_claude-provider/T-03.3_tests.md) | Tests of the sanitizer and the wiring | test | done (2026-10-28) |
 | [T-03.4](T-03_claude-provider/T-03.4_profile-and-price-notes.md) | The profile, the Claude notes in the price file and the generated tables | code | done (2026-10-28) |
 | [T-03.5](T-03_claude-provider/T-03.5_documentation.md) | Documentation and ADR-013 | docs | done (2026-10-28) |
-| [T-03.6](T-03_claude-provider/T-03.6_first-real-run-on-claude.md) | First real run on Claude | manual | in-progress (run twice on 2026-10-28; the second, with Sonnet, all right) |
+| [T-03.6](T-03_claude-provider/T-03.6_first-real-run-on-claude.md) | First real run on Claude | manual | in-progress (kept open by the maintainer; 2026-10-30: six greetings on `claude_haiku` all right) |
 | [T-03.7](T-03_claude-provider/T-03.7_prices-of-the-other-claude-ids.md) | Prices of the other Claude ids | code | done (2026-10-29) |
 | [T-04](T-04_llm-resilience/T-04_llm-resilience.md) | **A model out of capacity does not stop the message** (epic) | epic | done (2026-10-29; not provoked with a real 503) |
 | [T-04.1](T-04_llm-resilience/T-04.1_decisions.md) | Decisions | decision | done (2026-10-29) |
