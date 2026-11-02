@@ -71,3 +71,44 @@ Written on 2026-10-27.
 | 34 | [T-04.1](T-04_llm-resilience/T-04.1_decisions.md) | Decisions | decision | Done | taken by the assistant, the maintainer asked for the feature | — | 2026-10-29 |
 | 35 | [T-04.2](T-04_llm-resilience/T-04.2_wait-and-fallback.md) | Wait, fallback models and the runner | code | Done | `failure.py`, `model_selection.py`, `phase_runner.py` | T-04.1 | 2026-10-29 |
 | 36 | [T-04.3](T-04_llm-resilience/T-04.3_tests-and-documentation.md) | Tests and documentation | test | Done | 30 tests, ADR-014 | T-04.2 | 2026-10-29 |
+
+## E. T-05 Structure: profiles, flows and steps (added 2026-11-02)
+
+The order follows the stages of [PR-005](../proposals/PR-005-flows-steps-profiles.md) section 11; one pull request per stage (S1: T-05.2 and T-05.3; S2: T-05.4 to T-05.11; S3: T-05.12; S4: T-05.13; S5: T-05.14; S6: T-05.15; S7: T-05.16 and T-05.17).
+
+| # | Task | Name | Kind | State | Detail | Depends on | Last updated |
+|---|---|---|---|---|---|---|---|
+| 37 | [T-05](T-05_profiles-flows-steps/T-05_profiles-flows-steps.md) | Structure: profiles, flows and steps (epic) | epic | Todo | plan accepted by the maintainer on 2026-11-02 | — | 2026-11-02 |
+| 38 | [T-05.1](T-05_profiles-flows-steps/T-05.1_decisions.md) | Decisions | decision | Done | Q05 to Q09, PR-005, ADR-015 | — | 2026-11-02 |
+| 39 | [T-05.2](T-05_profiles-flows-steps/T-05.2_step-registry.md) | Step registry | code | Todo | S1, no behaviour change | T-05.1 | 2026-11-02 |
+| 40 | [T-05.3](T-05_profiles-flows-steps/T-05.3_folder-layout.md) | Folder layout | code | Todo | S1, golden byte-identical | T-05.2 | 2026-11-02 |
+| 41 | [T-05.4](T-05_profiles-flows-steps/T-05.4_config-source.md) | Config source port and file loader | code | Todo | S2 | T-05.3 | 2026-11-02 |
+| 42 | [T-05.5](T-05_profiles-flows-steps/T-05.5_model-sets-and-resolution.md) | Model sets, profile files and model resolution | code | Todo | S2; removes the model environment variables | T-05.2, T-05.4 | 2026-11-02 |
+| 43 | [T-05.6](T-05_profiles-flows-steps/T-05.6_assemble.md) | assemble() and its checks | code | Todo | S2 | T-05.2, T-05.4, T-05.5 | 2026-11-02 |
+| 44 | [T-05.7](T-05_profiles-flows-steps/T-05.7_profiles-of-todays-flows.md) | The profiles of today's flows | code | Todo | S2; the service stops routing | T-05.5, T-05.6 | 2026-11-02 |
+| 45 | [T-05.8](T-05_profiles-flows-steps/T-05.8_session-responses.md) | Session list of Response | code | Todo | S2 | T-05.3 | 2026-11-02 |
+| 46 | [T-05.9](T-05_profiles-flows-steps/T-05.9_api.md) | API: profile, token, inputs, return, pause_id | code | Todo | S2 | T-05.6, T-05.7, T-05.8 | 2026-11-02 |
+| 47 | [T-05.10](T-05_profiles-flows-steps/T-05.10_tests-and-golden.md) | Tests and golden of the profiles | test | Todo | S2 | T-05.7 to T-05.9 | 2026-11-02 |
+| 48 | [T-05.11](T-05_profiles-flows-steps/T-05.11_first-real-run.md) | First real run: the `special` profile | manual | Todo | S2 acceptance; needs the Dynamics service up | T-05.10 | 2026-11-02 |
+| 49 | [T-05.12](T-05_profiles-flows-steps/T-05.12_flows-as-json.md) | Flows as JSON | code | Todo | S3, golden byte-identical | T-05.10 | 2026-11-02 |
+| 50 | [T-05.13](T-05_profiles-flows-steps/T-05.13_tool-scoping.md) | Tool scoping | code | Todo | S4 | T-05.12 | 2026-11-02 |
+| 51 | [T-05.14](T-05_profiles-flows-steps/T-05.14_prompts-per-profile.md) | Prompts per profile | code | Todo | S5 | T-05.12 | 2026-11-02 |
+| 52 | [T-05.15](T-05_profiles-flows-steps/T-05.15_metrics-and-hash.md) | Metrics, profile hash and reserved data fields | code | Todo | S6 | T-05.12 | 2026-11-02 |
+| 53 | [T-05.16](T-05_profiles-flows-steps/T-05.16_steps-as-json.md) | Steps as JSON declarations | code | Todo | S7, golden byte-identical | T-05.12 | 2026-11-02 |
+| 54 | [T-05.17](T-05_profiles-flows-steps/T-05.17_commands-and-tables.md) | Commands and generated tables | code | Todo | S7 | T-05.15, T-05.16 | 2026-11-02 |
+| 55 | [T-05.18](T-05_profiles-flows-steps/T-05.18_documentation.md) | Documentation and ADR-015 | docs | Todo | closes the epic | T-05.13 to T-05.17 | 2026-11-02 |
+
+## F. T-06 Redesign (added 2026-11-02)
+
+Starts only after T-05 is done and the maintainer has written the specification of T-06.1.
+
+| # | Task | Name | Kind | State | Detail | Depends on | Last updated |
+|---|---|---|---|---|---|---|---|
+| 56 | [T-06](T-06_redesign/T-06_redesign.md) | Redesign: the new flows, steps, prompts and profiles (epic) | epic | Todo | waits for T-05 | T-05 | 2026-11-02 |
+| 57 | [T-06.1](T-06_redesign/T-06.1_specification.md) | Specification of the new flows | decision | Awaiting user | the maintainer fills the table | T-05 | 2026-11-02 |
+| 58 | [T-06.2](T-06_redesign/T-06.2_message-set.md) | The fixed set of messages | test | Todo | | T-05.17 | 2026-11-02 |
+| 59 | [T-06.3](T-06_redesign/T-06.3_new-steps.md) | New steps | code | Todo | | T-06.1, T-05.16 | 2026-11-02 |
+| 60 | [T-06.4](T-06_redesign/T-06.4_refine-prompts.md) | Refine the prompts, one step at a time | code | Todo | | T-06.1, T-06.2, T-05.14 | 2026-11-02 |
+| 61 | [T-06.5](T-06_redesign/T-06.5_new-flows-and-profiles.md) | The new flows and profiles | code | Todo | | T-06.1, T-06.3, T-06.4 | 2026-11-02 |
+| 62 | [T-06.6](T-06_redesign/T-06.6_real-run-and-comparison.md) | Real run and comparison | manual | Todo | | T-06.5 | 2026-11-02 |
+| 63 | [T-06.7](T-06_redesign/T-06.7_documentation.md) | Documentation | docs | Todo | | T-06.6 | 2026-11-02 |

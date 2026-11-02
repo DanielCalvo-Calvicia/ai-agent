@@ -1,6 +1,6 @@
 # Tasks
 
-Hierarchical task plan, same format as `dynamics_microservice/docs/tasks`. Epics so far: **T-01 use the `dynamics_microservice` MCP tools from ai-agent** (done: T-01.9, the first real run, on 2026-10-29) and **T-03 Claude as a provider** (done on 2026-10-30; `docs/decisions/ADR-013-claude-through-sanitized-structured-outputs.md`) and **T-02 refresh the model catalog: no GitHub Models, Google free tier by default** (done on 2026-10-30; created 2026-10-27, plan in `docs/proposals/PR-004-model-catalog-gemini-free-tier.md`). It is written to be executed step by step: every leaf task states what to create or change, what it must not do and how to prove it is done.
+Hierarchical task plan, same format as `dynamics_microservice/docs/tasks`. Epics so far: **T-01 use the `dynamics_microservice` MCP tools from ai-agent** (done: T-01.9, the first real run, on 2026-10-29) and **T-03 Claude as a provider** (done on 2026-10-30; `docs/decisions/ADR-013-claude-through-sanitized-structured-outputs.md`) and **T-02 refresh the model catalog: no GitHub Models, Google free tier by default** (done on 2026-10-30; created 2026-10-27, plan in `docs/proposals/PR-004-model-catalog-gemini-free-tier.md`). Two epics were added on 2026-11-02: **T-05 structure: profiles, flows and steps as three pluggable layers** (plan in `docs/proposals/PR-005-flows-steps-profiles.md`, `docs/decisions/ADR-015-profiles-flows-steps.md`) and **T-06 redesign: the new flows, steps, prompts and profiles**, which starts after T-05 and after the maintainer's specification (T-06.1). It is written to be executed step by step: every leaf task states what to create or change, what it must not do and how to prove it is done.
 
 The order, with the state and date of each task, is in [ORDER.md](ORDER.md). The board is in section 5. The prompts to start or resume the build in another session are in [PROMPTS.md](PROMPTS.md).
 
@@ -24,9 +24,15 @@ docs/tasks/
 ├── T-03_claude-provider/                       epic
 │   ├── T-03_claude-provider.md
 │   └── T-03.1_decisions.md ... T-03.7_prices-of-the-other-claude-ids.md leaves
-└── T-04_llm-resilience/                        epic
-    ├── T-04_llm-resilience.md
-    └── T-04.1_decisions.md ... T-04.3_tests-and-documentation.md leaves
+├── T-04_llm-resilience/                        epic
+│   ├── T-04_llm-resilience.md
+│   └── T-04.1_decisions.md ... T-04.3_tests-and-documentation.md leaves
+├── T-05_profiles-flows-steps/                  epic
+│   ├── T-05_profiles-flows-steps.md
+│   └── T-05.1_decisions.md ... T-05.18_documentation.md          leaves
+└── T-06_redesign/                              epic
+    ├── T-06_redesign.md
+    └── T-06.1_specification.md ... T-06.7_documentation.md       leaves
 ```
 
 ## 2. Execution protocol
@@ -119,3 +125,30 @@ Verified on 2026-10-27 against both projects.
 | [T-04.1](T-04_llm-resilience/T-04.1_decisions.md) | Decisions | decision | done (2026-10-29) |
 | [T-04.2](T-04_llm-resilience/T-04.2_wait-and-fallback.md) | Wait, fallback models and the runner | code | done (2026-10-29) |
 | [T-04.3](T-04_llm-resilience/T-04.3_tests-and-documentation.md) | Tests and documentation | test | done (2026-10-29) |
+| [T-05](T-05_profiles-flows-steps/T-05_profiles-flows-steps.md) | **Structure: profiles, flows and steps as three pluggable layers** (epic) | epic | todo (T-05.1 done on 2026-11-02; plan in [PR-005](../proposals/PR-005-flows-steps-profiles.md)) |
+| [T-05.1](T-05_profiles-flows-steps/T-05.1_decisions.md) | Decisions | decision | done (2026-11-02) |
+| [T-05.2](T-05_profiles-flows-steps/T-05.2_step-registry.md) | Step registry | code | todo |
+| [T-05.3](T-05_profiles-flows-steps/T-05.3_folder-layout.md) | Folder layout | code | todo |
+| [T-05.4](T-05_profiles-flows-steps/T-05.4_config-source.md) | Config source port and file loader | code | todo |
+| [T-05.5](T-05_profiles-flows-steps/T-05.5_model-sets-and-resolution.md) | Model sets, profile files and model resolution | code | todo |
+| [T-05.6](T-05_profiles-flows-steps/T-05.6_assemble.md) | assemble() and its checks | code | todo |
+| [T-05.7](T-05_profiles-flows-steps/T-05.7_profiles-of-todays-flows.md) | The profiles of today's flows | code | todo |
+| [T-05.8](T-05_profiles-flows-steps/T-05.8_session-responses.md) | Session list of Response | code | todo |
+| [T-05.9](T-05_profiles-flows-steps/T-05.9_api.md) | API: profile, token, inputs, return, pause_id | code | todo |
+| [T-05.10](T-05_profiles-flows-steps/T-05.10_tests-and-golden.md) | Tests and golden of the profiles | test | todo |
+| [T-05.11](T-05_profiles-flows-steps/T-05.11_first-real-run.md) | First real run: the `special` profile | manual | todo |
+| [T-05.12](T-05_profiles-flows-steps/T-05.12_flows-as-json.md) | Flows as JSON | code | todo |
+| [T-05.13](T-05_profiles-flows-steps/T-05.13_tool-scoping.md) | Tool scoping | code | todo |
+| [T-05.14](T-05_profiles-flows-steps/T-05.14_prompts-per-profile.md) | Prompts per profile | code | todo |
+| [T-05.15](T-05_profiles-flows-steps/T-05.15_metrics-and-hash.md) | Metrics, profile hash and reserved data fields | code | todo |
+| [T-05.16](T-05_profiles-flows-steps/T-05.16_steps-as-json.md) | Steps as JSON declarations | code | todo |
+| [T-05.17](T-05_profiles-flows-steps/T-05.17_commands-and-tables.md) | Commands and generated tables | code | todo |
+| [T-05.18](T-05_profiles-flows-steps/T-05.18_documentation.md) | Documentation and ADR-015 | docs | todo |
+| [T-06](T-06_redesign/T-06_redesign.md) | **Redesign: the new flows, steps, prompts and profiles** (epic) | epic | todo (waits for T-05 and for T-06.1) |
+| [T-06.1](T-06_redesign/T-06.1_specification.md) | Specification of the new flows | decision | awaiting-user (waits for T-05) |
+| [T-06.2](T-06_redesign/T-06.2_message-set.md) | The fixed set of messages | test | todo |
+| [T-06.3](T-06_redesign/T-06.3_new-steps.md) | New steps | code | todo |
+| [T-06.4](T-06_redesign/T-06.4_refine-prompts.md) | Refine the prompts, one step at a time | code | todo |
+| [T-06.5](T-06_redesign/T-06.5_new-flows-and-profiles.md) | The new flows and profiles | code | todo |
+| [T-06.6](T-06_redesign/T-06.6_real-run-and-comparison.md) | Real run and comparison | manual | todo |
+| [T-06.7](T-06_redesign/T-06.7_documentation.md) | Documentation | docs | todo |
