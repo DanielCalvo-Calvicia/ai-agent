@@ -20,7 +20,7 @@ copy .env.example .env          # fill in at least one provider key and its URL;
 | Need | Where it comes from |
 |---|---|
 | Provider keys and URLs | environment or `.env` (see [environment-variables](../configuration/environment-variables.md)) |
-| Which model answers each step | `config/step_models.json` or `AI_AGENT_MODEL_PHASE_<n>` |
+| Which model answers each step | the model sets of `model_sets/` (files read once at start; no environment variable) |
 | Prompts and schemas | `prompts/`, `schema/response/` (files read at run time, committed) |
 | MCP servers (optional) | `mcps/*.json`; `type: sse` and `type: streamable_http` work. `DYNAMICS_MCP_URL` is the full URL (with `/mcp`) of `dynamics_microservice`; unset, that server is skipped with a warning |
 | `contracts` | the wheel in `vendor/` |

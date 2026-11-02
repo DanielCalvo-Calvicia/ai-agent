@@ -38,7 +38,7 @@ flow to the next**.
 composition_root/main.py          builds the app (run this one)
 application/
   inbound/{ports,dto}/            what the HTTP layer and the services implement and exchange
-  outbound/ports/                 LLMOutboundPort, McpToolsPort (and the signal a tool failure for good leaves for the step loop), UsageReporterPort (LLM calls and, optionally, MCP tool calls)
+  outbound/ports/                 LLMOutboundPort, McpToolsPort (and the signal a tool failure for good leaves for the step loop), UsageReporterPort (LLM calls and, optionally, MCP tool calls), ConfigSourcePort (profiles, flows, step declarations, model sets and prompts, read once at start; T-05.4)
   service/                        session_service, message_flow_service, user_session
   system_prompts/general.py       builds the system message of a phase
   flows/  steps/  engine/         the agents (section 3 to 8); engine/ holds state/ and support/
@@ -61,7 +61,7 @@ Five folders, each with one job (until 2026-11-02 they were the five folders of 
 ```text
 flows/          WHAT each agent is          one file per flow, the router, the registry, the action executor
 steps/          the steps (the phases)      one phase per file, constants first; the registry; the catalog; the shape of a phase
-engine/         HOW any flow runs           Pipeline, Flow, PhaseRunner, clarification, answer check; knows no particular flow
+engine/         HOW any flow runs           Pipeline, Flow, PhaseRunner, clarification, answer check, `config_snapshot.py` (the configuration read once through `ConfigSourcePort`); knows no particular flow
 engine/state/   WHAT travels through a run  FlowState, MotionFlowState, PausedRun, FlowResult
 engine/support/ shared helpers              model choice, metrics, failures, schemas, action tree, MCP server list (a server with no tools is left out), clock
 ```
@@ -149,7 +149,7 @@ A phase's answer is one JSON object built from the schema pieces it names in `SC
 
 The code defaults of `DEFAULT_MODEL` are Google models with a free tier: `gemini-3.1-flash-lite` for triage, data engineer, answer
 checker, clarification and emotion reader, `gemini-3.6-flash` for the others ([ADR-012](../decisions/ADR-012-gemini-free-tier-default-no-github-models.md)). The model really used is chosen by
-`AI_AGENT_MODEL_PHASE_<id>` or `config/step_models.json` (see `configuration.md`); the active profile `proven` puts `gemini-3.1-flash-lite` on every step ([ADR-012](../decisions/ADR-012-gemini-free-tier-default-no-github-models.md)).
+the model sets of `model_sets/` through `ModelResolver` (`engine/support/model_selection.py`, see `configuration.md`): an ordered list per step, the most specific value wins; the service runs on the set `proven` until profiles exist (T-05.7), which puts `gemini-3.1-flash-lite` on every step ([ADR-012](../decisions/ADR-012-gemini-free-tier-default-no-github-models.md)).
 
 ## 6. The engine
 
@@ -175,10 +175,10 @@ There is no default flow: `Pipeline` needs its `flow`.
 | Response format | `json_schema` named by the phase's `FORMAT_NAME`, built by `object_schema(required, properties)` from the schema pieces (the actions' `$defs` are moved to the root) |
 | Sampling | temperature 1.0, max tokens 10000 (phase 99: 0.7 and 2000) |
 | Tools | none, except phase 5: the MCP servers, expanded by the adapter into the tools of each reachable `sse` or `streamable_http` server |
-| Model | `model_for_phase`: env variable, then `config/step_models.json`, then the code default |
+| Model | `PhaseRunner.models_for`: the ordered list of the step in this flow from the `ModelResolver` (a model set or a profile), else the code default |
 
 `send()` asks the LLM, retries a failed call up to `AI_AGENT_MAX_ATTEMPTS` unless the error cannot get better
-(`failure.worth_retrying`; after a lack of capacity it waits first, and then asks the `fallback_models` of the active profile once each, ADR-014), records the token usage in `SessionMetrics`, and raises an `AgentFailure` that says what
+(`failure.worth_retrying`; after a lack of capacity it waits first, and then asks the rest of the step's ordered list once each, ADR-014), records the token usage in `SessionMetrics`, and raises an `AgentFailure` that says what
 happened and in which activity (`PHASE_ACTIVITIES`).
 
 ### 6.3 Failures
@@ -249,6 +249,7 @@ response mapper builds them from the LLM's JSON, one function per section.
 | `outbound/llm/anthropic_schema.py` | the schema a Claude model receives: `strict`, `additionalProperties: false`, the keywords Anthropic refuses removed, the action recursion unrolled to 3 levels ([ADR-013](../decisions/ADR-013-claude-through-sanitized-structured-outputs.md)) |
 | `outbound/llm/tools.py` | `resolve_tools`: turns the MCP server list of phase 5 into real tools |
 | `outbound/llm/response_mapper.py` | LLM JSON to `Response`, one function per section |
+| `outbound/config/file_source.py` | `FileConfigSource`: reads `profiles/`, `flows/`, `step_defs/`, `model_sets/` (one JSON file each; a name that starts with `_` is skipped) and the prompt files; a file that cannot be read is reported by name, the others still load; a prompt name cannot leave the project. Nothing uses the snapshot yet (T-05.6) |
 | `outbound/mcp/` | `config.py` (reads `mcps/*.json`, skips a server whose `${NAME}` url is not filled), `client_manager.py` (SSE or Streamable HTTP connection by `type`, forwards the trace headers, keeps `httpx`, `httpcore` and `mcp.client` out of the logs), `tool_catalog.py` (which server offers which tool, only those in its `allowed_tools`; a listing is kept, a failed one is not retried for 60 s; 10 s listing limit), `availability.py` (the optional `AI_AGENT_CHECK_MCP_<NAME>` check, log only), `tool_executor.py` (what the LLM adapter calls: a 30 s call limit, `AI_AGENT_MCP_CALL_TIMEOUT_SECONDS`, and one retry after a transport error or `retry_later`) |
 | `outbound/usage/langfuse.py`, `prices.py` | optional cost reporting to Langfuse (section 11) |
 

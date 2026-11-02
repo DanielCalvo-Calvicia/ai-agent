@@ -10,7 +10,6 @@ from application.steps.registry import register_step
 # --- What this phase uses ---------------------------------------------------
 PHASE_ID = 3
 STEP_NAME = "safety_quality_gatekeeper"
-MODEL_ENV_VAR = "AI_AGENT_MODEL_PHASE_3"
 DEFAULT_MODEL = GoogleModels.GEMINI_3_6_FLASH
 PROMPT_FILE = "prompts/3_safety_quality_gatekeeper.txt"
 FORMAT_NAME = "safety_quality_gatekeeper_phase3_response_format"

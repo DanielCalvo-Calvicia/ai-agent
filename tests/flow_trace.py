@@ -747,8 +747,8 @@ def run_with_stops(
     original_send = PhaseRunner.send
     original_succeed, original_fail = ActionExecutor._succeed, ActionExecutor._fail
 
-    def send(self, payload, phase_id, model, action_id=None):
-        response = original_send(self, payload, phase_id, model, action_id)
+    def send(self, payload, phase_id, model, action_id=None, fallbacks=()):
+        response = original_send(self, payload, phase_id, model, action_id, fallbacks)
         if "response" in at and selected():
             stop("response", step=current["step"], state=current["state"], payload=payload, response=response,
                  phase_id=phase_id)

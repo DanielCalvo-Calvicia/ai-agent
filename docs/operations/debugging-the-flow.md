@@ -2,8 +2,8 @@
 
 Tools: `tests/manual/debug_flow.py` and `tests/manual/debug_break.py`, both built on `tests/flow_trace.py`. They run the
 **real steps** of the pipeline and only coordinate them and write files; the only thing that can be replaced is the LLM:
-the scripted one of the tests (free, offline) or the real one with `--real` (it costs money; models come from `.env`,
-`config/step_models.json` and `AI_AGENT_MODEL_PHASE_<n>`).
+the scripted one of the tests (free, offline) or the real one with `--real` (it costs money; keys come from `.env`; the models of the tests/manual scripts are
+the model set `proven` of `model_sets/`).
 
 ## What they run (read this first)
 

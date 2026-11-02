@@ -7,7 +7,7 @@
 import dataclasses
 import json
 import time
-from typing import Any, Dict, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from application.engine.support.failure import (
     AgentFailure, capacity_problem, classify, daily_quota_used_up, max_attempts, wait_before_retry, worth_retrying,
@@ -17,7 +17,7 @@ from application.engine.support.metrics import SessionMetrics
 from application.steps.phase import ActionPhaseSpec, PhaseSpec
 from application.engine.support.schemas import actions_schema, object_schema
 from application.outbound.ports.llm_ports import LLMOutboundPort
-from application.engine.support.model_selection import fallback_models, model_for_phase
+from application.engine.support.model_selection import ModelResolver
 from application.system_prompts.general import build_system_prompt_from_file
 
 from domain.entities.llm_response.action import Action
@@ -26,7 +26,7 @@ from domain.entities.llm_response.response import Response
 from domain.value_objects.llm_response.intent.intent import create_intent
 from domain.value_objects.llm_request.max_tokens import create_max_tokens
 from domain.value_objects.llm_request.message import Role, create_message
-from domain.value_objects.llm_request.model import SelectedModel
+from domain.value_objects.llm_request.model import GoogleModels, SelectedModel
 from domain.value_objects.llm_request.response_format import ResponseFormat
 from domain.value_objects.llm_request.temperature import create_temperature
 from shared_logging import get_logger
@@ -43,10 +43,18 @@ class PhaseRunner:
         outbound_port: LLMOutboundPort,
         metrics: SessionMetrics,
         mcp_server_names: Sequence[str] = (),
+        models: Optional[ModelResolver] = None,
+        flow_name: str = "",
     ) -> None:
         self.outbound_port = outbound_port
         self.metrics = metrics
         self.mcp_server_names = list(mcp_server_names)
+        self.models = models if models is not None else ModelResolver()       # no profile: every step uses its own default model
+        self.flow_name = flow_name
+
+    def models_for(self, step_name: str, default: GoogleModels) -> List[SelectedModel]:
+        """The ordered models of a step in this flow: the first answers, the others are the fallback (ADR-014)."""
+        return self.models.models_for(self.flow_name, step_name, default)
 
     # -----------------------------------------------
     #  WHOLE-RESPONSE PHASES (1, 2, 3, 7, 8)
@@ -54,7 +62,8 @@ class PhaseRunner:
 
     def run_phase(self, spec: PhaseSpec, state: FlowState) -> Response:
         """One LLM call for the phase. The caller applies the response to the state."""
-        model = model_for_phase(spec.id, spec.model)
+        models = self.models_for(spec.step_name, spec.model)
+        model = models[0]
 
         payload = _build_payload(
             prompt_file=spec.prompt_file,
@@ -68,7 +77,7 @@ class PhaseRunner:
             tools=[],
         )
 
-        return self.send(payload, spec.id, model)
+        return self.send(payload, spec.id, model, fallbacks=models[1:])
 
     # -----------------------------------------------
     #  PER-ACTION PHASES (4, 5, 6)
@@ -86,7 +95,8 @@ class PhaseRunner:
         One LLM call that processes a single action.
         The caller reads response.actions[0] for the processed result.
         """
-        model = model_for_phase(spec.id, spec.model)
+        models = self.models_for(spec.step_name, spec.model)
+        model = models[0]
 
         payload = _build_payload(
             prompt_file=spec.prompt_file,
@@ -100,7 +110,7 @@ class PhaseRunner:
             tools=tools if tools is not None else [],
         )
 
-        return self.send(payload, spec.id, model, action_id=action_id)
+        return self.send(payload, spec.id, model, action_id=action_id, fallbacks=models[1:])
 
     # -----------------------------------------------
     #  SEND
@@ -112,12 +122,13 @@ class PhaseRunner:
         phase_id: int,
         model: SelectedModel,
         action_id: Optional[str] = None,
+        fallbacks: Sequence[SelectedModel] = (),
     ) -> Response:
         """
         Asks the LLM and records the call in the metrics. A failed call is tried again (up to
         AI_AGENT_MAX_ATTEMPTS in total) unless the error cannot get better, waiting a little after a lack of capacity
         (AI_AGENT_RETRY_WAIT_SECONDS) and not at all when a daily quota is gone. When the model is still out of capacity
-        (429, 5xx, timeout, no connection), the fallback models of the active profile are tried once each, in order.
+        (429, 5xx, timeout, no connection), the `fallbacks` (the rest of the ordered list of the step) are tried once each, in order.
         When nothing answers, an AgentFailure says what happened to the chosen model.
         """
         attempts = max_attempts()
@@ -141,17 +152,17 @@ class PhaseRunner:
             self._track(answer, phase_id, model, action_id, payload, started_ns, time.time_ns())
             return answer
 
-        answer = self._fall_back(payload, phase_id, model, action_id, started_ns, failure)
+        answer = self._fall_back(payload, phase_id, model, action_id, started_ns, failure, fallbacks)
         if answer is not None:
             return answer
         raise AgentFailure(classify(failure), phase_id, failure) from failure
 
     def _fall_back(self, payload: Payload, phase_id: int, model: SelectedModel, action_id: Optional[str],
-                   started_ns: int, failure: Optional[BaseException]) -> Optional[Response]:
+                   started_ns: int, failure: Optional[BaseException], fallbacks: Sequence[SelectedModel]) -> Optional[Response]:
         """The answer of the first fallback model that gives one, or None. Only after a lack of capacity of the chosen model."""
         if failure is None or not capacity_problem(failure):
             return None
-        for other in fallback_models():
+        for other in fallbacks:
             if other.id == model.id:
                 continue
             try:

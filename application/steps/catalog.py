@@ -17,7 +17,6 @@ from domain.value_objects.llm_request.model import GoogleModels
 class PhaseInfo:
     id: int
     step_name: str
-    model_env_var: str
     default_model: GoogleModels
     prompt_file: Optional[str]      # None for a phase whose prompt is a constant in its file
 
@@ -26,14 +25,13 @@ def _info(module: ModuleType) -> PhaseInfo:
     return PhaseInfo(
         id=module.PHASE_ID,
         step_name=module.STEP_NAME,
-        model_env_var=module.MODEL_ENV_VAR,
         default_model=module.DEFAULT_MODEL,
         prompt_file=getattr(module, "PROMPT_FILE", None),
     )
 
 
 # The phases that are one LLM call (or one per action). The text ones (identification, conversation and special flows)
-# come first, in execution order: that order is the order of the step list in config/step_models.json.
+# come first, in execution order: that order is the order of the steps in the tables of docs/models.
 PHASES: Dict[int, PhaseInfo] = {
     entry.legacy_id: _info(entry.module) for entry in all_steps() if entry.kind != CODE
 }

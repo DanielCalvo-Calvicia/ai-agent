@@ -1,22 +1,16 @@
 """
-Shows which LLM each step uses, the options and their cost, and lets you choose the model of a step.
+MANUAL tool: shows which model answers each step (nothing is sent to a provider) and writes the generated documents.
 
-    windows/Scripts/python.exe tests/manual/show_models.py                      what every step uses now, with its price
-    windows/Scripts/python.exe tests/manual/show_models.py --step=project_manager
-                                                                                 every model for that step: cost per call
-                                                                                 and how it should perform (cheapest first)
-    windows/Scripts/python.exe tests/manual/show_models.py --set=project_manager=gemini-3.8-flash
-    windows/Scripts/python.exe tests/manual/show_models.py --clear=project_manager     the profile decides again
-    windows/Scripts/python.exe tests/manual/show_models.py --profile=budget           every step at once (proven, budget, balanced, quality)
-    windows/Scripts/python.exe tests/manual/show_models.py --write                    rewrite docs/models/gemini_models_per_step.md
-    windows/Scripts/python.exe tests/manual/show_models.py --table                    print that document on the console
-    windows/Scripts/python.exe tests/manual/show_models.py --budget                   rewrite docs/models/models_per_step_budget.md
-                                                                                       (all providers, against config/budget.json)
+    python tests/manual/show_models.py                 the model of every step and what it costs
+    python tests/manual/show_models.py --step=<step>   the options of one step, with price and rating
+    python tests/manual/show_models.py --write         writes docs/models/gemini_models_per_step.md
+    python tests/manual/show_models.py --budget        writes docs/models/models_per_step_budget.md
+    python tests/manual/show_models.py --table         prints the table of models instead of writing it
 
---set, --clear and --profile change config/step_models.json (a typo in a step or a model is refused).
-You can also edit that file by hand, or use AI_AGENT_MODEL_PHASE_<n> for one run.
+The models of a step are in the model sets of model_sets/ (an ordered list per step: the first answers, the next ones are
+the fallback) and in the profiles. Change them by editing those files; no environment variable chooses a model.
+This tool shows the model set the service runs on until profiles choose theirs (T-05.5).
 """
-import json
 import os
 import sys
 
@@ -29,22 +23,25 @@ from dotenv import load_dotenv
 
 load_dotenv(os.path.join(ROOT, ".env"), override=False)
 
-from application.engine.support.model_selection import STEP_NAMES, effective_models, models_file
+from application.engine.support.model_selection import DEFAULT_MODEL_SET, STEP_NAMES, ModelResolver, effective_models
 from budget_table import DOC_PATH as BUDGET_DOC_PATH
 from budget_table import combined, load_budget, markdown as budget_markdown, read as read_json, MEASURED_PATH
-from model_table import (CONFIG_PATH, DOC_PATH, blended, load_models, markdown, per_call, read_config, set_profile,
-                         set_step, _money)
+from model_table import DOC_PATH, MODEL_SETS_DIR, blended, load_models, markdown, per_call, read_config, read_model_sets, _money
 
 
 def option(argv, name):
     return next((a.split("=", 1)[1] for a in argv if a.startswith(name + "=")), None)
 
 
+def in_use():
+    return effective_models(ModelResolver({"models": DEFAULT_MODEL_SET}, read_model_sets()))
+
+
 def show_step(step, data):
     if step not in STEP_NAMES:
         sys.exit(f"unknown step {step!r}. Steps: {', '.join(STEP_NAMES)}")
     info = data["step_tokens"][step]
-    now = effective_models()[step]
+    now = in_use()[step]
     print(f"{step}: {data['steps'][step]}\n")
     print(f"About {info['tokens']:,} tokens per call ({info['note']}). Calls per message: {info['calls']}.")
     print(f"Uses now: {now[0]}   (from: {now[1]})\n")
@@ -55,29 +52,11 @@ def show_step(step, data):
         cost = per_call(m, info["tokens"])
         print(f"{mark}{m['id']:<25}{m['input']:>8.2f}{m['output']:>9.2f}{_money(cost):>10}{_money(cost * 1000, 2):>9}  "
               f"{level:<7} {why}")
-    print("\n* = in use now.   To choose: show_models.py --set=" + f"{step}=<model id>")
+    print(f"\n* = in use now. To choose: write it in the entry of {step} of a model set (model_sets/<name>.json).")
 
 
 def main(argv):
     data = load_models()
-
-    for step in [a.split("=", 1)[1] for a in argv if a.startswith("--clear=")]:
-        set_step(step, None)
-        print(f"{step}: the choice was cleared, the profile decides")
-    for pair in [a.split("=", 1)[1] for a in argv if a.startswith("--set=")]:
-        step, _, model = pair.partition("=")
-        try:
-            set_step(step, model)
-        except ValueError as error:
-            sys.exit(f"not changed: {error}")
-        print(f"{step}: now {model}")
-    profile = option(argv, "--profile")
-    if profile:
-        try:
-            set_profile(profile)
-        except ValueError as error:
-            sys.exit(f"not changed: {error}")
-        print(f"profile: now {option(argv, '--profile')}")
 
     if option(argv, "--step"):
         show_step(option(argv, "--step"), data)
@@ -101,9 +80,9 @@ def main(argv):
         return
 
     prices = {m["id"]: m for m in data["models"]}
-    print(f"Config file: {models_file()}\n")
+    print(f"Model set in use: {DEFAULT_MODEL_SET} ({MODEL_SETS_DIR})\n")
     print(f"{'step':<28}{'model':<26}{'in $/1M':>9}{'out $/1M':>10}{'blended':>9}   comes from")
-    for step, (model_id, source) in effective_models().items():
+    for step, (model_id, source) in in_use().items():
         m = prices.get(model_id)
         cost = f"{m['input']:>9.2f}{m['output']:>10.2f}{blended(m):>9.2f}" if m else f"{'?':>9}{'?':>10}{'?':>9}"
         print(f"{step:<28}{model_id:<26}{cost}   {source}")

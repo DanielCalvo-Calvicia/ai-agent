@@ -14,7 +14,7 @@ from application.engine.support.schemas import SCHEMAS_ROOT
 from application.system_prompts.general import CAPABILITIES_FILE, GENERIC_PROMPT_FILE, PROJECT_ROOT
 
 PHASES_DIR = os.path.join(PROJECT_ROOT, "application", "steps")
-REQUIRED_CONSTANTS = ("PHASE_ID", "STEP_NAME", "MODEL_ENV_VAR", "DEFAULT_MODEL")
+REQUIRED_CONSTANTS = ("PHASE_ID", "STEP_NAME", "DEFAULT_MODEL")
 NAME_CONSTANTS = ("PHASE_ID", "STEP_NAME")      # a step that runs no LLM (LLM = False) has only these
 
 
@@ -55,8 +55,7 @@ class TestEachPhaseFile:
         required = REQUIRED_CONSTANTS if getattr(module, "LLM", True) else NAME_CONSTANTS
         for constant in required:
             assert hasattr(module, constant), f"{folder}/{name}.py has no {constant}"
-        if getattr(module, "LLM", True):
-            assert module.MODEL_ENV_VAR == f"AI_AGENT_MODEL_PHASE_{module.PHASE_ID}"
+        assert not hasattr(module, "MODEL_ENV_VAR")       # no environment variable chooses a model any more (T-05.5)
 
     def test_its_prompt_file_exists(self, folder, name):
         prompt = getattr(_module(folder, name), "PROMPT_FILE", None)

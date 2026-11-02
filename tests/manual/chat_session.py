@@ -27,6 +27,7 @@ load_dotenv(os.path.join(PROJECT_ROOT, ".env"), override=False)
 
 from application.inbound.dto.session import MessageReceivedRequestDTO, StartSessionRequestDTO
 from application.engine.support.model_selection import effective_models
+from model_table import default_resolver
 from application.service.session_service import SessionService
 from budget_run import Collector, usd
 from infrastructure.outbound.llm.config import VercelAIConfig
@@ -58,12 +59,12 @@ def main():
     # --mcp: the real MCP servers of mcps/*.json (DYNAMICS_MCP_URL...), as composition_root/main.py builds them; without it no tool is wired
     mcp_list = load_supported_mcp_configs() if "--mcp" in args else []
     executor = MCPToolExecutor(MCPClientManager(mcp_list))
-    service = SessionService(outbound_port=VercelAIAdapter(Config=VercelAIConfig.from_env(tool_executor=executor)),
+    service = SessionService(models=default_resolver(), outbound_port=VercelAIAdapter(Config=VercelAIConfig.from_env(tool_executor=executor)),
                              mcp_list=mcp_list, mcp_tools=executor, usage_reporter=collector)
     session_id = service.start_session(
         StartSessionRequestDTO(user_id="tester", username="tester", session_name=name)).session_id
 
-    lines = [f"# Chat: {name}", "", "Models: " + ", ".join(f"{s}={m}" for s, (m, _) in effective_models().items()), ""]
+    lines = [f"# Chat: {name}", "", "Models: " + ", ".join(f"{s}={m}" for s, (m, _) in effective_models(default_resolver()).items()), ""]
     total = 0.0
     for text in messages:
         first = len(collector.calls)

@@ -1,7 +1,7 @@
 """
 Builds the tables of Gemini models (docs/models/gemini_models_per_step.md) from config/gemini_models.json, the one
-place where prices and ratings are kept, and writes the choice of a model per step to config/step_models.json.
-`python tests/manual/show_models.py` shows and changes it.
+place where prices and ratings are kept, and shows the model sets of model_sets/ next to them.
+`python tests/manual/show_models.py` shows them and writes the documents.
 """
 import json
 import os
@@ -9,7 +9,10 @@ from typing import Any, Dict, List, Optional
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 MODELS_PATH = os.path.join(PROJECT_ROOT, "config", "gemini_models.json")
-CONFIG_PATH = os.path.join(PROJECT_ROOT, "config", "step_models.json")
+MODEL_SETS_DIR = os.path.join(PROJECT_ROOT, "model_sets")
+# The order the tables list the sets in (the order of the old step_models.json); a set that is not here goes after them, by name.
+SET_ORDER = ("proven", "budget", "balanced", "quality", "budget50", "claude_sonnet", "budget50_groq", "google_free",
+             "claude_haiku", "claude_mixed")
 DOC_PATH = os.path.join(PROJECT_ROOT, "docs", "models", "gemini_models_per_step.md")
 
 LEVELS = ["best", "good", "ok", "weak", "avoid"]
@@ -60,11 +63,10 @@ def markdown(data: Dict[str, Any], config: Dict[str, Any]) -> str:
     names = list(steps)
     profiles = config.get("profiles", {})
     active = config.get("profile")
-    chosen = config.get("steps", {}) or {}
     active_profile = profiles.get(active, {})
 
     def in_use(step: str) -> str:
-        return chosen.get(step) or active_profile.get(step) or active_profile.get("default") or "(code default)"
+        return active_profile.get(step) or active_profile.get("default") or "(code default)"
 
     lines = [
         "# Gemini models for each step",
@@ -97,8 +99,8 @@ def markdown(data: Dict[str, Any], config: Dict[str, Any]) -> str:
 
     lines += [
         "",
-        "To use a model for a step, put its id in `steps` of `config/step_models.json`, or run "
-        "`windows\\Scripts\\python.exe tests\\manual\\show_models.py --set=<step>=<model id>`. "
+        "To use a model for a step, write it in the model set the profile uses (`model_sets/<name>.json`): an ordered list, "
+        "the first model answers and the next ones are tried when it is out of capacity. "
         "The exact line for every model is in the table of its step (section 3).",
         "",
         "## 2. The models and their cost",
@@ -143,10 +145,11 @@ def markdown(data: Dict[str, Any], config: Dict[str, Any]) -> str:
                 f"| {model['name']} | `{model['id']}` | {model['input']:.2f} | "
                 f"{model['output']:.2f}{'*' if model['price_note'] else ''} | {_money(per_call(model, tok))} | "
                 f"{_money(per_call(model, tok) * 1000, 2)} | **{level}** | {why} | "
-                f"`\"{name}\": \"{model['id']}\"` |")
+                f"`\"{name}\": [\"{model['id']}\"]` |")
 
-    lines += ["", "## 4. Profiles in `config/step_models.json`", "",
-              f"Active profile: **{active}**. `steps` wins over the profile, and `AI_AGENT_MODEL_PHASE_<n>` wins over both.",
+    lines += ["", "## 4. Model sets in `model_sets/`", "",
+              f"Set in use: **{active}** (the service runs on it until the profiles choose theirs, T-05.7). "
+              "The first model of each entry is shown; the next ones of its list are the fallback.",
               "", "| Step | " + " | ".join(profiles) + " |", "|---|" + "---|" * len(profiles)]
     for name in names:
         cells = [(p.get(name) or p.get("default") or "") for p in profiles.values()]
@@ -159,11 +162,10 @@ def markdown(data: Dict[str, Any], config: Dict[str, Any]) -> str:
     lines += ["", "## 5. How to choose", "",
               "1. See the options of one step and what it uses now: "
               "`windows\\Scripts\\python.exe tests\\manual\\show_models.py --step=project_manager`.",
-              "2. Choose: `windows\\Scripts\\python.exe tests\\manual\\show_models.py --set=project_manager=gemini-3.8-flash` "
-              "(or write it in `steps` of `config/step_models.json`). To go back to the profile: `--clear=project_manager`. "
-              "To change every step at once: `--profile=budget` (or `balanced`, `quality`, `proven`).",
-              "3. For one run only: the variable `AI_AGENT_MODEL_PHASE_<n>` (n: 1 triage, 2 planner, 3 gate, 4 worker, "
-              "5 tools, 6 cleaning, 7 draft, 8 editor, 9 answer checker, 99 question).",
+              "2. Choose: write the model in the entry of that step of a model set (`\"project_manager\": [\"gemini-3.8-flash\"]` in "
+              "`model_sets/<name>.json`), or in the profile that uses it. To change every step at once: name another model set in the profile "
+              "(`budget`, `balanced`, `quality`, `proven`, ...). A change is a file change and a new start: no environment variable chooses a model.",
+              "3. A list is an order: the first model answers and the next ones are the fallback when it is out of capacity.",
               "4. Try the model on that step before you trust it: run the flow once with "
               "`tests/manual/debug_flow.py --real`, then repeat the step with `--only=<step> --state=<file> --repeat=5`. "
               "The problems it finds and `compare.md` show if the model is steady.",
@@ -172,40 +174,41 @@ def markdown(data: Dict[str, Any], config: Dict[str, Any]) -> str:
 
 
 # ===============================================
-#  WRITING THE CHOICE
+#  THE MODEL SETS
 # ===============================================
 
-def read_config(path: str = CONFIG_PATH) -> Dict[str, Any]:
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+def read_model_sets(path: str = MODEL_SETS_DIR) -> Dict[str, Dict[str, Any]]:
+    """The files of model_sets/ by name (a name that starts with `_` is not a set)."""
+    names = [n[:-5] for n in os.listdir(path) if n.endswith(".json") and not n.startswith("_")]
+    names.sort(key=lambda n: (SET_ORDER.index(n) if n in SET_ORDER else len(SET_ORDER), n))
+    sets = {}
+    for name in names:
+        with open(os.path.join(path, f"{name}.json"), "r", encoding="utf-8") as f:
+            sets[name] = json.load(f)
+    return sets
 
 
-def write_config(config: Dict[str, Any], path: str = CONFIG_PATH) -> None:
-    """Checks the config (unknown step, model or profile fail) and only then writes it."""
-    import tempfile
-    from application.engine.support.model_selection import _check
+def default_resolver():
+    """The ModelResolver of the model set the service runs on (what the manual scripts use as the models of the agent)."""
+    from application.engine.support.model_selection import DEFAULT_MODEL_SET, ModelResolver
 
-    _check(config, path)
-    with tempfile.NamedTemporaryFile("w", encoding="utf-8", newline="\n", delete=False, dir=os.path.dirname(path),
-                                     suffix=".tmp") as tmp:
-        tmp.write(json.dumps(config, indent=2, ensure_ascii=False) + "\n")
-    os.replace(tmp.name, path)
+    return ModelResolver({"models": DEFAULT_MODEL_SET}, read_model_sets())
 
 
-def set_step(step: str, model_id: Optional[str], path: str = CONFIG_PATH) -> Dict[str, Any]:
-    """Chooses `model_id` for `step` (None clears the choice, so the profile applies again)."""
-    from application.engine.support.model_selection import STEP_NAMES
+def read_config(path: str = MODEL_SETS_DIR) -> Dict[str, Any]:
+    """
+    The model sets in the shape the tables use: `profile` is the set the service runs on and `profiles` has, for each set,
+    the first model of every entry (the others of a list are its fallback) and its `_about` text.
+    """
+    from application.engine.support.model_selection import DEFAULT_MODEL_SET
 
-    if step not in STEP_NAMES:
-        raise ValueError(f"unknown step {step!r}. Steps: {', '.join(STEP_NAMES)}")
-    config = read_config(path)
-    config.setdefault("steps", {})[step] = model_id
-    write_config(config, path)
-    return config
-
-
-def set_profile(profile: str, path: str = CONFIG_PATH) -> Dict[str, Any]:
-    config = read_config(path)
-    config["profile"] = profile
-    write_config(config, path)
-    return config
+    profiles: Dict[str, Dict[str, Any]] = {}
+    for name, data in read_model_sets(path).items():
+        entry: Dict[str, Any] = {}
+        if data.get("_about"):
+            entry["_about"] = data["_about"]
+        for key, ids in data.items():
+            if not key.startswith("_") and key not in ("schema_version", "name"):
+                entry[key] = ids[0]
+        profiles[name] = entry
+    return {"profile": DEFAULT_MODEL_SET, "profiles": profiles}

@@ -7,7 +7,6 @@
 from typing import List
 
 from application.engine.state.flow_state import FlowState
-from application.engine.support.model_selection import model_for_phase
 from application.engine.phase_runner import PhaseRunner
 from application.steps.common import user_clarification as phase
 from domain.entities.llm_request.payload import Payload
@@ -32,7 +31,8 @@ class Clarifier:
         if not required_inputs:
             return phase.DEFAULT_MESSAGE
 
-        model = model_for_phase(phase.PHASE_ID, phase.DEFAULT_MODEL)
+        models = self.runner.models_for(phase.STEP_NAME, phase.DEFAULT_MODEL)
+        model = models[0]
 
         inputs_text = "\n".join(f"- {item}" for item in required_inputs)
         user_message_str = f"The following information is required from the user:\n{inputs_text}"
@@ -53,7 +53,7 @@ class Clarifier:
             metadata={},
         )
 
-        response = self.runner.send(payload, phase.PHASE_ID, model)
+        response = self.runner.send(payload, phase.PHASE_ID, model, fallbacks=models[1:])
 
         return response.text or ""
 

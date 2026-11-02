@@ -1,8 +1,8 @@
 """
 MANUAL script: a conversation with the whole agent and the REAL LLM. With no arguments it sends the
 example messages of the owner (small talk, the date, a question that needs an answer, something the robot
-cannot do...) in ONE session; otherwise each argument is a message. Models come from the defaults or
-AI_AGENT_MODEL_PHASE_<n>. Set WITH_FAKE_MAIL=1 to also offer a fake local MCP mail server.
+cannot do...) in ONE session; otherwise each argument is a message. Models come from the model set the
+service runs on (model_sets/). Set WITH_FAKE_MAIL=1 to also offer a fake local MCP mail server.
 It costs money and needs the keys of .env. Run it with the venv python from anywhere:
     windows/Scripts/python.exe tests/manual/real_flow_three_messages.py
 
@@ -23,6 +23,7 @@ from mcp.server.fastmcp import FastMCP
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 sys.path.insert(0, PROJECT_ROOT)
+sys.path.insert(0, os.path.join(PROJECT_ROOT, "tests"))
 os.chdir(PROJECT_ROOT)
 load_dotenv(os.path.join(PROJECT_ROOT, ".env"), override=False)
 
@@ -30,6 +31,7 @@ from application.inbound.dto.session import MessageReceivedRequestDTO, StartSess
 from application.outbound.ports.llm_ports import LLMOutboundPort
 from application.service.session_service import SessionService
 from infrastructure.outbound.llm.config import VercelAIConfig
+from model_table import default_resolver
 from infrastructure.outbound.llm.vercel import VercelAIAdapter
 from infrastructure.outbound.mcp.client_manager import MCPClientManager
 from infrastructure.outbound.mcp.tool_executor import MCPToolExecutor
@@ -120,7 +122,7 @@ def main():
     executor = MCPToolExecutor(MCPClientManager(mcp_list))
 
     recorder = Recorder(VercelAIAdapter(Config=VercelAIConfig.from_env(tool_executor=executor)))
-    service = SessionService(outbound_port=recorder, mcp_list=mcp_list, mcp_tools=executor)
+    service = SessionService(models=default_resolver(), outbound_port=recorder, mcp_list=mcp_list, mcp_tools=executor)
     session_id = service.start_session(StartSessionRequestDTO(user_id="tester", username="tester")).session_id
 
     for text in (sys.argv[1:] or MESSAGES):

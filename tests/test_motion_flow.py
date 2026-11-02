@@ -19,11 +19,12 @@ from application.flows.movement import MOVEMENT_FLOW
 from application.flows.registry import FLOWS
 from application.flows.router import AgentRouter
 from application.engine.support.metrics import SessionMetrics
-from application.engine.support.model_selection import choose, load_config
+from application.engine.support.model_selection import ModelResolver
 from application.steps.movement import motion_validator as validator
 from application.engine.pipeline import Pipeline
 from application.service.session_service import SessionService
 from application.system_prompts.general import build_system_prompt
+from domain.value_objects.llm_request.model import GoogleModels
 from domain.value_objects.movement.movement import Movement
 from infrastructure.inbound.http.fastapi import SessionFastAPI
 
@@ -262,16 +263,15 @@ class TestHttp:
 
 
 class TestModelAndMetrics:
-    def test_the_planner_model_can_be_set_by_its_variable(self, monkeypatch):
-        monkeypatch.setenv("AI_AGENT_MODEL_PHASE_20", "gemini-3.5-flash-lite")
-        assert choose(20) == ("gemini-3.5-flash-lite", "env AI_AGENT_MODEL_PHASE_20")
+    def test_the_planner_model_can_be_set_in_a_profile_by_its_step_name(self):
+        resolver = ModelResolver({"overrides": {"motion_planner": {"models": ["gemini-3.5-flash-lite"]}}})
+        assert resolver.source_for("movement", "motion_planner") == "overrides.motion_planner"
+        assert [m.id for m in resolver.models_for("movement", "motion_planner", GoogleModels.GEMINI_3_6_FLASH)] == ["gemini-3.5-flash-lite"]
 
-    def test_the_planner_model_can_be_set_in_the_config_file_by_its_step_name(self, monkeypatch, tmp_path):
-        config = tmp_path / "models.json"
-        config.write_text(json.dumps({"steps": {"motion_planner": "gemini-3.6-flash"}}), encoding="utf-8")
-        monkeypatch.setenv("AI_AGENT_MODELS_FILE", str(config))
-        assert choose(20) == ("gemini-3.6-flash", "config steps")
-        assert load_config()
+    def test_the_planner_model_can_be_set_for_the_movement_flow_only(self):
+        resolver = ModelResolver({"flows": {"movement": {"steps": {"motion_planner": {"models": ["gemini-3.6-flash"]}}}}})
+        assert resolver.source_for("movement", "motion_planner") == "flows.movement.steps.motion_planner"
+        assert resolver.source_for("special", "motion_planner") == "step default"
 
     def test_the_planner_is_reported_under_its_name(self):
         metrics = SessionMetrics()

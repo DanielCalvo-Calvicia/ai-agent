@@ -10,7 +10,6 @@ from application.steps.registry import register_step
 # --- What this phase uses ---------------------------------------------------
 PHASE_ID = 6
 STEP_NAME = "data_engineer"
-MODEL_ENV_VAR = "AI_AGENT_MODEL_PHASE_6"
 DEFAULT_MODEL = GoogleModels.GEMINI_3_1_FLASH_LITE
 PROMPT_FILE = "prompts/6_data_engineer.txt"
 FORMAT_NAME = "phase6_single_action_response_format"

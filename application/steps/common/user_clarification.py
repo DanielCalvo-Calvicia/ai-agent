@@ -8,7 +8,6 @@ from application.steps.registry import register_step
 # --- What this phase uses ---------------------------------------------------
 PHASE_ID = 99
 STEP_NAME = "user_clarification"
-MODEL_ENV_VAR = "AI_AGENT_MODEL_PHASE_99"
 DEFAULT_MODEL = GoogleModels.GEMINI_3_1_FLASH_LITE
 INTENT = ("clarification_request", (), 1.0)
 TEMPERATURE = 0.7

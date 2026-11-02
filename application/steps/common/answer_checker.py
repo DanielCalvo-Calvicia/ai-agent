@@ -18,7 +18,6 @@ STOP = "stop"
 # --- What this phase uses ---------------------------------------------------
 PHASE_ID = 9
 STEP_NAME = "answer_checker"
-MODEL_ENV_VAR = "AI_AGENT_MODEL_PHASE_9"
 DEFAULT_MODEL = GoogleModels.GEMINI_3_1_FLASH_LITE
 PROMPT_FILE = "prompts/9_answer_checker.txt"
 FORMAT_NAME = "answer_checker_phase9_response_format"

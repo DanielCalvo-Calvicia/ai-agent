@@ -17,6 +17,7 @@ from application.engine.flow import Flow, FlowContext
 from application.engine.state.flow_state import FlowState
 from application.engine.support.mcp_servers import server_names
 from application.engine.support.metrics import SessionMetrics
+from application.engine.support.model_selection import ModelResolver
 from application.engine.state.paused_run import CONFIRMATION, INPUT, FlowResult, PausedRun
 from application.steps.phase import Step
 from application.engine.phase_runner import PhaseRunner
@@ -40,8 +41,9 @@ class Pipeline:
         mcp_tools: Optional[McpToolsPort] = None,
         *,
         flow: Flow,
+        models: Optional[ModelResolver] = None,
     ) -> None:
-        runner = PhaseRunner(outbound_port, metrics, server_names(mcp_list, mcp_tools))
+        runner = PhaseRunner(outbound_port, metrics, server_names(mcp_list, mcp_tools), models=models, flow_name=flow.name)
         self.flow = flow
         self.steps = flow.build_steps(FlowContext(runner, mcp_list, mcp_tools))
         self.clarifier = Clarifier(runner)

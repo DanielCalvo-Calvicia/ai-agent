@@ -10,7 +10,6 @@ from application.steps.registry import register_step
 # --- What this phase uses ---------------------------------------------------
 PHASE_ID = 8
 STEP_NAME = "editor_in_chief"
-MODEL_ENV_VAR = "AI_AGENT_MODEL_PHASE_8"
 DEFAULT_MODEL = GoogleModels.GEMINI_3_6_FLASH
 PROMPT_FILE = "prompts/8_editor_in_chief.txt"
 FORMAT_NAME = "editor_in_chief_phase8_response_format"

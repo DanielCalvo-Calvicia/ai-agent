@@ -14,7 +14,6 @@ from application.steps.registry import register_step
 # --- What this phase uses ---------------------------------------------------
 PHASE_ID = 2
 STEP_NAME = "project_manager"
-MODEL_ENV_VAR = "AI_AGENT_MODEL_PHASE_2"
 DEFAULT_MODEL = GoogleModels.GEMINI_3_6_FLASH
 PROMPT_FILE = "prompts/2_project_manager.txt"
 FORMAT_NAME = "project_manager_phase2_response_format"

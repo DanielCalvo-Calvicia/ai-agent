@@ -23,6 +23,7 @@ load_dotenv(os.path.join(PROJECT_ROOT, ".env"), override=False)
 #  OUTBOUND ADAPTERS
 # -----------------------------------------------
 
+from infrastructure.outbound.config.file_source import FileConfigSource
 from infrastructure.outbound.llm.config import VercelAIConfig
 from infrastructure.outbound.llm.vercel import VercelAIAdapter
 from infrastructure.outbound.mcp.availability import McpAvailabilityCheck
@@ -35,6 +36,8 @@ from infrastructure.outbound.usage.langfuse import LangfuseUsageReporter
 #  APPLICATION SERVICES
 # -----------------------------------------------
 
+from application.engine.config_snapshot import build_snapshot
+from application.engine.support.model_selection import DEFAULT_MODEL_SET, ModelResolver
 from application.service.session_service import SessionService
 
 # -----------------------------------------------
@@ -62,6 +65,17 @@ def CreateApp() -> FastAPI:
     init_logging("ai-agent")
     quiet_client_libraries()          # again: the logging set-up may have reset their levels
 
+    # Step 0: what the agent is made of (profiles, flows, step declarations, model sets), read once, now. Nothing uses it
+    # yet (T-05.6 builds the agent from it); a file that cannot be used is logged here and does not stop the service.
+    configSnapshot = build_snapshot(FileConfigSource(PROJECT_ROOT))
+    for problem in configSnapshot.errors.values():
+        get_logger(__name__).error("Configuration file not used", problem=problem)
+    # Until profiles choose (T-05.7) there is one agent for the whole service: it runs on the model set `proven`, the profile that
+    # was active in config/step_models.json. A model set that is missing or wrong stops the start, with a message that names it.
+    modelResolver = ModelResolver({"models": DEFAULT_MODEL_SET}, configSnapshot.model_sets)
+    get_logger(__name__).info("Configuration loaded", profiles=len(configSnapshot.profiles), flows=len(configSnapshot.flows),
+                              step_defs=len(configSnapshot.step_defs), model_sets=len(configSnapshot.model_sets))
+
     # Step 1: Outbound adapters — MCP tools and LLM provider
     mcpList = load_supported_mcp_configs()
     toolExecutor = MCPToolExecutor(MCPClientManager(mcpList))
@@ -82,6 +96,7 @@ def CreateApp() -> FastAPI:
         mcp_tools=toolExecutor,
         history_turns=int(os.environ.get("AI_AGENT_HISTORY_TURNS", "6")),
         usage_reporter=usageReporter,
+        models=modelResolver,
     )
 
     # Step 3: FastAPI application

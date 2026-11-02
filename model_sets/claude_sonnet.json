@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "name": "claude_sonnet",
+  "_about": "The same Claude Sonnet model on every step, for the Dynamics MCP epic (T-01). Needs ANTHROPIC_API_KEY. Untested; the id is confirmed in T-01.9. `claude-sonnet-5` is a legacy id (still available on 2026-10-27); the current one is `claude-sonnet-5-5`, which T-01.9 decides. Not the active profile: set `profile` to use it.",
+  "default": [
+    "claude-sonnet-5"
+  ]
+}

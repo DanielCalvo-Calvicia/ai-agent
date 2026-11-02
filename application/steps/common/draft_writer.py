@@ -11,7 +11,6 @@ from application.steps.registry import register_step
 # --- What this phase uses ---------------------------------------------------
 PHASE_ID = 7
 STEP_NAME = "draft_writer"
-MODEL_ENV_VAR = "AI_AGENT_MODEL_PHASE_7"
 DEFAULT_MODEL = GoogleModels.GEMINI_3_6_FLASH
 PROMPT_FILE = "prompts/7_drawf_writter.txt"
 FORMAT_NAME = "draft_writer_phase7_response_format"

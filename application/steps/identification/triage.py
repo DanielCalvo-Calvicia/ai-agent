@@ -11,7 +11,6 @@ from application.steps.registry import register_step
 # --- What this phase uses ---------------------------------------------------
 PHASE_ID = 1
 STEP_NAME = "triage_specialist"
-MODEL_ENV_VAR = "AI_AGENT_MODEL_PHASE_1"
 DEFAULT_MODEL = GoogleModels.GEMINI_3_1_FLASH_LITE
 PROMPT_FILE = "prompts/1_triage_specialist.txt"
 FORMAT_NAME = "triage_specialist_phase1_response_format"

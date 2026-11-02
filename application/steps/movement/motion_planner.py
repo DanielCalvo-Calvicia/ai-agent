@@ -15,7 +15,6 @@ from application.steps.registry import register_step
 # --- What this phase uses ---------------------------------------------------
 PHASE_ID = 20
 STEP_NAME = "motion_planner"
-MODEL_ENV_VAR = "AI_AGENT_MODEL_PHASE_20"
 DEFAULT_MODEL = GoogleModels.GEMINI_3_6_FLASH
 PROMPT_FILE = "prompts/20_motion_planner.txt"
 FORMAT_NAME = "motion_planner_phase20_response_format"

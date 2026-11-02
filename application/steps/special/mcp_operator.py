@@ -16,7 +16,6 @@ from application.steps.registry import register_step
 # --- What this phase uses ---------------------------------------------------
 PHASE_ID = 5
 STEP_NAME = "mcp_operator"
-MODEL_ENV_VAR = "AI_AGENT_MODEL_PHASE_5"
 DEFAULT_MODEL = GoogleModels.GEMINI_3_6_FLASH
 PROMPT_FILE = "prompts/5_mcp_operator.txt"
 FORMAT_NAME = "phase5_single_action_response_format"

@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "name": "proven",
+  "_about": "Every step on gemini-3.1-flash-lite, which has an end-to-end run (2026-09-21) and answered a test call on 2026-10-28. It replaces gemini-2.5-flash, the first model tested end to end, which Google no longer gives to new keys. Active since 2026-10-28: on the free tier it answered 10 calls in a row, while gemini-3.6-flash (profile google_free) returned 429 after about 7 calls in 30 s.",
+  "default": [
+    "gemini-3.1-flash-lite",
+    "gemini-3.5-flash-lite",
+    "gemini-3-flash-preview"
+  ]
+}

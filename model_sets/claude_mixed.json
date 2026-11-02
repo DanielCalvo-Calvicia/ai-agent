@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "name": "claude_mixed",
+  "_about": "Claude through Anthropic's OpenAI-compatible endpoint (ADR-013): claude-haiku-4-5 on every step except the planner, the draft writer and the editor, which use claude-sonnet-5-5. Needs ANTHROPIC_API_KEY. Not the active profile. Run once on 2026-10-28 (T-03.6): three messages, 13 calls, 0 errors, about 6.6 cents, and the greeting that claude_haiku answered with a description got a real reply (one sample). Costs about 2.5 times claude_haiku. The strict, sanitized schema adds about 2.8k input tokens to the four actions steps, and the endpoint hides Claude's thinking, so the cost tables understate the cost of the Sonnet steps.",
+  "default": [
+    "claude-haiku-4-5"
+  ],
+  "project_manager": [
+    "claude-sonnet-5-5"
+  ],
+  "draft_writer": [
+    "claude-sonnet-5-5"
+  ],
+  "editor_in_chief": [
+    "claude-sonnet-5-5"
+  ]
+}

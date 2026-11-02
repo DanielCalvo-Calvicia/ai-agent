@@ -10,6 +10,7 @@ from application.inbound.dto.message import TextRequestDTO, TextResponseDTO
 from application.inbound.ports.message_flow_ports import MessageInboundPort
 from application.flows.router import AgentRouter
 from application.engine.support.metrics import SessionMetrics
+from application.engine.support.model_selection import ModelResolver
 from application.engine.state.paused_run import PausedRun
 from application.outbound.ports.llm_ports import LLMOutboundPort
 from application.outbound.ports.mcp_ports import McpToolsPort
@@ -31,6 +32,7 @@ class MessageFlowService(MessageInboundPort):
         mcp_tools: Optional[McpToolsPort] = None,
         paused: Optional[PausedRun] = None,
         usage_reporter: Optional[UsageReporterPort] = None,
+        models: Optional[ModelResolver] = None,
     ):
         self.outbound_port = outbound_port
         self.history = list(history or [])
@@ -38,7 +40,7 @@ class MessageFlowService(MessageInboundPort):
         self.paused_run: Optional[PausedRun] = paused   # after text(): the run still waiting for the user, if any
         self.metrics = SessionMetrics(usage_reporter)
         self.mcp_list = mcp_list if mcp_list is not None else []
-        self.router = AgentRouter(outbound_port, self.mcp_list, self.metrics, mcp_tools)
+        self.router = AgentRouter(outbound_port, self.mcp_list, self.metrics, mcp_tools, models)
 
     def text(self, request: TextRequestDTO) -> TextResponseDTO:
         self.metrics.begin_message(str(request.request_id), request.session_name or request.session_id, request.content)

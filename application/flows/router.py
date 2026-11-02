@@ -32,6 +32,7 @@ from application.engine.state.motion_state import MotionFlowState
 from application.engine.state.paused_run import FlowResult, PausedRun
 from application.engine.support.expression_settings import expression_enabled, speech_seconds
 from application.engine.support.metrics import SessionMetrics
+from application.engine.support.model_selection import ModelResolver
 from application.outbound.ports.llm_ports import LLMOutboundPort
 from application.outbound.ports.mcp_ports import McpToolsPort
 from domain.value_objects.llm_request.message import Message
@@ -63,9 +64,10 @@ class AgentRouter:
         mcp_list: list,
         metrics: SessionMetrics,
         mcp_tools: Optional[McpToolsPort] = None,
+        models: Optional[ModelResolver] = None,
     ) -> None:
         self.pipelines: Dict[str, Pipeline] = {
-            flow.name: Pipeline(outbound_port, mcp_list, metrics, mcp_tools, flow=flow) for flow in FLOWS
+            flow.name: Pipeline(outbound_port, mcp_list, metrics, mcp_tools, flow=flow, models=models) for flow in FLOWS
         }
 
     def run(

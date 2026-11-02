@@ -14,7 +14,6 @@ from application.steps.registry import register_step
 # --- What this phase uses ---------------------------------------------------
 PHASE_ID = 4
 STEP_NAME = "cognitive_worker"
-MODEL_ENV_VAR = "AI_AGENT_MODEL_PHASE_4"
 DEFAULT_MODEL = GoogleModels.GEMINI_3_6_FLASH
 PROMPT_FILE = "prompts/4_cognitive_worker.txt"
 FORMAT_NAME = "phase4_single_action_response_format"

@@ -44,8 +44,8 @@ copy .env.example .env                  # fill in at least one provider key and 
 ```
 
 Then open `http://<host>:7998/docs` or call `GET /health`. It works from any folder (it changes to the project root).
-`AI_AGENT_RELOAD` defaults to `1` (auto-reload); set `0` for a stable run. Which model answers each step is chosen in
-`config/step_models.json` (see [`docs/configuration/environment-variables.md`](docs/configuration/environment-variables.md)).
+`AI_AGENT_RELOAD` defaults to `1` (auto-reload); set `0` for a stable run. Which model answers each step is chosen in the model sets of
+`model_sets/` (an ordered list per step; see [`docs/configuration/environment-variables.md`](docs/configuration/environment-variables.md)); no environment variable chooses a model.
 
 ```powershell
 & windows\Scripts\python.exe -m pytest tests          # no keys, no network, no cost

@@ -20,7 +20,7 @@ PhaseInput = Any
 class PhaseSpec:
     """One LLM call that answers with the phase's whole response schema."""
     id: int
-    step_name: str                               # the name config/step_models.json and the metrics use
+    step_name: str                               # the name the model sets, the profiles and the metrics use
     prompt_file: str                             # the phase's prompt, relative to the project root
     model: GoogleModels
     intent: Tuple[str, Tuple[str, ...], float]   # primary, secondary, confidence

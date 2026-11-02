@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "name": "quality",
+  "_about": "The best plan and the best writing, whatever the price. Untested. gemini-3.1-pro-preview is a preview.",
+  "default": [
+    "gemini-3.8-flash"
+  ],
+  "project_manager": [
+    "gemini-3.1-pro-preview"
+  ],
+  "triage_specialist": [
+    "gemini-3.5-flash-lite"
+  ],
+  "data_engineer": [
+    "gemini-3.1-flash-lite"
+  ],
+  "answer_checker": [
+    "gemini-3.5-flash-lite"
+  ],
+  "user_clarification": [
+    "gemini-3.5-flash-lite"
+  ]
+}

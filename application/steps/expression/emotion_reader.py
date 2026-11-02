@@ -16,7 +16,6 @@ from application.steps.registry import register_step
 # --- What this phase uses ---------------------------------------------------
 PHASE_ID = 30
 STEP_NAME = "emotion_reader"
-MODEL_ENV_VAR = "AI_AGENT_MODEL_PHASE_30"
 DEFAULT_MODEL = GoogleModels.GEMINI_3_1_FLASH_LITE
 PROMPT_FILE = "prompts/30_emotion_reader.txt"
 FORMAT_NAME = "emotion_reader_phase30_response_format"
