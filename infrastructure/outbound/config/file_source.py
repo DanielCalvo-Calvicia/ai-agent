@@ -26,6 +26,21 @@ class FileConfigSource(ConfigSourcePort):
     def load_model_sets(self) -> Loaded:
         return self._load("model_sets")
 
+    def load_state_fields(self) -> Loaded:
+        loaded = Loaded()
+        path = os.path.join(self.root, "config", "state_fields.json")
+        if not os.path.isfile(path):
+            return loaded
+        try:
+            data = self._read(path, "state_fields")
+            fields = data.get("fields")
+            if not isinstance(fields, dict):
+                raise ConfigError("config/state_fields.json must hold an object `fields`")
+            loaded.items.update(fields)
+        except ConfigError as error:
+            loaded.errors["state_fields"] = str(error)
+        return loaded
+
     def load_prompt(self, name: str) -> str:
         path = self._inside_root(name)
         try:

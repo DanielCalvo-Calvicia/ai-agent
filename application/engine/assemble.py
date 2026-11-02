@@ -1,0 +1,385 @@
+# ===============================================
+#  ASSEMBLE
+#  Builds the whole agent from the configuration snapshot and refuses what cannot work (PR-005 section 9): an unknown name or
+#  key, a profile with both or neither of `flow` and `steps`, a step that reads what nobody writes, a flow with no result,
+#  a model that cannot run a step, a missing token, a tool that does not exist. Every problem names its file and its key.
+#
+#  It runs at start (a profile with a problem is disabled and logged, the others serve: Q07-18 C), in scripts/check_agent.py
+#  and in the tests (strict: any problem stops). Until flows and steps are JSON (T-05.12, T-05.16) a profile may name a Python
+#  flow (`known_flows`) and a step that has no declaration: the checks that need `reads` and `writes` skip them.
+# ===============================================
+
+import re
+from dataclasses import dataclass, field
+from typing import Any, Callable, Collection, Dict, List, Mapping, Optional, Sequence
+
+from application.engine.config_snapshot import ConfigSnapshot
+from application.engine.support.model_selection import ModelResolver, check_model_set
+from application.engine.support.schemas import load_schema_file
+from application.outbound.ports.config_ports import ConfigError
+from application.steps.catalog import PHASES
+from application.steps.registry import CODE, KINDS, all_steps
+from domain.value_objects.llm_request.model import GoogleModels
+
+DEFAULT_PROFILE = "default"                       # the profile of a request with no profile: it needs no token
+RETURNS = ("text", "full")
+TOKEN_HASH = re.compile(r"^[0-9a-f]{64}$")        # the SHA-256 of the token, in hex
+
+PROFILE_KEYS = {"schema_version", "name", "about", "token_sha256", "flow", "steps", "inputs", "default_return", "models", "tools",
+                "settings", "overrides", "flows", "initial_state", "tested"}
+INPUT_KEYS = {"requires", "accepts"}
+SETTING_KEYS = {"history_turns": int, "max_mcp_calls_per_message": int}
+OVERRIDE_KEYS = {"models", "tools", "prompt_replace", "prompt_append"}
+PROFILE_FLOW_KEYS = {"models", "tools", "steps"}
+FLOW_KEYS = {"schema_version", "name", "about", "steps", "on_pause", "on_resume", "result_from", "tools", "models"}
+FLOW_STEP_KEYS = {"step", "pause_if", "retry_on_status", "optional", "tools"}
+STEP_DEF_KEYS = {"schema_version", "name", "about", "kind", "legacy_id", "prompt", "answer", "reads", "writes", "data", "tools",
+                 "default_models", "for_each", "function"}
+ANSWER_KEYS = {"pieces", "required", "schema", "schema_file"}
+TOOL_KEYS = {"servers", "tools"}
+
+
+@dataclass
+class AssembledProfile:
+    name: str
+    definition: dict
+    flow_name: Optional[str]                 # None when the profile lists its own steps
+    steps: List[str]                         # in order; empty when the flow is a Python flow (until T-05.12)
+    resolver: ModelResolver
+    default_return: str
+    requires: List[str] = field(default_factory=list)       # inputs the request must carry
+    accepts: List[str] = field(default_factory=list)
+
+
+@dataclass
+class Agent:
+    profiles: Dict[str, AssembledProfile]
+    problems: Dict[str, List[str]]           # "<kind>/<name>" -> every problem of that file
+
+    def profile(self, name: str) -> AssembledProfile:
+        if name not in self.profiles:
+            raise KeyError(name)
+        return self.profiles[name]
+
+    def disabled(self) -> Dict[str, str]:
+        """Profile name -> why it cannot be used (a profile whose file could not even be read is here too)."""
+        return {key[len("profiles/"):]: "; ".join(messages) for key, messages in self.problems.items() if key.startswith("profiles/")}
+
+    def all_problems(self) -> List[str]:
+        return [message for messages in self.problems.values() for message in messages]
+
+    def raise_on_errors(self) -> None:
+        """Strict mode (tests, check_agent.py): the first problem stops everything."""
+        if self.problems:
+            raise ConfigError(self.all_problems()[0])
+
+
+SchemaRule = Callable[[dict], List[str]]
+
+
+def assemble(
+    snapshot: ConfigSnapshot,
+    *,
+    known_flows: Collection[str] = (),
+    conditions: Collection[str] = (),
+    hooks: Collection[str] = (),
+    mcp_servers: Optional[Mapping[str, Optional[Sequence[str]]]] = None,
+    schema_rules: Optional[Mapping[str, SchemaRule]] = None,
+) -> Agent:
+    """
+    `known_flows`: the Python flows a profile may name until flows are files. `conditions` and `hooks`: the names a flow may use.
+    `mcp_servers`: server name -> its allowed tools (None = the server lists none); None = tool names are not checked.
+    `schema_rules`: provider (`anthropic`) -> a function that returns what that provider refuses in a custom answer schema.
+    """
+    return _Assembly(snapshot, set(known_flows), set(conditions), set(hooks), mcp_servers, dict(schema_rules or {})).run()
+
+
+class _Assembly:
+    def __init__(self, snapshot, known_flows, conditions, hooks, mcp_servers, schema_rules) -> None:
+        self.snapshot = snapshot
+        self.known_flows = known_flows
+        self.conditions = conditions
+        self.hooks = hooks
+        self.mcp_servers = mcp_servers
+        self.schema_rules = schema_rules
+        self.fields: Dict[str, dict] = snapshot.state_fields
+        self.registry = {entry.name: entry for entry in all_steps()}
+        self.problems: Dict[str, List[str]] = {key: [message] for key, message in snapshot.errors.items()}
+
+    # -----------------------------------------------
+    #  THE WHOLE AGENT
+    # -----------------------------------------------
+
+    def run(self) -> Agent:
+        for name, data in self.snapshot.model_sets.items():
+            self._try(f"model_sets/{name}", lambda: check_model_set(name, data))
+        for name, data in self.snapshot.step_defs.items():
+            self._check_step_def(name, data)
+        for name, data in self.snapshot.flows.items():
+            self._check_flow_file(name, data)
+
+        profiles: Dict[str, AssembledProfile] = {}
+        for name, data in self.snapshot.profiles.items():
+            assembled = self._check_profile(name, data)
+            if assembled is not None and f"profiles/{name}" not in self.problems:
+                profiles[name] = assembled
+        return Agent(profiles, self.problems)
+
+    def _problem(self, key: str, message: str) -> None:
+        self.problems.setdefault(key, []).append(f"{key}.json: {message}" if "/" in key and not message.startswith(key) else message)
+
+    def _try(self, key: str, check: Callable[[], None]) -> None:
+        try:
+            check()
+        except ValueError as error:
+            self.problems.setdefault(key, []).append(str(error))
+
+    def _unknown_keys(self, key: str, data: dict, allowed: Collection[str], where: str = "") -> None:
+        for name in data:
+            if not name.startswith("_") and name not in allowed:
+                self._problem(key, f"{where}unknown key {name!r}. Keys: {', '.join(sorted(allowed))}")
+
+    # -----------------------------------------------
+    #  TOOLS
+    # -----------------------------------------------
+
+    def _check_tools(self, key: str, value: Any, where: str) -> None:
+        if value is None:
+            return
+        if not isinstance(value, dict):
+            return self._problem(key, f"{where} must be an object with `servers` and `tools`")
+        self._unknown_keys(key, value, TOOL_KEYS, f"{where}: ")
+        if self.mcp_servers is None:
+            return                                                    # no snapshot of the tools: the names are not checked
+
+        for server in value.get("servers") or []:
+            if server not in self.mcp_servers:
+                self._problem(key, f"{where}.servers: unknown MCP server {server!r}. Servers: {', '.join(self.mcp_servers) or 'none'}")
+        for reference in value.get("tools") or []:
+            server, dot, tool = str(reference).partition(".")
+            if dot:
+                if server not in self.mcp_servers:
+                    self._problem(key, f"{where}.tools: unknown MCP server {server!r} in {reference!r}")
+                elif not self.mcp_servers[server]:
+                    self._problem(key, f"{where}.tools: {server!r} lists no allowed tools, so {reference!r} cannot be checked")
+                elif tool not in self.mcp_servers[server]:
+                    self._problem(key, f"{where}.tools: {server!r} has no tool {tool!r}. Tools: {', '.join(self.mcp_servers[server])}")
+                continue
+            owners = [name for name, listed in self.mcp_servers.items() if listed and reference in listed]
+            if not owners:
+                self._problem(key, f"{where}.tools: no MCP server has a tool {reference!r}")
+            elif len(owners) > 1:
+                self._problem(key, f"{where}.tools: {reference!r} is a tool of {' and '.join(owners)}: write it as server.tool")
+
+    # -----------------------------------------------
+    #  THE STEP DECLARATIONS AND THE FLOW FILES
+    # -----------------------------------------------
+
+    def _step_names(self) -> set:
+        return set(self.snapshot.step_defs) | set(self.registry)
+
+    def _check_step_def(self, name: str, data: dict) -> None:
+        key = f"step_defs/{name}"
+        self._unknown_keys(key, data, STEP_DEF_KEYS)
+        if data.get("kind") not in KINDS:
+            self._problem(key, f"kind must be one of {', '.join(KINDS)}")
+        for which in ("reads", "writes"):
+            for field_name in data.get(which) or []:
+                if field_name not in self.fields:
+                    self._problem(key, f"{which}: {field_name!r} is not a field of config/state_fields.json. Fields: {', '.join(self.fields)}")
+        answer = data.get("answer")
+        if answer is not None:
+            if not isinstance(answer, dict):
+                self._problem(key, "answer must be an object")
+            else:
+                self._unknown_keys(key, answer, ANSWER_KEYS, "answer: ")
+        self._check_tools(key, data.get("tools"), "tools")
+        if "default_models" in data:
+            self._try(key, lambda: ModelResolver({"models": data["default_models"]}))
+
+    def _check_flow_file(self, name: str, data: dict) -> None:
+        key = f"flows/{name}"
+        self._unknown_keys(key, data, FLOW_KEYS)
+        steps = data.get("steps")
+        if not isinstance(steps, list) or not steps:
+            return self._problem(key, "steps must be a list of steps")
+        self._check_flow_steps(key, steps, data.get("on_pause"), data.get("on_resume"), data.get("result_from"))
+        self._check_tools(key, data.get("tools"), "tools")
+        if "models" in data:
+            self._try(key, lambda: ModelResolver({"models": data["models"]}, self.snapshot.model_sets))
+
+    def _check_flow_steps(self, key: str, steps: list, on_pause: Any, on_resume: Any, result_from: Any) -> None:
+        names = []
+        for index, entry in enumerate(steps):
+            item = entry if isinstance(entry, dict) else {"step": entry}
+            self._unknown_keys(key, item, FLOW_STEP_KEYS, f"steps[{index}]: ")
+            step = item.get("step")
+            names.append(step)
+            if step not in self._step_names():
+                self._problem(key, f"steps[{index}]: unknown step {step!r}")
+            elif f"step_defs/{step}" in self.problems:
+                self._problem(key, f"steps[{index}]: the step {step!r} cannot be used: {self.problems[f'step_defs/{step}'][0]}")
+            condition = item.get("pause_if")
+            if condition is not None and condition not in self.conditions:
+                self._problem(key, f"steps[{index}]: unknown condition {condition!r}. Conditions: {', '.join(sorted(self.conditions)) or 'none'}")
+            self._check_tools(key, item.get("tools"), f"steps[{index}].tools")
+        for hook_key, hook in (("on_pause", on_pause), ("on_resume", on_resume)):
+            if hook is not None and hook not in self.hooks:
+                self._problem(key, f"{hook_key}: unknown hook {hook!r}. Hooks: {', '.join(sorted(self.hooks)) or 'none'}")
+        if result_from is None:
+            self._problem(key, "no result_from: say which step produces the result of the flow")
+        elif result_from not in names:
+            self._problem(key, f"result_from {result_from!r} is not a step of the flow")
+
+    # -----------------------------------------------
+    #  A PROFILE
+    # -----------------------------------------------
+
+    def _check_profile(self, name: str, data: dict) -> Optional[AssembledProfile]:
+        key = f"profiles/{name}"
+        self._unknown_keys(key, data, PROFILE_KEYS)
+
+        if name != DEFAULT_PROFILE and not TOKEN_HASH.match(str(data.get("token_sha256", ""))):
+            self._problem(key, "token_sha256 must be the SHA-256 of the token, in 64 hex characters (every profile but `default` has one)")
+
+        flow, steps = data.get("flow"), data.get("steps")
+        if (flow is None) == (steps is None):
+            self._problem(key, "a profile has `flow` or `steps`, not both and not neither")
+            return None
+
+        returned = data.get("default_return", "text")
+        if returned not in RETURNS:
+            self._problem(key, f"default_return must be one of {', '.join(RETURNS)}")
+
+        requires, accepts = self._check_inputs(key, data.get("inputs") or {})
+        initial = data.get("initial_state") or {}
+        for field_name in initial:
+            if field_name not in self.fields:
+                self._problem(key, f"initial_state: {field_name!r} is not a field of config/state_fields.json")
+        self._check_settings(key, data.get("settings") or {})
+        self._check_tools(key, data.get("tools"), "tools")
+        for step, entry in (data.get("overrides") or {}).items():
+            self._unknown_keys(key, entry or {}, OVERRIDE_KEYS, f"overrides.{step}: ")
+            self._check_tools(key, (entry or {}).get("tools"), f"overrides.{step}.tools")
+        for flow_name, entry in (data.get("flows") or {}).items():
+            self._unknown_keys(key, entry or {}, PROFILE_FLOW_KEYS, f"flows.{flow_name}: ")
+            self._check_tools(key, (entry or {}).get("tools"), f"flows.{flow_name}.tools")
+
+        resolver = ModelResolver()
+        try:
+            resolver = ModelResolver(data, self.snapshot.model_sets)
+        except ValueError as error:
+            reason = next((m for k, m in self.problems.items() if k.startswith("model_sets/") and data.get("models") == k[len("model_sets/"):]), None)
+            self._problem(key, f"{error}" + (f" ({reason})" if reason else ""))
+        except KeyError as error:
+            self._problem(key, f"unknown model set {error.args[0]!r}")
+
+        flow_name, step_names, declared = self._resolve_flow(key, flow, steps)
+        if declared:
+            self._check_data_flow(key, flow_name, step_names, requires, initial)
+            self._check_models(key, flow_name or "", step_names, resolver)
+        return AssembledProfile(name, data, flow_name, step_names, resolver, returned, requires, accepts)
+
+    def _check_inputs(self, key: str, inputs: dict):
+        self._unknown_keys(key, inputs, INPUT_KEYS, "inputs: ")
+        lists = {}
+        for which in ("requires", "accepts"):
+            lists[which] = list(inputs.get(which) or [])
+            for field_name in lists[which]:
+                if field_name not in self.fields:
+                    self._problem(key, f"inputs.{which}: {field_name!r} is not a field of config/state_fields.json")
+        return lists["requires"], lists["accepts"]
+
+    def _check_settings(self, key: str, settings: dict) -> None:
+        self._unknown_keys(key, settings, SETTING_KEYS, "settings: ")
+        for setting, value in settings.items():
+            expected = SETTING_KEYS.get(setting)
+            if expected and (isinstance(value, bool) or not isinstance(value, expected) or value < 0):
+                self._problem(key, f"settings.{setting} must be a whole number, zero or more")
+
+    def _resolve_flow(self, key: str, flow: Any, steps: Any):
+        """(the name of the flow or None, the steps in order, whether they are declared as data). Reports an unknown flow or step."""
+        if steps is not None:                                         # the profile lists its own steps: an anonymous flow
+            if not isinstance(steps, list) or not steps:
+                self._problem(key, "steps must be a list of steps")
+                return None, [], False
+            last = steps[-1]["step"] if isinstance(steps[-1], dict) else steps[-1]
+            self._check_flow_steps(key, steps, None, None, last)
+            return None, [(s["step"] if isinstance(s, dict) else s) for s in steps], True
+
+        if flow in self.snapshot.flows:
+            if f"flows/{flow}" in self.problems:
+                self._problem(key, f"the flow {flow!r} cannot be used: {self.problems[f'flows/{flow}'][0]}")
+                return flow, [], False
+            return flow, [(s["step"] if isinstance(s, dict) else s) for s in self.snapshot.flows[flow]["steps"]], True
+        if flow in self.known_flows:
+            return flow, [], False                                    # a Python flow: only the shape of the profile is checked
+        why = self.problems.get(f"flows/{flow}")
+        self._problem(key, f"the flow {flow!r} cannot be used: {why[0]}" if why else f"unknown flow {flow!r}")
+        return flow, [], False
+
+    # -----------------------------------------------
+    #  WHAT A PROFILE NEEDS TO WORK
+    # -----------------------------------------------
+
+    def _declaration(self, step: str) -> Optional[dict]:
+        definition = self.snapshot.step_defs.get(step)
+        if definition is not None and isinstance(definition.get("reads"), list) and isinstance(definition.get("writes"), list):
+            return definition
+        return None
+
+    def _kind(self, step: str) -> Optional[str]:
+        definition = self.snapshot.step_defs.get(step)
+        if definition is not None:
+            return definition.get("kind")
+        return self.registry[step].kind if step in self.registry else None
+
+    def _check_data_flow(self, key: str, flow_name: Optional[str], steps: List[str], requires: List[str], initial: dict) -> None:
+        """Every step reads only what an input, an initial value or an earlier step provides; the result carries a user_goal."""
+        if any(self._declaration(step) is None for step in steps):
+            return                                                    # a step with no declaration: nothing can be said (until T-05.16)
+
+        available = {name for name, entry in self.fields.items() if entry.get("always")} | set(requires) | set(initial)
+        for step in steps:
+            definition = self._declaration(step)
+            for field_name in definition["reads"]:
+                if field_name not in available:
+                    self._problem(key, f"{flow_name or 'steps'}: {step!r} reads {field_name!r} but no step before it writes it, "
+                                       f"no required input gives it and no initial_state gives it")
+            available |= set(definition["writes"])
+
+        result = self._result_step(flow_name, steps)
+        declaration = self._declaration(result) if result in steps else None
+        if declaration is not None and self._kind(result) != CODE and "user_goal" not in declaration["writes"]:
+            self._problem(key, f"the result step {result!r} does not write user_goal: the session keeps the input and the output of a request in it")
+
+    def _result_step(self, flow_name: Optional[str], steps: List[str]) -> Optional[str]:
+        if flow_name is not None and flow_name in self.snapshot.flows:
+            return self.snapshot.flows[flow_name].get("result_from")
+        return steps[-1] if steps else None
+
+    def _check_models(self, key: str, flow_name: str, steps: List[str], resolver: ModelResolver) -> None:
+        """A custom answer schema must pass the rules of every provider that may run the step (Claude's nesting limit, ADR-013)."""
+        for step in steps:
+            schema = self._custom_schema(key, step)
+            if schema is None:
+                continue
+            info = next((p for p in PHASES.values() if p.step_name == step), None)
+            chosen = resolver.source_for(flow_name, step) != "step default"
+            if info is None and not chosen:
+                continue                                              # no list and no code default: nothing to check against
+            for model in resolver.models_for(flow_name, step, info.default_model if info else GoogleModels.GEMINI_3_1_FLASH_LITE):
+                rule = self.schema_rules.get("anthropic") if model.is_anthropic() else None
+                for problem in (rule(schema) if rule else []):
+                    self._problem(key, f"{model.id} cannot run {step!r}: {problem}")
+
+    def _custom_schema(self, key: str, step: str) -> Optional[dict]:
+        answer = (self.snapshot.step_defs.get(step) or {}).get("answer") or {}
+        if isinstance(answer.get("schema"), dict):
+            return answer["schema"]
+        if isinstance(answer.get("schema_file"), str):
+            try:
+                return load_schema_file(answer["schema_file"])
+            except OSError:
+                self._problem(key, f"step {step!r}: the schema file {answer['schema_file']!r} does not exist")
+        return None

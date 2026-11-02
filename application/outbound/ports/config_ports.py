@@ -37,6 +37,11 @@ class ConfigSourcePort(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def load_state_fields(self) -> Loaded:
+        """The catalog of the fields a step may read and write: one item per field (config/state_fields.json)."""
+        raise NotImplementedError
+
+    @abstractmethod
     def load_prompt(self, name: str) -> str:
         """The text of a prompt, by the name a step or a profile gives it (for example `prompts/7_drawf_writter.txt`)."""
         raise NotImplementedError

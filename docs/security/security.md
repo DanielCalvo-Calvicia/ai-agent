@@ -29,6 +29,10 @@
 - **Google free tier (the default models, ADR-012).** Google says the content of free-tier requests is used to improve its products; paid-tier content generally is not. The default models are Google's, so with a free key the user's text, the history, the prompts and, in the special flow, the answers of Business Central tools go to Google under those terms. Use the free tier with test data; for real customer data use a billed key (about 175 EUR per 1,000 big-plan messages at paid prices) or another provider. Google does not publish the free-tier rate limits.
 - **Anthropic (the Claude profiles, ADR-013; not active by default).** With a Claude model the user's text, the history, the prompts and, in the special flow, the answers of Business Central tools go to Anthropic through its OpenAI-compatible endpoint, with a strict schema attached to every call. Anthropic documents that endpoint as a layer for testing, not for production. Nothing goes to Anthropic unless `ANTHROPIC_API_KEY` is set and a profile (or a step) names a Claude model.
 
+## Profile tokens (planned, T-05.6 to T-05.9)
+
+A profile (except `default`) carries `token_sha256`, the SHA-256 of its token in hex; a profile without a well-formed one is disabled at start (`assemble()`), and no message repeats the value. The token is a check against a mistake, not access control (Q08-8). Nothing checks a token on a request yet: that is T-05.9.
+
 ## Dependencies
 
 - `contracts` comes from the bundled wheel in `vendor/` (refresh with `contracts/scripts/bundle.py`); `shared-logging` is a sibling package. Nothing is downloaded at run time.

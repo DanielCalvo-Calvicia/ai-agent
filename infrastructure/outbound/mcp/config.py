@@ -81,3 +81,12 @@ def load_mcp_configs(mcps_dir: Optional[str] = None) -> List[Dict[str, Any]]:
             logger.exception("Error loading MCP config", filename=filename)
 
     return mcp_configs
+
+
+def load_tool_snapshot(mcps_dir: Optional[str] = None) -> Dict[str, Optional[List[str]]]:
+    """
+    The MCP servers of mcps/*.json, whatever their type or url, and for each the tools its `allowed_tools` lists (None when it
+    lists none). A profile may name only these (PR-005 section 9); the live list of a server is not asked.
+    """
+    return {server["name"]: (list(server["config"]["allowed_tools"]) if server["config"].get("allowed_tools") else None)
+            for server in load_mcp_configs(mcps_dir)}

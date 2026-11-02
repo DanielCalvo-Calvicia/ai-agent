@@ -69,6 +69,17 @@ engine/support/ shared helpers              model choice, metrics, failures, sch
 `flows` use everything below; `engine` never imports a flow; `steps` never import the engine (only its base, `state` and `support`);
 `state` and `support` are the base (`support` reads only `steps.catalog`).
 
+## 3.1 Assembling the agent (T-05.6)
+
+`engine/assemble.py` builds the whole agent from the configuration snapshot (`engine/config_snapshot.py`: profiles, flows, step declarations, model sets and the
+catalog of fields `config/state_fields.json`, read once at start) and refuses what cannot work. Every problem names its file and its key. At start a profile with a
+problem is **disabled** and logged at ERROR (`Configuration problem`, `Profile disabled`) and the others serve; `scripts/check_agent.py` and the tests stop on the first
+problem (`Agent.raise_on_errors`). It checks: unknown names and keys; `flow` xor `steps` in a profile; that every step reads only what an input, an `initial_state` or an earlier step
+provides (the fields are those of the catalog, which a test keeps equal to the state classes); that a flow has a `result_from` and that its result writes `user_goal` (unless it is plain
+code); the models of every list (a custom answer schema must pass the rules of Claude); the token (`token_sha256`, 64 hex characters; the message never repeats it); and the tool
+names (`server`, `server.tool` or a bare name that only one server has). **Until flows and steps are files (T-05.12, T-05.16)** a profile may name a Python flow and a step with no
+declaration: the checks that need `reads` and `writes` skip them. Nothing serves a profile yet (T-05.9): the service still has one agent.
+
 ## 4. The four flows
 
 | Flow | File | Steps | Answers | LLM calls |
@@ -250,6 +261,8 @@ response mapper builds them from the LLM's JSON, one function per section.
 | `outbound/llm/tools.py` | `resolve_tools`: turns the MCP server list of phase 5 into real tools |
 | `outbound/llm/response_mapper.py` | LLM JSON to `Response`, one function per section |
 | `outbound/config/file_source.py` | `FileConfigSource`: reads `profiles/`, `flows/`, `step_defs/`, `model_sets/` (one JSON file each; a name that starts with `_` is skipped) and the prompt files; a file that cannot be read is reported by name, the others still load; a prompt name cannot leave the project. Nothing uses the snapshot yet (T-05.6) |
+| `outbound/mcp/config.py` `load_tool_snapshot` | the MCP servers of `mcps/*.json` and the tools each lists in `allowed_tools`: what a profile may name (not the live list of a server) |
+| `outbound/llm/anthropic_schema.py` `anthropic_schema_problems` | what Claude's endpoint would cut in a **custom** answer schema (a reference nested deeper than 3 levels); `assemble()` uses it, the schemas of the phases are not checked with it (their action recursion is unrolled on purpose) |
 | `outbound/mcp/` | `config.py` (reads `mcps/*.json`, skips a server whose `${NAME}` url is not filled), `client_manager.py` (SSE or Streamable HTTP connection by `type`, forwards the trace headers, keeps `httpx`, `httpcore` and `mcp.client` out of the logs), `tool_catalog.py` (which server offers which tool, only those in its `allowed_tools`; a listing is kept, a failed one is not retried for 60 s; 10 s listing limit), `availability.py` (the optional `AI_AGENT_CHECK_MCP_<NAME>` check, log only), `tool_executor.py` (what the LLM adapter calls: a 30 s call limit, `AI_AGENT_MCP_CALL_TIMEOUT_SECONDS`, and one retry after a transport error or `retry_later`) |
 | `outbound/usage/langfuse.py`, `prices.py` | optional cost reporting to Langfuse (section 11) |
 

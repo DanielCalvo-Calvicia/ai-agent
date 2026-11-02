@@ -1,0 +1,183 @@
+{
+  "schema_version": 1,
+  "_about": "The closed catalog of the fields a step may read and write (PR-005 section 3.1, Q08-6): the fields of the typed FlowState and of its two subclasses. A developer adds a field (here, in the state class and in domain/); a non-coder cannot. `always` fields exist from the start of every run; `schema` is the piece of schema/response a step answers it with; tests/test_assemble.py checks this file against the state classes.",
+  "fields": {
+    "message": {
+      "type": "str",
+      "states": [
+        "FlowState",
+        "MotionFlowState",
+        "ExpressionFlowState"
+      ],
+      "always": true,
+      "about": "what the user said"
+    },
+    "history": {
+      "type": "List[Message]",
+      "states": [
+        "FlowState",
+        "MotionFlowState",
+        "ExpressionFlowState"
+      ],
+      "always": true,
+      "about": "the earlier turns of the session"
+    },
+    "answers": {
+      "type": "List[Tuple[str, str]]",
+      "states": [
+        "FlowState",
+        "MotionFlowState",
+        "ExpressionFlowState"
+      ],
+      "always": true,
+      "about": "what the user said when the flow stopped to ask"
+    },
+    "intent": {
+      "type": "domain.value_objects.llm_response.intent.intent.Intent",
+      "states": [
+        "FlowState",
+        "MotionFlowState",
+        "ExpressionFlowState"
+      ],
+      "schema": "general/intent/intent.schema.json"
+    },
+    "user_goal": {
+      "type": "domain.value_objects.llm_response.user_goal.user_goal.UserGoal",
+      "states": [
+        "FlowState",
+        "MotionFlowState",
+        "ExpressionFlowState"
+      ],
+      "schema": "general/user_goal/user_goal.schema.json"
+    },
+    "mcp_routing": {
+      "type": "domain.value_objects.llm_response.mcp_routing.mcp_routing.MCPRouting",
+      "states": [
+        "FlowState",
+        "MotionFlowState",
+        "ExpressionFlowState"
+      ],
+      "schema": "general/mcp_routing/mcp_routing.schema.json"
+    },
+    "task_category": {
+      "type": "domain.value_objects.llm_response.task_category.task_category.TaskCategory",
+      "states": [
+        "FlowState",
+        "MotionFlowState",
+        "ExpressionFlowState"
+      ],
+      "schema": "general/task_category/task_category.schema.json"
+    },
+    "actions": {
+      "type": "List[domain.entities.llm_response.action.Action]",
+      "states": [
+        "FlowState",
+        "MotionFlowState",
+        "ExpressionFlowState"
+      ],
+      "schema": "general/actions/actions.schema.json"
+    },
+    "missing_information": {
+      "type": "List[domain.value_objects.llm_response.missing_information.missing_information.MissingInformation]",
+      "states": [
+        "FlowState",
+        "MotionFlowState",
+        "ExpressionFlowState"
+      ]
+    },
+    "constraints": {
+      "type": "domain.value_objects.llm_response.constraints.constraints.Constraints",
+      "states": [
+        "FlowState",
+        "MotionFlowState",
+        "ExpressionFlowState"
+      ],
+      "schema": "general/constraints/constraints.schema.json"
+    },
+    "safety_and_validation": {
+      "type": "domain.value_objects.llm_response.safety_and_validation.safety_and_validation.SafetyAndValidation",
+      "states": [
+        "FlowState",
+        "MotionFlowState",
+        "ExpressionFlowState"
+      ],
+      "schema": "general/safety_and_validation/safety_and_validation.schema.json"
+    },
+    "next_step": {
+      "type": "domain.value_objects.llm_response.next_step.next_step.NextStep",
+      "states": [
+        "FlowState",
+        "MotionFlowState",
+        "ExpressionFlowState"
+      ],
+      "schema": "general/next_steps/next_step.schema.json"
+    },
+    "motion_requested": {
+      "type": "bool",
+      "states": [
+        "MotionFlowState"
+      ]
+    },
+    "movements": {
+      "type": "List[domain.value_objects.movement.movement.Movement]",
+      "states": [
+        "MotionFlowState",
+        "ExpressionFlowState"
+      ],
+      "schema": "motion/movements/movements.schema.json"
+    },
+    "motion_rejection": {
+      "type": "Optional[str]",
+      "states": [
+        "MotionFlowState"
+      ]
+    },
+    "spoken_reply": {
+      "type": "str",
+      "states": [
+        "MotionFlowState"
+      ],
+      "schema": "motion/spoken_reply.schema.json"
+    },
+    "speak_movements": {
+      "type": "bool",
+      "states": [
+        "MotionFlowState"
+      ]
+    },
+    "reply": {
+      "type": "str",
+      "states": [
+        "ExpressionFlowState"
+      ],
+      "about": "what the robot answers, the input of the gesture"
+    },
+    "speech_seconds": {
+      "type": "float",
+      "states": [
+        "ExpressionFlowState"
+      ]
+    },
+    "emotion": {
+      "type": "str",
+      "states": [
+        "ExpressionFlowState"
+      ],
+      "schema": "expression/emotion.schema.json"
+    },
+    "intensity": {
+      "type": "int",
+      "states": [
+        "ExpressionFlowState"
+      ],
+      "schema": "expression/intensity.schema.json"
+    },
+    "improvised": {
+      "type": "List[domain.value_objects.movement.movement.Movement]",
+      "states": [
+        "ExpressionFlowState"
+      ],
+      "schema": "expression/improvised/improvised.schema.json"
+    }
+  }
+}

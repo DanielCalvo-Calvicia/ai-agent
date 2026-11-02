@@ -34,6 +34,7 @@ class FakeSource(ConfigSourcePort):
     def load_flows(self): return self._loaded("flows")
     def load_step_defs(self): return self._loaded("step_defs")
     def load_model_sets(self): return self._loaded("model_sets")
+    def load_state_fields(self): return self._loaded("state_fields")
     def load_prompt(self, name): return self.prompts[name]
 
 

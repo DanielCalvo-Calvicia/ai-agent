@@ -24,11 +24,12 @@ load_dotenv(os.path.join(PROJECT_ROOT, ".env"), override=False)
 # -----------------------------------------------
 
 from infrastructure.outbound.config.file_source import FileConfigSource
+from infrastructure.outbound.llm.anthropic_schema import anthropic_schema_problems
 from infrastructure.outbound.llm.config import VercelAIConfig
 from infrastructure.outbound.llm.vercel import VercelAIAdapter
 from infrastructure.outbound.mcp.availability import McpAvailabilityCheck
 from infrastructure.outbound.mcp.client_manager import MCPClientManager, quiet_client_libraries
-from infrastructure.outbound.mcp.config import load_supported_mcp_configs
+from infrastructure.outbound.mcp.config import load_supported_mcp_configs, load_tool_snapshot
 from infrastructure.outbound.mcp.tool_executor import MCPToolExecutor
 from infrastructure.outbound.usage.langfuse import LangfuseUsageReporter
 
@@ -36,7 +37,9 @@ from infrastructure.outbound.usage.langfuse import LangfuseUsageReporter
 #  APPLICATION SERVICES
 # -----------------------------------------------
 
+from application.engine.assemble import assemble
 from application.engine.config_snapshot import build_snapshot
+from application.flows.registry import FLOWS
 from application.engine.support.model_selection import DEFAULT_MODEL_SET, ModelResolver
 from application.service.session_service import SessionService
 
@@ -65,16 +68,27 @@ def CreateApp() -> FastAPI:
     init_logging("ai-agent")
     quiet_client_libraries()          # again: the logging set-up may have reset their levels
 
-    # Step 0: what the agent is made of (profiles, flows, step declarations, model sets), read once, now. Nothing uses it
-    # yet (T-05.6 builds the agent from it); a file that cannot be used is logged here and does not stop the service.
+    # Step 0: what the agent is made of (profiles, flows, step declarations, model sets), read once, now, and assembled. A
+    # profile with a problem is disabled and logged here, the others serve (the service is not stopped); scripts/check_agent.py
+    # is the strict version. Nothing serves a profile yet (T-05.9): the service still has one agent, on the model set below.
     configSnapshot = build_snapshot(FileConfigSource(PROJECT_ROOT))
-    for problem in configSnapshot.errors.values():
-        get_logger(__name__).error("Configuration file not used", problem=problem)
+    agent = assemble(
+        configSnapshot,
+        known_flows=[flow.name for flow in FLOWS],
+        mcp_servers=load_tool_snapshot(),
+        schema_rules={"anthropic": anthropic_schema_problems},
+    )
+    for file, messages in agent.problems.items():
+        for message in messages:
+            get_logger(__name__).error("Configuration problem", file=file, problem=message)
+    for profile in agent.disabled():
+        get_logger(__name__).error("Profile disabled", profile=profile)
     # Until profiles choose (T-05.7) there is one agent for the whole service: it runs on the model set `proven`, the profile that
     # was active in config/step_models.json. A model set that is missing or wrong stops the start, with a message that names it.
     modelResolver = ModelResolver({"models": DEFAULT_MODEL_SET}, configSnapshot.model_sets)
     get_logger(__name__).info("Configuration loaded", profiles=len(configSnapshot.profiles), flows=len(configSnapshot.flows),
-                              step_defs=len(configSnapshot.step_defs), model_sets=len(configSnapshot.model_sets))
+                              step_defs=len(configSnapshot.step_defs), model_sets=len(configSnapshot.model_sets),
+                              profiles_ready=len(agent.profiles))
 
     # Step 1: Outbound adapters — MCP tools and LLM provider
     mcpList = load_supported_mcp_configs()

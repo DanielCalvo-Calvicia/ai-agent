@@ -6,7 +6,7 @@
 #  disables the profile that needs it, the tests and check_agent.py stop.
 # ===============================================
 
-from typing import Dict
+from typing import Dict, Optional
 
 from application.outbound.ports.config_ports import ConfigError, ConfigSourcePort, Loaded
 
@@ -16,13 +16,14 @@ KINDS = ("profiles", "flows", "step_defs", "model_sets")
 
 class ConfigSnapshot:
     def __init__(self, source: ConfigSourcePort, profiles: dict, flows: dict, step_defs: dict, model_sets: dict,
-                 errors: Dict[str, str]) -> None:
+                 errors: Dict[str, str], state_fields: Optional[dict] = None) -> None:
         self._source = source
         self._prompts: Dict[str, str] = {}
         self.profiles = profiles
         self.flows = flows
         self.step_defs = step_defs
         self.model_sets = model_sets
+        self.state_fields = state_fields or {}      # field name -> its entry of config/state_fields.json
         self.errors = errors                    # "<kind>/<name>" -> what is wrong with that file
 
     def prompt(self, name: str) -> str:
@@ -59,7 +60,11 @@ def build_snapshot(source: ConfigSourcePort) -> ConfigSnapshot:
             else:
                 kept[kind][name] = data
 
-    return ConfigSnapshot(source, kept["profiles"], kept["flows"], kept["step_defs"], kept["model_sets"], errors)
+    fields = source.load_state_fields()
+    for name, message in fields.errors.items():
+        errors[name] = message
+
+    return ConfigSnapshot(source, kept["profiles"], kept["flows"], kept["step_defs"], kept["model_sets"], errors, fields.items)
 
 
 def _version_problem(kind: str, name: str, data: dict) -> str:
