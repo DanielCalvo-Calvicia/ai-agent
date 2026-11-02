@@ -15,13 +15,13 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.orchestration.flows.movement import MOVEMENT_FLOW
-from application.orchestration.flows.registry import FLOWS
-from application.orchestration.flows.router import AgentRouter
-from application.orchestration.support.metrics import SessionMetrics
-from application.orchestration.support.model_selection import choose, load_config
-from application.orchestration.phases.movement import motion_validator as validator
-from application.orchestration.engine.pipeline import Pipeline
+from application.flows.movement import MOVEMENT_FLOW
+from application.flows.registry import FLOWS
+from application.flows.router import AgentRouter
+from application.engine.support.metrics import SessionMetrics
+from application.engine.support.model_selection import choose, load_config
+from application.steps.movement import motion_validator as validator
+from application.engine.pipeline import Pipeline
 from application.service.session_service import SessionService
 from application.system_prompts.general import build_system_prompt
 from domain.value_objects.movement.movement import Movement

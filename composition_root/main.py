@@ -56,7 +56,7 @@ def CreateApp() -> FastAPI:
     Dependency graph:
         MCPToolExecutor + VercelAIAdapter (outbound) -> SessionService (application) -> SessionFastAPI (inbound)
     One session per user: every message is identified first and then answered by one flow (see
-    application/orchestration/flows/router.py). Routes: /session/*, /health, /available.
+    application/flows/router.py). Routes: /session/*, /health, /available.
     """
 
     init_logging("ai-agent")

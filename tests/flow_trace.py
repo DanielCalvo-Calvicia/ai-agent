@@ -29,12 +29,12 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.orchestration.state.flow_state import FlowState
-from application.orchestration.support.metrics import SessionMetrics
-from application.orchestration.engine.pipeline import Pipeline
-from application.orchestration.engine.flow import Flow
-from application.orchestration.flows.identification import IDENTIFICATION_FLOW
-from application.orchestration.flows.special import SPECIAL_FLOW
+from application.engine.state.flow_state import FlowState
+from application.engine.support.metrics import SessionMetrics
+from application.engine.pipeline import Pipeline
+from application.engine.flow import Flow
+from application.flows.identification import IDENTIFICATION_FLOW
+from application.flows.special import SPECIAL_FLOW
 from domain.entities.llm_response.response import Response
 
 # The identification flow and the special flow as ONE flow, the way the whole text chain ran before the router split it
@@ -718,8 +718,8 @@ def run_with_stops(
     Returns the FlowResult of the pipeline.
     """
     from unittest.mock import patch
-    from application.orchestration.flows.action_executor import ActionExecutor
-    from application.orchestration.engine.phase_runner import PhaseRunner
+    from application.flows.action_executor import ActionExecutor
+    from application.engine.phase_runner import PhaseRunner
 
     stop = stop or _pause
     unknown = set(at) - set(STOP_POINTS)

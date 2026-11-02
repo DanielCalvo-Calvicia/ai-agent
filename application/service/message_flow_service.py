@@ -1,16 +1,16 @@
 # ===============================================
 #  MESSAGE FLOW SERVICE
 #  Inbound adapter for one user message. The flows live in
-#  application/orchestration; the router (flows/router.py) says which one answers.
+#  application/flows; the router (flows/router.py) says which one answers.
 # ===============================================
 
 from typing import List, Optional
 
 from application.inbound.dto.message import TextRequestDTO, TextResponseDTO
 from application.inbound.ports.message_flow_ports import MessageInboundPort
-from application.orchestration.flows.router import AgentRouter
-from application.orchestration.support.metrics import SessionMetrics
-from application.orchestration.state.paused_run import PausedRun
+from application.flows.router import AgentRouter
+from application.engine.support.metrics import SessionMetrics
+from application.engine.state.paused_run import PausedRun
 from application.outbound.ports.llm_ports import LLMOutboundPort
 from application.outbound.ports.mcp_ports import McpToolsPort
 from application.outbound.ports.usage_ports import UsageReporterPort

@@ -89,13 +89,13 @@ Search for the names, not for line numbers (they move):
 
 | Where | File and function |
 |---|---|
-| a step is about to run | `application/orchestration/engine/pipeline.py`, `Pipeline._run_step` (the `step.run(state)` line) |
-| the router moves a message to a flow | `application/orchestration/flows/router.py`, `AgentRouter._answer` |
-| the answer just became a `Response` (every phase) | `application/orchestration/engine/phase_runner.py`, `PhaseRunner.send`, right after `self.outbound_port.ask(payload)` |
+| a step is about to run | `application/engine/pipeline.py`, `Pipeline._run_step` (the `step.run(state)` line) |
+| the router moves a message to a flow | `application/flows/router.py`, `AgentRouter._answer` |
+| the answer just became a `Response` (every phase) | `application/engine/phase_runner.py`, `PhaseRunner.send`, right after `self.outbound_port.ask(payload)` |
 | the `Response` is built from the JSON | `infrastructure/outbound/llm/response_mapper.py`, `build_response` |
 | the response is loaded into the state | the `apply` of the phase (`_apply` in its file; triage uses `FlowState.load_from`), called from the flow's `llm_phase` |
-| an action got its result | `application/orchestration/flows/action_executor.py`: `_succeed`, `_fail`, `_set_output` |
-| a run resumes after a question | `application/orchestration/engine/pipeline.py`, `Pipeline._resume` |
+| an action got its result | `application/flows/action_executor.py`: `_succeed`, `_fail`, `_set_output` |
+| a run resumes after a question | `application/engine/pipeline.py`, `Pipeline._resume` |
 
 The two best places for "where the full response is allocated" are `PhaseRunner.send` (the `Response` exists, the state does
 not have it yet) and the `apply` of each phase (the state is completed): the `response` and `loaded` stops of `debug_break.py`.

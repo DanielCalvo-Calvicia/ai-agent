@@ -27,9 +27,9 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from application.inbound.dto.session import MessageReceivedRequestDTO, StartSessionRequestDTO
-from application.orchestration.flows.router import AgentRouter
-from application.orchestration.support.mcp_servers import describe_servers, server_names
-from application.orchestration.support.metrics import SessionMetrics
+from application.flows.router import AgentRouter
+from application.engine.support.mcp_servers import describe_servers, server_names
+from application.engine.support.metrics import SessionMetrics
 from application.service.session_service import SessionService
 from application.system_prompts.general import LoadCapabilities, LoadSystemPrompt
 from infrastructure.outbound.mcp.client_manager import MCPClientManager
@@ -396,8 +396,8 @@ def test_the_writer_is_told_to_speak_short_and_to_summarise_long_data():
 
 
 def test_the_writer_receives_the_users_own_words():
-    from application.orchestration.phases.common.draft_writer import DRAFT_WRITER
-    from application.orchestration.state.flow_state import FlowState
+    from application.steps.common.draft_writer import DRAFT_WRITER
+    from application.engine.state.flow_state import FlowState
     assert DRAFT_WRITER.build_input(FlowState(message="How many orders does CL-1001 have?"))["user_message"] == "How many orders does CL-1001 have?"
 
 

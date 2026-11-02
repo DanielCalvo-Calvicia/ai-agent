@@ -9,16 +9,16 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.orchestration.support.action_tree import (
+from application.engine.support.action_tree import (
     BLOCKED_BY_CONFIRMATION,
     action_type_of,
     mark_mcp_actions_blocked,
     subactions_of,
 )
-from application.orchestration.support.mcp_servers import describe_servers
-from application.orchestration.phases.special.cognitive_worker import COGNITIVE_WORKER
-from application.orchestration.phases.special.project_manager import make_project_manager
-from application.orchestration.support.schemas import actions_schema, load_schema, object_schema, property_schema
+from application.engine.support.mcp_servers import describe_servers
+from application.steps.special.cognitive_worker import COGNITIVE_WORKER
+from application.steps.special.project_manager import make_project_manager
+from application.engine.support.schemas import actions_schema, load_schema, object_schema, property_schema
 from application.outbound.ports.mcp_ports import McpToolsPort
 from application.service.user_session import UserSession
 from domain.entities.llm_response.action import create_action
@@ -330,7 +330,7 @@ class TestMcpServersInSchema:
         assert describe_servers(SERVERS, None) == [{"name": "mail", "tools": []}]
 
     def test_planner_input_carries_the_described_servers(self):
-        from application.orchestration.state.flow_state import FlowState
+        from application.engine.state.flow_state import FlowState
         spec = make_project_manager(SERVERS, FakeTools())
         text = str(spec.build_input(FlowState(message="hi")))
         assert "count_emails" in text and "http://x" not in text
@@ -396,9 +396,9 @@ class TestObjectSchema:
                 sent.append(payload.response_format.schema)
                 return build_response({"actions": [_plain_action("1")]}, USAGE)
 
-        from application.orchestration.state.flow_state import FlowState
-        from application.orchestration.support.metrics import SessionMetrics
-        from application.orchestration.engine.phase_runner import PhaseRunner
+        from application.engine.state.flow_state import FlowState
+        from application.engine.support.metrics import SessionMetrics
+        from application.engine.phase_runner import PhaseRunner
         runner = PhaseRunner(Spy(), SessionMetrics(), ["mail"])
         runner.run_phase(make_project_manager(SERVERS), FlowState(message="hi"))
         runner.run_action(create_action(id_value="1", description_value="d", action_type_value="analysis"), COGNITIVE_WORKER, {})

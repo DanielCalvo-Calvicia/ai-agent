@@ -8,7 +8,7 @@ import uuid
 from typing import Any, Dict, List, Optional
 
 from application.inbound.dto.message import TextRequestDTO
-from application.orchestration.support.failure import UNKNOWN_SESSION_APOLOGY, apology_for_unexpected, classify
+from application.engine.support.failure import UNKNOWN_SESSION_APOLOGY, apology_for_unexpected, classify
 from application.inbound.dto.session import (
     EndSessionRequestDTO,
     EndSessionResponseDTO,

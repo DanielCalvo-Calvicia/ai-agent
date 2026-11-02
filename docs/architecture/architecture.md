@@ -17,7 +17,7 @@ POST /session/message
    -> SessionFastAPI            infrastructure/inbound/http/fastapi.py   (HTTP <-> DTOs, runs the flow in a worker thread)
    -> SessionService            application/service/session_service.py  (sessions, history, the run waiting for the user)
    -> MessageFlowService        application/service/message_flow_service.py   (one per message; owns the metrics)
-   -> AgentRouter.run()         application/orchestration/flows/router.py
+   -> AgentRouter.run()         application/flows/router.py
         1. identification flow   triage: what is this message?         (always)
         2. ONE of these, picked by task_category.domain:
               communication -> conversation flow    draft writer, editor
@@ -41,7 +41,8 @@ application/
   outbound/ports/                 LLMOutboundPort, McpToolsPort (and the signal a tool failure for good leaves for the step loop), UsageReporterPort (LLM calls and, optionally, MCP tool calls)
   service/                        session_service, message_flow_service, user_session
   system_prompts/general.py       builds the system message of a phase
-  orchestration/                  the agents (section 3 to 8)
+  flows/  steps/  engine/         the agents (section 3 to 8); engine/ holds state/ and support/
+profiles/ flows/ step_defs/ model_sets/   data folders of PR-005, empty until their tasks (T-05.4 onward)
 domain/                           pure data (section 9)
 infrastructure/                   adapters: inbound HTTP, outbound LLM, MCP, usage (section 10)
 prompts/  schema/  config/  mcps/ data files the code reads (see rules/schemas-and-prompts.md and configuration/environment-variables.md)
@@ -53,20 +54,20 @@ docs/                             this documentation
 Dependencies point inward: `domain` imports nothing of the application; `application` never imports `infrastructure`;
 `composition_root` is the only place that knows every layer.
 
-## 3. `application/orchestration/`
+## 3. `application/flows/`, `steps/` and `engine/`
 
-Five folders, each with one job. The dependencies go one way and `tests/test_orchestration_layout.py` keeps it so:
+Five folders, each with one job (until 2026-11-02 they were the five folders of `application/orchestration/`, T-05.3). The dependencies go one way and `tests/test_orchestration_layout.py` keeps it so:
 
 ```text
-flows/    WHAT each agent is        one file per flow, the router, the registry, the action executor
-phases/   the steps                 one phase per file, constants first; the catalog; the shape of a phase
-engine/   HOW any flow runs         Pipeline, Flow, PhaseRunner, clarification, answer check; knows no particular flow
-state/    WHAT travels through a run  FlowState, MotionFlowState, PausedRun, FlowResult
-support/  shared helpers            model choice, metrics, failures, schemas, action tree, MCP server list (a server with no tools is left out), clock
+flows/          WHAT each agent is          one file per flow, the router, the registry, the action executor
+steps/          the steps (the phases)      one phase per file, constants first; the registry; the catalog; the shape of a phase
+engine/         HOW any flow runs           Pipeline, Flow, PhaseRunner, clarification, answer check; knows no particular flow
+engine/state/   WHAT travels through a run  FlowState, MotionFlowState, PausedRun, FlowResult
+engine/support/ shared helpers              model choice, metrics, failures, schemas, action tree, MCP server list (a server with no tools is left out), clock
 ```
 
-`flows` use everything below; `engine` never imports a flow; `phases` never import the engine; `state` and `support`
-are the base (`support` reads only `phases.catalog`).
+`flows` use everything below; `engine` never imports a flow; `steps` never import the engine (only its base, `state` and `support`);
+`state` and `support` are the base (`support` reads only `steps.catalog`).
 
 ## 4. The four flows
 
@@ -121,9 +122,9 @@ movement (motion planner). Stop and decline end the run with a fixed sentence (`
 
 ## 5. Phases
 
-One phase per file under `application/orchestration/phases/<folder>/`. Every file declares what it uses as constants at the
+One phase per file under `application/steps/<folder>/`. Every file declares what it uses as constants at the
 top (`PHASE_ID`, `STEP_NAME`, `MODEL_ENV_VAR`, `DEFAULT_MODEL`, `PROMPT_FILE`, `FORMAT_NAME`, `INTENT`, `SCHEMAS`, ...) and
-`phases/catalog.py` reads them: the prompt loader, the model selection and the metrics take their tables from it.
+each file registers itself in `steps/registry.py` (`register_step(__name__, kind)`: `llm`, `llm_per_action` or `code`; a name or a phase id used twice is an error) and `steps/catalog.py` reads the registry: the prompt loader, the model selection and the metrics take their tables from it.
 `tests/test_phase_structure.py` enforces one phase per file and that every constant and file exists.
 
 | Id | Step name | Folder / file | Used by | What it does |
@@ -183,7 +184,7 @@ happened and in which activity (`PHASE_ACTIVITIES`).
 ### 6.3 Failures
 
 `AgentFailure(category, phase_id)` carries what the user is told. Categories: connection, timeout, rate limit, auth, not
-found, bad request, bad answer, unknown (`support/failure.py`, `classify`). The session service answers with
+found, bad request, bad answer, unknown (`engine/support/failure.py`, `classify`). The session service answers with
 `success = false`, an **apology that is always speakable** in `response` (what happened, in which activity and why), and
 the technical reason in `message`. An unknown session answers `error_code = SESSION_NOT_FOUND`.
 
@@ -191,10 +192,10 @@ the technical reason in `message`. An unknown session answers `error_code = SESS
 
 | Class | File | What it holds |
 |---|---|---|
-| `FlowState` | `state/flow_state.py` | `message`, `history`, `answers` (what the user said when asked), and the sections the phases fill: `intent`, `user_goal`, `task_category`, `mcp_routing`, `actions`, `missing_information`, `constraints`, `safety_and_validation`, `next_step`. `take_over(other)` copies the shared fields from the identification state |
-| `MotionFlowState` | `state/motion_state.py` | `FlowState` plus `motion_requested`, `movements`, `motion_rejection`, `spoken_reply`, `speak_movements`. `as_motion(state)` narrows a `FlowState` for the movement steps |
-| `PausedRun` | `state/paused_run.py` | the saved run: state, step index, kind (`input` / `confirmation`), question, requested items, **flow** |
-| `FlowResult` | `state/paused_run.py` | `reply`, `paused`, `movements`, `flow`, `state`, `ended_early` |
+| `FlowState` | `engine/state/flow_state.py` | `message`, `history`, `answers` (what the user said when asked), and the sections the phases fill: `intent`, `user_goal`, `task_category`, `mcp_routing`, `actions`, `missing_information`, `constraints`, `safety_and_validation`, `next_step`. `take_over(other)` copies the shared fields from the identification state |
+| `MotionFlowState` | `engine/state/motion_state.py` | `FlowState` plus `motion_requested`, `movements`, `motion_rejection`, `spoken_reply`, `speak_movements`. `as_motion(state)` narrows a `FlowState` for the movement steps |
+| `PausedRun` | `engine/state/paused_run.py` | the saved run: state, step index, kind (`input` / `confirmation`), question, requested items, **flow** |
+| `FlowResult` | `engine/state/paused_run.py` | `reply`, `paused`, `movements`, `flow`, `state`, `ended_early` |
 
 Who writes what: triage loads `intent`, `user_goal`, `task_category`, `next_step`; the project manager `actions`, `next_step`
 and the complexity; the safety gate `safety_and_validation`, `next_step`; the action executor the `output`/`error` of each
@@ -208,7 +209,7 @@ An action is ready when its subactions and every action it depends on are settle
 outputs. Its type picks the phase: `mcp_tool_call` goes to the MCP operator (phase 5) and then the data engineer (6), any
 other type to the cognitive worker (4). Rules:
 
-- execution order comes from `support/action_tree.py` (parents after their subactions; unknown or circular dependencies
+- execution order comes from `engine/support/action_tree.py` (parents after their subactions; unknown or circular dependencies
   are marked as failed, not run);
 - `AI_AGENT_PARALLEL_ACTIONS=<n>` runs independent actions together (default 1; tool calls stay sequential);
 - an MCP action is **blocked** while `requires_confirmation` is set (the run pauses at the safety gate first);
@@ -275,7 +276,7 @@ response mapper builds them from the LLM's JSON, one function per section.
 
 ## 13. How to extend it
 
-- **A new phase:** its file (constants first) in `phases/<folder>/`, one line in `phases/catalog.py`, a step in its flow.
+- **A new phase:** its file (constants first, then `register_step(__name__, kind)`) in `steps/<folder>/`, a step in its flow. Nothing else lists it.
 - **A new flow:** a file in `flows/` with its steps and result, its phase files, one line in `flows/registry.py`, and a line in
   `FLOW_BY_DOMAIN` in `flows/router.py` (plus the domain in the schema and the triage prompt if it is a new one).
 - **A new domain value:** `schema/response/general/full.schema.json` (then `python scripts/split_schemas.py --write`),

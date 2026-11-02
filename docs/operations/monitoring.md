@@ -53,7 +53,7 @@ What the user hears for a tool that failed is one honest sentence per kind, writ
 - A step whose answer says `retry` or `error` runs again up to the same limit.
 - When it still fails, `/session/message` answers `success = false` with a speakable apology in `response` and the technical reason in `message`.
 
-Categories (`application/orchestration/support/failure.py`): connection, timeout, rate limit, auth, not found, bad request, bad answer, unknown.
+Categories (`application/engine/support/failure.py`): connection, timeout, rate limit, auth, not found, bad request, bad answer, unknown.
 
 ## Debugging
 

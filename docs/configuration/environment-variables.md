@@ -51,7 +51,7 @@ whether the key is valid or the provider reachable.
 
 ## 3. Which model answers each step
 
-Precedence for a phase, first match wins (`support/model_selection.py`, `choose`):
+Precedence for a phase, first match wins (`engine/support/model_selection.py`, `choose`):
 
 1. `AI_AGENT_MODEL_PHASE_<n>` in the environment;
 2. `steps.<step name>` in the models file;

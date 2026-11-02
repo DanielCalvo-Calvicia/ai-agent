@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Optional
 
-from application.orchestration.support.metrics import RequestRecord
+from application.engine.support.metrics import RequestRecord
 from application.outbound.ports.mcp_ports import ToolCallRecord
 
 

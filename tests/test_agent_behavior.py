@@ -17,7 +17,7 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.orchestration.support.model_selection import model_for_phase
+from application.engine.support.model_selection import model_for_phase
 from application.service.session_service import SessionService
 from application.system_prompts.general import LoadSystemPrompt
 from domain.entities.llm_request.payload import Payload

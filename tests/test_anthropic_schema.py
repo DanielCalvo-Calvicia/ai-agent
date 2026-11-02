@@ -10,17 +10,17 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.orchestration.phases.common.draft_writer import DRAFT_WRITER
-from application.orchestration.phases.common.editor_in_chief import EDITOR_IN_CHIEF
-from application.orchestration.phases.expression.emotion_reader import EMOTION_READER
-from application.orchestration.phases.identification.triage import TRIAGE
-from application.orchestration.phases.movement.motion_planner import MOTION_PLANNER
-from application.orchestration.phases.special.cognitive_worker import COGNITIVE_WORKER
-from application.orchestration.phases.special.data_engineer import DATA_ENGINEER
-from application.orchestration.phases.special.mcp_operator import MCP_OPERATOR
-from application.orchestration.phases.special.project_manager import make_project_manager
-from application.orchestration.phases.special.safety_gate import SAFETY_GATE
-from application.orchestration.support.schemas import actions_schema, object_schema
+from application.steps.common.draft_writer import DRAFT_WRITER
+from application.steps.common.editor_in_chief import EDITOR_IN_CHIEF
+from application.steps.expression.emotion_reader import EMOTION_READER
+from application.steps.identification.triage import TRIAGE
+from application.steps.movement.motion_planner import MOTION_PLANNER
+from application.steps.special.cognitive_worker import COGNITIVE_WORKER
+from application.steps.special.data_engineer import DATA_ENGINEER
+from application.steps.special.mcp_operator import MCP_OPERATOR
+from application.steps.special.project_manager import make_project_manager
+from application.steps.special.safety_gate import SAFETY_GATE
+from application.engine.support.schemas import actions_schema, object_schema
 from domain.entities.llm_request.payload import Payload
 from domain.value_objects.llm_request.message import Role, create_message
 from domain.value_objects.llm_request.model import get_selected_model

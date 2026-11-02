@@ -77,7 +77,7 @@ schema/response/motion/
 ## 3. How a phase gets its schema
 
 A phase file lists the pieces it needs as `SCHEMAS = {name: SchemaRef(file, key)}`. `PhaseRunner` loads them
-(`support/schemas.py`, cached, independent of the working directory) and builds the response format with
+(`engine/support/schemas.py`, cached, independent of the working directory) and builds the response format with
 `object_schema(required, properties)`. For the actions, `actions_schema(mcp_server_names)` fills `mcp_context.server_id`
 with `""` or the names of the MCP servers of that request. Domain, motion and general pieces mix freely: the motion
 planner takes `is_motion_request`, `movements` and `spoken_reply` from `motion/` and `next_step` from `general/`.

@@ -25,7 +25,7 @@ POST /session/message
                                               executor -> 7 draft writer -> 8 editor                    execute, write
 ```
 
-- The flows never call each other. `AgentRouter` (`application/orchestration/flows/router.py`) hands the identification
+- The flows never call each other. `AgentRouter` (`application/flows/router.py`) hands the identification
   state to the chosen flow, so nothing is classified twice.
 - A flow that asks the user a question is **resumed by the next message** (the answer), without identifying it again.
 - A greeting costs 3 LLM calls, a movement 2, a task 5 or more (one per action, plus one per tool result).
@@ -86,9 +86,10 @@ exactly "this session no longer exists here": open a new one and, for a message,
 
 ```text
 composition_root/   app wiring (main.py)
-application/        ports, DTOs, services, orchestration (flows, phases, engine, state, support), system prompts
+application/        ports, DTOs, services, flows/, steps/ (the phases), engine/ (with state/ and support/), system prompts
 domain/             entities/ and value_objects/, each grouped in llm_request / llm_response / movement
 infrastructure/     FastAPI inbound adapter, LLM adapter (ai_sdk), MCP client, Langfuse reporter
+profiles/ flows/ step_defs/ model_sets/   data folders of PR-005, empty until T-05.4 onward (each has a README)
 prompts/            one prompt per phase (<id>_<name>.txt), the generic rules and capabilities.txt
 schema/response/    JSON Schemas of the answers: general/ (text flows) and motion/ (movement flow)
 config/             models per step, prices, budget

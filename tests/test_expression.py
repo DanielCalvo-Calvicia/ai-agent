@@ -16,14 +16,14 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from application.inbound.dto.session import MessageReceivedResponseDTO
-from application.orchestration.flows.expression import EXPRESSION_FLOW
-from application.orchestration.flows.router import EXPRESSIVE_FLOWS, AgentRouter
-from application.orchestration.phases.expression import emotion_reader, gesture_builder
-from application.orchestration.phases.movement import motion_validator as validator
-from application.orchestration.state.expression_state import ExpressionFlowState
-from application.orchestration.state.paused_run import FlowResult
-from application.orchestration.support import expression_settings
-from application.orchestration.support.metrics import SessionMetrics
+from application.flows.expression import EXPRESSION_FLOW
+from application.flows.router import EXPRESSIVE_FLOWS, AgentRouter
+from application.steps.expression import emotion_reader, gesture_builder
+from application.steps.movement import motion_validator as validator
+from application.engine.state.expression_state import ExpressionFlowState
+from application.engine.state.paused_run import FlowResult
+from application.engine.support import expression_settings
+from application.engine.support.metrics import SessionMetrics
 from domain.operations import gesture
 from domain.operations.gesture import EMOTIONS, build_gesture, gesture_seconds, net_rotation
 from domain.value_objects.movement.movement import Movement
@@ -311,7 +311,7 @@ class TestTheReplyIsNeverHeldBack:
         assert EXPRESSIVE_FLOWS == ("conversation", "special")
 
     def test_the_expression_flow_is_two_steps_the_reader_and_the_builder(self, on):
-        from application.orchestration.engine.pipeline import Pipeline
+        from application.engine.pipeline import Pipeline
         pipeline = Pipeline(ScriptedLLM(overrides=feeling()), [], SessionMetrics(), flow=EXPRESSION_FLOW)
         assert [step.name for step in pipeline.steps] == ["emotion_reader", "gesture_builder"]
 

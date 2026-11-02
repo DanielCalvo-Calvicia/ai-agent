@@ -64,15 +64,18 @@ Use dated notes in history (ADRs, proposals); correct the text in documents that
 
 - `composition_root/main.py` builds the app (run this one): `VercelAIAdapter` -> one `SessionService` -> `SessionFastAPI`. Each message builds a
   `MessageFlowService` with an `AgentRouter`.
-- `application/orchestration/` in five folders; **dependencies go one way** (`tests/test_orchestration_layout.py`): `flows` use everything below,
-  `engine` never imports a flow, `phases` never import the engine, `state` and `support` are the base.
+- `application/flows/`, `application/steps/` and `application/engine/` (with `engine/state/` and `engine/support/`); **dependencies go one way**
+  (`tests/test_orchestration_layout.py`): `flows` use everything below, `engine` never imports a flow, `steps` never import the engine
+  (only its base, `engine/state` and `engine/support`), `state` and `support` are the base. (Before 2026-11-02 these were the five folders of
+  `application/orchestration/`; T-05.3.)
   - `flows/`: one file per flow, `router.py`, `registry.py`, `action_executor.py` (the special flow's step for phases 4-6).
-  - `phases/`: one phase per file in `identification/`, `common/` (draft writer, editor, answer checker, clarification), `special/`, `movement/`.
+  - `steps/` (was `phases/`): one phase per file in `identification/`, `common/` (draft writer, editor, answer checker, clarification), `special/`, `movement/`, `expression/`; `registry.py`, `catalog.py`, `phase.py`.
     Every phase file declares its constants at the top (`PHASE_ID`, `STEP_NAME`, `MODEL_ENV_VAR`, `DEFAULT_MODEL`, `PROMPT_FILE`, `FORMAT_NAME`,
-    `INTENT`, `SCHEMAS`); `catalog.py` reads them (`tests/test_phase_structure.py` enforces it). The motion validator is plain code (no LLM); its limits
+    `INTENT`, `SCHEMAS`); each file registers itself in `steps/registry.py` and `catalog.py` reads the registry (`tests/test_phase_structure.py` enforces it). The motion validator is plain code (no LLM); its limits
     are constants at its top.
   - `engine/`: `pipeline.py`, `flow.py`, `phase_runner.py` (the only place an LLM payload is built), `clarification.py` (phase 99), `answer_check.py` (phase 9).
-  - `state/`: `flow_state.py`, `motion_state.py`, `paused_run.py` (`PausedRun`, `FlowResult`). `support/`: model selection, metrics, failures, schemas, action tree.
+  - `engine/state/`: `flow_state.py`, `motion_state.py`, `paused_run.py` (`PausedRun`, `FlowResult`). `engine/support/`: model selection, metrics, failures, schemas, action tree.
+  - At the root, empty until their tasks (T-05.4 onward): `profiles/`, `flows/`, `step_defs/`, `model_sets/`, `prompts/profiles/` (PR-005 section 8); each has a README.
 - `domain/`: `entities/` and `value_objects/`, each with `llm_request/`, `llm_response/` and `movement/`. Pure data, one file per concept.
 - `infrastructure/`: inbound HTTP, outbound `llm/` (`vercel.py`, `provider_models.py`, `response_mapper.py`, `tools.py`), `mcp/`, `usage/` (Langfuse).
 - `prompts/<id>_<name>.txt` (flat) plus `0_generic_prompt.txt` and `capabilities.txt`; which phase uses which is its `PROMPT_FILE`.

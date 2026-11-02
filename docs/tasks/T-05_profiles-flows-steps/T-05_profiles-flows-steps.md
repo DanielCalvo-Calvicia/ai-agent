@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | todo (created 2026-11-02; T-05.1 done) |
+| Status | in-progress (created 2026-11-02; T-05.1 to T-05.3 done) |
 | Kind | epic |
 | Parent | project |
 | Depends on | — (T-01 to T-04 are done) |
@@ -31,8 +31,8 @@ A client asks a **profile** on every request; a profile names one flow (or an or
 | Order | Task | Kind | Status |
 |---|---|---|---|
 | 1 | [T-05.1 Decisions](T-05.1_decisions.md) | decision | done (2026-11-02) |
-| 2 | [T-05.2 Step registry](T-05.2_step-registry.md) | code | todo |
-| 3 | [T-05.3 Folder layout](T-05.3_folder-layout.md) | code | todo |
+| 2 | [T-05.2 Step registry](T-05.2_step-registry.md) | code | done (2026-11-02) |
+| 3 | [T-05.3 Folder layout](T-05.3_folder-layout.md) | code | done (2026-11-02) |
 | 4 | [T-05.4 Config source port and file loader](T-05.4_config-source.md) | code | todo |
 | 5 | [T-05.5 Model sets, profile files and model resolution](T-05.5_model-sets-and-resolution.md) | code | todo |
 | 6 | [T-05.6 assemble() and its checks](T-05.6_assemble.md) | code | todo |

@@ -10,8 +10,8 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.orchestration.support.metrics import PHASE_NAMES
-from application.orchestration.support.model_selection import (
+from application.engine.support.metrics import PHASE_NAMES
+from application.engine.support.model_selection import (
     MODELS_FILE_VARIABLE, STEP_NAMES, choose, effective_models, load_config, model_for_phase, models_file,
 )
 from domain.value_objects.llm_request.model import GoogleModels, get_selected_model
@@ -46,7 +46,7 @@ def config(tmp_path, monkeypatch):
 
 class TestCodeDefaults:
     def test_every_phase_falls_back_to_a_google_model_with_a_free_tier(self):
-        from application.orchestration.phases.catalog import PHASES
+        from application.steps.catalog import PHASES
         free = {m["id"] for m in load_models()["models"] if m["free_tier"]}
         assert PHASES
         for phase_id, info in PHASES.items():
@@ -55,7 +55,7 @@ class TestCodeDefaults:
                 assert info.default_model.value in free, phase_id
 
     def test_the_small_steps_use_the_lite_model_and_the_others_the_flash_model(self):
-        from application.orchestration.phases.catalog import PHASES
+        from application.steps.catalog import PHASES
         small = {"triage_specialist", "data_engineer", "answer_checker", "user_clarification", "emotion_reader"}
         for info in PHASES.values():
             if info.default_model is not None:

@@ -5,16 +5,16 @@ import os
 
 import pytest
 
-from application.orchestration.engine.phase_runner import PhaseRunner
-from application.orchestration.phases.catalog import PHASES
-from application.orchestration.phases.identification.triage import TRIAGE
-from application.orchestration.state.flow_state import FlowState
-from application.orchestration.support import failure as failure_module
-from application.orchestration.support.failure import (
+from application.engine.phase_runner import PhaseRunner
+from application.steps.catalog import PHASES
+from application.steps.identification.triage import TRIAGE
+from application.engine.state.flow_state import FlowState
+from application.engine.support import failure as failure_module
+from application.engine.support.failure import (
     AgentFailure, capacity_problem, daily_quota_used_up, retry_wait_seconds, wait_before_retry,
 )
-from application.orchestration.support.metrics import SessionMetrics
-from application.orchestration.support.model_selection import (
+from application.engine.support.metrics import SessionMetrics
+from application.engine.support.model_selection import (
     FALLBACK_VARIABLE, MODELS_FILE_VARIABLE, fallback_models, load_config,
 )
 from application.outbound.ports.llm_ports import LLMOutboundPort
@@ -61,7 +61,7 @@ def send(port, phase_id=1):
 @pytest.fixture
 def chosen(monkeypatch):
     """The model of phase 1 (the code default) and two fallbacks."""
-    from application.orchestration.support.model_selection import model_for_phase
+    from application.engine.support.model_selection import model_for_phase
     primary = model_for_phase(1, PHASES[1].default_model).id
     monkeypatch.setenv(FALLBACK_VARIABLE, "gemini-3.5-flash-lite,gemini-3-flash-preview")
     return primary
@@ -149,7 +149,7 @@ def test_a_rate_limit_that_nothing_answers_is_reported_as_a_rate_limit(chosen):
 
 
 def test_the_chosen_model_in_the_list_is_not_asked_again(monkeypatch):
-    from application.orchestration.support.model_selection import model_for_phase
+    from application.engine.support.model_selection import model_for_phase
     primary = model_for_phase(1, PHASES[1].default_model).id
     monkeypatch.setenv(FALLBACK_VARIABLE, f"{primary},gemini-3-flash-preview")
     port = Ask({primary: HttpError(503)}, default=a_response())
@@ -159,7 +159,7 @@ def test_the_chosen_model_in_the_list_is_not_asked_again(monkeypatch):
 
 def test_no_fallback_models_means_the_old_behaviour(monkeypatch):
     monkeypatch.setenv(FALLBACK_VARIABLE, "")
-    from application.orchestration.support.model_selection import model_for_phase
+    from application.engine.support.model_selection import model_for_phase
     primary = model_for_phase(1, PHASES[1].default_model).id
     port = Ask({primary: HttpError(503)}, default=a_response())
     with pytest.raises(AgentFailure):

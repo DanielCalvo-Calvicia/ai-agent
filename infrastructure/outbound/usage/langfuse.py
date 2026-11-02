@@ -17,7 +17,7 @@ import urllib.request
 import uuid
 from typing import Any, Dict, List, Optional, Tuple
 
-from application.orchestration.support.metrics import RequestRecord
+from application.engine.support.metrics import RequestRecord
 from application.outbound.ports.mcp_ports import ToolCallRecord
 from application.outbound.ports.usage_ports import CallDetails, UsageReporterPort
 from infrastructure.outbound.usage.prices import billed_output_tokens, cost_usd, load_prices

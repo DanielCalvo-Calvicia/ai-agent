@@ -78,10 +78,10 @@ The order follows the stages of [PR-005](../proposals/PR-005-flows-steps-profile
 
 | # | Task | Name | Kind | State | Detail | Depends on | Last updated |
 |---|---|---|---|---|---|---|---|
-| 37 | [T-05](T-05_profiles-flows-steps/T-05_profiles-flows-steps.md) | Structure: profiles, flows and steps (epic) | epic | Todo | plan accepted by the maintainer on 2026-11-02 | — | 2026-11-02 |
+| 37 | [T-05](T-05_profiles-flows-steps/T-05_profiles-flows-steps.md) | Structure: profiles, flows and steps (epic) | epic | In progress | T-05.1 to T-05.3 done; S1 complete | — | 2026-11-02 |
 | 38 | [T-05.1](T-05_profiles-flows-steps/T-05.1_decisions.md) | Decisions | decision | Done | Q05 to Q09, PR-005, ADR-015 | — | 2026-11-02 |
-| 39 | [T-05.2](T-05_profiles-flows-steps/T-05.2_step-registry.md) | Step registry | code | Todo | S1, no behaviour change | T-05.1 | 2026-11-02 |
-| 40 | [T-05.3](T-05_profiles-flows-steps/T-05.3_folder-layout.md) | Folder layout | code | Todo | S1, golden byte-identical | T-05.2 | 2026-11-02 |
+| 39 | [T-05.2](T-05_profiles-flows-steps/T-05.2_step-registry.md) | Step registry | code | Done | S1; 1003 passed, golden untouched | T-05.1 | 2026-11-02 |
+| 40 | [T-05.3](T-05_profiles-flows-steps/T-05.3_folder-layout.md) | Folder layout | code | Done | S1; 1004 passed, golden untouched | T-05.2 | 2026-11-02 |
 | 41 | [T-05.4](T-05_profiles-flows-steps/T-05.4_config-source.md) | Config source port and file loader | code | Todo | S2 | T-05.3 | 2026-11-02 |
 | 42 | [T-05.5](T-05_profiles-flows-steps/T-05.5_model-sets-and-resolution.md) | Model sets, profile files and model resolution | code | Todo | S2; removes the model environment variables | T-05.2, T-05.4 | 2026-11-02 |
 | 43 | [T-05.6](T-05_profiles-flows-steps/T-05.6_assemble.md) | assemble() and its checks | code | Todo | S2 | T-05.2, T-05.4, T-05.5 | 2026-11-02 |

@@ -1,8 +1,8 @@
 import os
 from typing import Callable, Optional
 
-from application.orchestration.support.clock import now_text
-from application.orchestration.phases.catalog import PHASES
+from application.engine.support.clock import now_text
+from application.steps.catalog import PHASES
 from domain.value_objects.llm_request.message import Message, Role, create_message
 
 # Resolved from this file, so it does not depend on the current working directory.

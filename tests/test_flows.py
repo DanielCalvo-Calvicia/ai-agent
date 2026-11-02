@@ -13,15 +13,15 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.orchestration.engine.flow import Flow
-from application.orchestration.flows.conversation import CONVERSATION_FLOW
-from application.orchestration.flows.identification import IDENTIFICATION_FLOW
-from application.orchestration.flows.movement import MOVEMENT_FLOW
-from application.orchestration.flows.registry import FLOWS, FlowRegistry
-from application.orchestration.flows.special import SPECIAL_FLOW
-from application.orchestration.support.metrics import SessionMetrics
-from application.orchestration.engine.pipeline import Pipeline
-from application.orchestration.phases.phase import Step
+from application.engine.flow import Flow
+from application.flows.conversation import CONVERSATION_FLOW
+from application.flows.identification import IDENTIFICATION_FLOW
+from application.flows.movement import MOVEMENT_FLOW
+from application.flows.registry import FLOWS, FlowRegistry
+from application.flows.special import SPECIAL_FLOW
+from application.engine.support.metrics import SessionMetrics
+from application.engine.pipeline import Pipeline
+from application.steps.phase import Step
 from application.service.session_service import SessionService
 from infrastructure.inbound.http.fastapi import SessionFastAPI
 
@@ -102,7 +102,7 @@ class TestGenericPipeline:
         assert ran == ["a", "c"]
 
     def test_the_flow_builds_its_own_result(self):
-        from application.orchestration.state.paused_run import FlowResult
+        from application.engine.state.paused_run import FlowResult
         flow = Flow(
             name="result-flow",
             build_steps=lambda context: [],

@@ -29,7 +29,7 @@ Status as of 2026-10-27, taken from `CLAUDE.md`, `README.md` and the code after 
 
 | ID | Requirement | Status | Record |
 |---|---|---|---|
-| NFR-1 | Layers: `domain` imports nothing of the application, `application` never imports `infrastructure`, `composition_root` is the only place that knows every layer; inside orchestration the dependencies go one way | Done, enforced by `tests/test_orchestration_layout.py` | architecture 2 and 3 |
+| NFR-1 | Layers: `domain` imports nothing of the application, `application` never imports `infrastructure`, `composition_root` is the only place that knows every layer; inside `application` (flows, steps, engine) the dependencies go one way | Done, enforced by `tests/test_orchestration_layout.py` | architecture 3 | Done, enforced by `tests/test_orchestration_layout.py` | architecture 2 and 3 |
 | NFR-2 | One phase per file, constants first; every referenced prompt and schema exists | Done, enforced by `tests/test_phase_structure.py` | architecture 5 |
 | NFR-3 | The schema tree is generated from `full.schema.json`; nothing else is edited by hand | Done, enforced by `tests/test_schema_tree.py` | ADR-005 |
 | NFR-4 | Every LLM call (model, prompts, messages, schema, sampling, tools) is pinned by a golden file; a change is read and regenerated on purpose (`UPDATE_GOLDEN=1`) | Done | `tests/test_flow_golden.py` |
