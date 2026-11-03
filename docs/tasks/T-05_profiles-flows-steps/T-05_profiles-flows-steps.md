@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | in-progress (created 2026-11-02; T-05.1 to T-05.7 done) |
+| Status | in-progress (created 2026-11-02; T-05.1 to T-05.8 done) |
 | Kind | epic |
 | Parent | project |
 | Depends on | — (T-01 to T-04 are done) |
@@ -37,7 +37,7 @@ A client asks a **profile** on every request; a profile names one flow (or an or
 | 5 | [T-05.5 Model sets, profile files and model resolution](T-05.5_model-sets-and-resolution.md) | code | done (2026-11-02) |
 | 6 | [T-05.6 assemble() and its checks](T-05.6_assemble.md) | code | done (2026-11-02) |
 | 7 | [T-05.7 The profiles of today's flows](T-05.7_profiles-of-todays-flows.md) | code | done (2026-11-03) |
-| 8 | [T-05.8 Session list of Response](T-05.8_session-responses.md) | code | todo |
+| 8 | [T-05.8 Session list of Response](T-05.8_session-responses.md) | code | done (2026-11-03) |
 | 9 | [T-05.9 API: profile, token, inputs, return, pause_id](T-05.9_api.md) | code | todo |
 | 10 | [T-05.10 Tests and golden of the profiles](T-05.10_tests-and-golden.md) | test | todo |
 | 11 | [T-05.11 First real run: the `special` profile](T-05.11_first-real-run.md) | manual | todo |

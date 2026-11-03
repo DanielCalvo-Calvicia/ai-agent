@@ -21,7 +21,7 @@ OBLIVION workspace, `deployment/` regenerates its settings files from `.env.exam
 | `AI_AGENT_HOST` | `0.0.0.0` | bind address |
 | `AI_AGENT_PORT` | `7998` | bind port |
 | `AI_AGENT_RELOAD` | `1` | `1` = uvicorn auto-reload (development), `0` for a stable run (the deploy tool sets `0`) |
-| `AI_AGENT_HISTORY_TURNS` | `6` | exchanges (a user message and its reply) remembered per session; only triage and the project manager read them |
+| `AI_AGENT_HISTORY_TURNS` | `6` | requests remembered per session: the last N entries (T-05.8), each with the user's words, the reply that was sent and the structured `Response` of the run; the steps read them as a user message and its reply (none when the reply is empty). A request whose run has no `user_goal` (the `gesture` profile, a movement nobody classified) adds no entry. Only triage and the project manager read them |
 | `AI_AGENT_PARALLEL_ACTIONS` | `1` | independent actions of a plan that run together (`1` = one by one; tool calls stay sequential). Keep `1` on providers with a tokens-per-minute limit |
 | `AI_AGENT_MAX_ATTEMPTS` | `3` | tries (the first included) of a failed LLM call, MCP tool or `retry` answer |
 | `AI_AGENT_RETRY_WAIT_SECONDS` | `1` | seconds to wait before the second try of an LLM call that failed for lack of capacity (429, 5xx, timeout, no connection); it doubles on every try up to 8 times this value; `0` = no wait |

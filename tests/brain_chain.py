@@ -25,6 +25,7 @@ from application.engine.config_snapshot import build_snapshot
 from application.engine.flow import Flow
 from application.engine.state.expression_state import ExpressionFlowState
 from application.engine.state.flow_state import FlowState
+from application.engine.state.history import response_of
 from application.engine.state.motion_state import MotionFlowState
 from application.engine.state.paused_run import FlowResult, PausedRun
 from application.engine.support.expression_settings import speech_seconds
@@ -164,6 +165,7 @@ class ChainedMessageFlowService(MessageFlowService):
     def main_flow(self, message: str, speak_movements: bool = True):
         result = self.router.run(message, self.history, self.paused, speak_movements)
         self.paused_run = result.paused
+        self.last_response = response_of(result)
         return result
 
 

@@ -103,6 +103,20 @@ class FlowState:
         self.safety_and_validation = response.safety_and_validation
         self.next_step = response.next_step
 
+    def as_response(self) -> Response:
+        """The structured fields of the run as one Response (the other side of `load_from`): what a session keeps of a request."""
+        return Response(
+            intent=self.intent,
+            user_goal=self.user_goal,
+            mcp_routing=self.mcp_routing,
+            task_category=self.task_category,
+            actions=self.actions,
+            missing_information=self.missing_information,
+            constraints=self.constraints,
+            safety_and_validation=self.safety_and_validation,
+            next_step=self.next_step,
+        )
+
     def needs_user_input(self) -> bool:
         """
         True when next_step signals the flow must pause for the user.

@@ -38,7 +38,7 @@ composition_root/main.py          builds the app (run this one)
 application/
   inbound/{ports,dto}/            what the HTTP layer and the services implement and exchange
   outbound/ports/                 LLMOutboundPort, McpToolsPort (and the signal a tool failure for good leaves for the step loop), UsageReporterPort (LLM calls and, optionally, MCP tool calls), ConfigSourcePort (profiles, flows, step declarations, model sets and prompts, read once at start; T-05.4)
-  service/                        session_service, message_flow_service, user_session
+  service/                        session_service, message_flow_service, user_session (the session keeps one `HistoryEntry` per request: `engine/state/history.py`)
   system_prompts/general.py       builds the system message of a phase
   flows/  steps/  engine/         the agents (section 3 to 8); engine/ holds state/ and support/
 profiles/ flows/ step_defs/ model_sets/   data folders of PR-005, empty until their tasks (T-05.4 onward)
@@ -78,6 +78,16 @@ provides (the fields are those of the catalog, which a test keeps equal to the s
 code); the models of every list (a custom answer schema must pass the rules of Claude); the token (`token_sha256`, 64 hex characters; the message never repeats it); and the tool
 names (`server`, `server.tool` or a bare name that only one server has). **Until flows and steps are files (T-05.12, T-05.16)** a profile may name a Python flow and a step with no
 declaration: the checks that need `reads` and `writes` skip them. Nothing serves a profile yet (T-05.9): the service still has one agent.
+
+## 3.2 What a session remembers (T-05.8)
+
+A session keeps a list of `HistoryEntry` (`engine/state/history.py`), one per request: `message` (the user's words), `reply` (what was answered) and `response` (the
+structured `Response` of the run, `FlowState.as_response()`: the fields of the state at the end of the run, the other side of `load_from`). `UserSession.history` derives
+the messages the steps read from them (a user message, then its reply when there is one), so `history_as_dicts()` and `message_with_history()` give exactly what they gave when the
+session kept text pairs. `AI_AGENT_HISTORY_TURNS` is the number of **requests** kept (it was 2 x messages). A request adds an entry only when its run has a `user_goal`
+(`response_of`): the `gesture` profile and a movement nobody classified add none (PR-005 section 7). `user_goal` holds a summary and the expected outcome, not the user's words, and a
+question to the user is a reply that is in no `user_goal`, so the entry keeps the words and the reply next to the `Response` (a deviation from Q09-4, which assumed `user_goal`
+held both). The history is the session's own copy: it will never be read from the `inputs` of a request (T-05.9). Entries are never logged.
 
 ## 4. The four flows
 

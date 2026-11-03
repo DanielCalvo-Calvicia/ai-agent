@@ -1,28 +1,33 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
 
+from application.engine.state.history import HistoryEntry, messages_of
 from application.engine.state.paused_run import PausedRun
 
-from domain.value_objects.llm_request.message import Message, Role
+from domain.entities.llm_response.response import Response
+from domain.value_objects.llm_request.message import Message
 
 
 @dataclass
 class UserSession:
-    """One started session: who it belongs to and the last exchanges the agent remembers."""
+    """One started session: who it belongs to and the last requests the agent remembers (one entry each)."""
     session_id: str
     username: str
     email: Optional[str] = None
     name: Optional[str] = None        # the chat's name; groups its messages in the cost tracker
-    history: List[Message] = field(default_factory=list)
+    entries: List[HistoryEntry] = field(default_factory=list)
     # The run that stopped to ask the user something. The next message is checked as its answer.
     paused: Optional[PausedRun] = None
 
-    def remember(self, user_text: str, reply: str, max_turns: int) -> None:
-        """Keeps the last `max_turns` exchanges (a user message and its reply each)."""
-        self.history.append(Message(Role.USER, user_text))
-        if reply.strip():
-            self.history.append(Message(Role.ASSISTANT, reply))
+    @property
+    def history(self) -> List[Message]:
+        """The remembered exchanges as the steps read them (a user message, then its reply), oldest first."""
+        return messages_of(self.entries)
 
-        keep = 2 * max(max_turns, 0)
-        if len(self.history) > keep:
-            del self.history[:len(self.history) - keep]
+    def remember(self, user_text: str, reply: str, max_turns: int, response: Optional[Response] = None) -> None:
+        """Keeps the last `max_turns` requests, each with its input, its reply and, when the run had one, its Response."""
+        self.entries.append(HistoryEntry(user_text, reply, response))
+
+        keep = max(max_turns, 0)
+        if len(self.entries) > keep:
+            del self.entries[:len(self.entries) - keep]

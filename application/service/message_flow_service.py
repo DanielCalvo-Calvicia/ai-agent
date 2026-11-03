@@ -9,12 +9,14 @@ from typing import List, Optional
 from application.inbound.dto.message import TextRequestDTO, TextResponseDTO
 from application.inbound.ports.message_flow_ports import MessageInboundPort
 from application.engine.assemble import DEFAULT_PROFILE, Agent
+from application.engine.state.history import response_of
 from application.flows.profiles import ProfileRunner
 from application.engine.support.metrics import SessionMetrics
 from application.engine.state.paused_run import PausedRun
 from application.outbound.ports.llm_ports import LLMOutboundPort
 from application.outbound.ports.mcp_ports import McpToolsPort
 from application.outbound.ports.usage_ports import UsageReporterPort
+from domain.entities.llm_response.response import Response
 from domain.value_objects.llm_request.message import Message
 
 
@@ -39,6 +41,7 @@ class MessageFlowService(MessageInboundPort):
         self.history = list(history or [])
         self.paused = paused
         self.paused_run: Optional[PausedRun] = paused   # after text(): the run still waiting for the user, if any
+        self.last_response: Optional[Response] = None   # after text(): the Response of the run, None when it had no user_goal
         self.metrics = SessionMetrics(usage_reporter)
         self.mcp_list = mcp_list if mcp_list is not None else []
         self.profile = profile                           # until the API carries it (T-05.9) every message runs `default`
@@ -60,4 +63,5 @@ class MessageFlowService(MessageInboundPort):
     def main_flow(self, message: str, speak_movements: bool = True):
         result = self.runner.run(self.profile, message, self.history, self.paused, speak_movements=speak_movements)
         self.paused_run = result.paused
+        self.last_response = response_of(result)
         return result

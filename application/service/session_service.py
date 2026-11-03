@@ -92,8 +92,9 @@ class SessionService(SessionInboundPort):
             return self._failed("Session ID not found.", UNKNOWN_SESSION_APOLOGY, "SESSION_NOT_FOUND")
 
         try:
-            result = self._run_agent(request, user_session)
-            user_session.remember(request.message, result.content, self.history_turns)
+            result, response = self._run_agent(request, user_session)
+            if response is not None:                     # a run with no user_goal (the gesture, a movement nobody classified) adds no entry
+                user_session.remember(request.message, result.content, self.history_turns, response)
             return MessageReceivedResponseDTO(response=result.content, movements=list(result.movements),
                                               gesture=result.gesture,
                                               awaiting_user_input=result.awaiting_user_input, flow=result.flow,
@@ -130,7 +131,7 @@ class SessionService(SessionInboundPort):
         )
         result = agent.text(text_request)
         user_session.paused = getattr(agent, "paused_run", None)   # only when the message was processed: a failure keeps the old one
-        return result
+        return result, getattr(agent, "last_response", None)
 
     def is_available(self) -> bool:
         return self.llm_adapter.is_available()
