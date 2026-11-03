@@ -66,9 +66,11 @@ class SessionService(SessionInboundPort):
         agent: Optional[Agent] = None,
         profile: str = DEFAULT_PROFILE,
         response_reader: Optional[Callable[[dict], Response]] = None,
+        cost_of=None,
     ) -> None:
         self.response_reader = response_reader     # reads the sections of a Response a client sends in `inputs`
         self.agent = agent
+        self.cost_of = cost_of                     # model, tokens -> USD, for the metrics (the prices are in config/)
         self.profile = profile
         self.usage_reporter = usage_reporter
         self.llm_adapter = outbound_port
@@ -191,6 +193,9 @@ class SessionService(SessionInboundPort):
             extra["agent"] = self.agent
             extra["profile"] = profile_name
             extra["inputs"] = values
+            extra["client"] = request.client
+            if self.cost_of is not None:
+                extra["cost_of"] = self.cost_of
         agent: MessageInboundPort = self.message_service_type(
             outbound_port=self.llm_adapter,
             mcp_list=self.mcp_list,

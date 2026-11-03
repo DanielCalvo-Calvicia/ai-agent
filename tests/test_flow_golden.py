@@ -325,14 +325,26 @@ SCENARIOS: Dict[str, Dict[str, Any]] = {
 }
 
 
+def _without_the_run_keys(metrics: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    The golden file pins the tokens of every call as they were. The keys T-05.15 added to the records (profile, flow, step, client,
+    profile_hash, cost_usd) and `total_cost_usd` have their own tests (test_metrics_and_hash.py); leaving them out here keeps the
+    file byte-identical, which is the proof that no request changed.
+    """
+    metrics.pop("total_cost_usd", None)
+    for record in metrics["request_log"]:
+        record.pop("request_id")
+        for key in ("profile", "flow", "step", "client", "profile_hash", "cost_usd"):
+            record.pop(key, None)
+    return metrics
+
+
 def _run(scenario: Dict[str, Any]) -> Dict[str, Any]:
     llm = ScriptedLLM(**scenario["llm"])
     service = MessageFlowService(outbound_port=llm, mcp_list=MCP_LIST)
     reply = service.text(TextRequestDTO(user_id="tester", session_id="s1", content=scenario["message"],
                                         speak_movements=scenario.get("speak_movements", True))).content
-    metrics = service.metrics.summary()
-    for record in metrics["request_log"]:
-        record.pop("request_id")
+    metrics = _without_the_run_keys(service.metrics.summary())
     return {"reply": reply, "calls": llm.calls, "metrics": metrics}
 
 
@@ -431,9 +443,7 @@ def _run_profile(scenario: Dict[str, Any]) -> Dict[str, Any]:
     service = OneProfileService(outbound_port=llm, mcp_list=MCP_LIST, agent=agent, profile=scenario["profile"], inputs=values)
     reply = service.text(TextRequestDTO(user_id="tester", session_id="s1", content=scenario["message"],
                                         speak_movements=scenario.get("speak_movements", True))).content
-    metrics = service.metrics.summary()
-    for record in metrics["request_log"]:
-        record.pop("request_id")
+    metrics = _without_the_run_keys(service.metrics.summary())
     return {"reply": reply, "calls": llm.calls, "metrics": metrics}
 
 

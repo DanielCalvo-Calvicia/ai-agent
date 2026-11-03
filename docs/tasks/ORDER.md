@@ -78,7 +78,7 @@ The order follows the stages of [PR-005](../proposals/PR-005-flows-steps-profile
 
 | # | Task | Name | Kind | State | Detail | Depends on | Last updated |
 |---|---|---|---|---|---|---|---|
-| 37 | [T-05](T-05_profiles-flows-steps/T-05_profiles-flows-steps.md) | Structure: profiles, flows and steps (epic) | epic | In progress | T-05.1 to T-05.14 done; S1 complete | — | 2026-11-02 |
+| 37 | [T-05](T-05_profiles-flows-steps/T-05_profiles-flows-steps.md) | Structure: profiles, flows and steps (epic) | epic | In progress | T-05.1 to T-05.15 done; S1 complete | — | 2026-11-02 |
 | 38 | [T-05.1](T-05_profiles-flows-steps/T-05.1_decisions.md) | Decisions | decision | Done | Q05 to Q09, PR-005, ADR-015 | — | 2026-11-02 |
 | 39 | [T-05.2](T-05_profiles-flows-steps/T-05.2_step-registry.md) | Step registry | code | Done | S1; 1003 passed, golden untouched | T-05.1 | 2026-11-02 |
 | 40 | [T-05.3](T-05_profiles-flows-steps/T-05.3_folder-layout.md) | Folder layout | code | Done | S1; 1004 passed, golden untouched | T-05.2 | 2026-11-02 |
@@ -93,7 +93,7 @@ The order follows the stages of [PR-005](../proposals/PR-005-flows-steps-profile
 | 49 | [T-05.12](T-05_profiles-flows-steps/T-05.12_flows-as-json.md) | Flows as JSON | code | Done | S3; golden byte-identical; the files keep the old flow names | T-05.10 | 2026-11-02 |
 | 50 | [T-05.13](T-05_profiles-flows-steps/T-05.13_tool-scoping.md) | Tool scoping | code | Done | S4; scope per step, the executor refuses what is outside | T-05.12 | 2026-11-02 |
 | 51 | [T-05.14](T-05_profiles-flows-steps/T-05.14_prompts-per-profile.md) | Prompts per profile | code | Done | S5; no profile uses an override yet | T-05.12 | 2026-11-02 |
-| 52 | [T-05.15](T-05_profiles-flows-steps/T-05.15_metrics-and-hash.md) | Metrics, profile hash and reserved data fields | code | Todo | S6 | T-05.12 | 2026-11-02 |
+| 52 | [T-05.15](T-05_profiles-flows-steps/T-05.15_metrics-and-hash.md) | Metrics, profile hash and reserved data fields | code | Done | S6; the log of every LLM call carries the run | T-05.12 | 2026-11-02 |
 | 53 | [T-05.16](T-05_profiles-flows-steps/T-05.16_steps-as-json.md) | Steps as JSON declarations | code | Todo | S7, golden byte-identical | T-05.12 | 2026-11-02 |
 | 54 | [T-05.17](T-05_profiles-flows-steps/T-05.17_commands-and-tables.md) | Commands and generated tables | code | Todo | S7 | T-05.15, T-05.16 | 2026-11-02 |
 | 55 | [T-05.18](T-05_profiles-flows-steps/T-05.18_documentation.md) | Documentation and ADR-015 | docs | Todo | closes the epic | T-05.13 to T-05.17 | 2026-11-02 |

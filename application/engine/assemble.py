@@ -9,6 +9,8 @@
 #  JSON (T-05.16) a step may have no declaration: the checks that need `reads` and `writes` skip it.
 # ===============================================
 
+import hashlib
+import json
 import re
 from dataclasses import dataclass, field
 from typing import Any, Callable, Collection, Dict, List, Mapping, Optional, Sequence
@@ -55,6 +57,7 @@ class AssembledProfile:
     requires: List[str] = field(default_factory=list)       # inputs the request must carry
     accepts: List[str] = field(default_factory=list)
     prompts: Dict[str, PromptOverride] = field(default_factory=dict)     # step -> what the profile does to its prompt (T-05.14)
+    profile_hash: str = ""                    # SHA-256 (hex) of what the profile is made of, without its token hash (T-05.15)
 
 
 @dataclass
@@ -188,9 +191,23 @@ class _Assembly:
     def _step_names(self) -> set:
         return set(self.snapshot.step_defs) | set(self.registry)
 
+    def _check_reserved_data(self, key: str, value: Any) -> None:
+        """
+        `data` of a step declaration is RESERVED for the data policy (Q07-16, not built): only its shape is checked and nothing
+        reads it, so it changes nothing a profile does. A later policy has this one place to apply (T-05.15).
+        """
+        if value is None:
+            return
+        if not isinstance(value, dict) or set(value) - {"reads"}:
+            return self._problem(key, "data must be an object with only `reads` (reserved for the data policy; nothing reads it yet)")
+        reads = value.get("reads", [])
+        if not isinstance(reads, list) or not all(isinstance(item, str) for item in reads):
+            self._problem(key, "data.reads must be a list of texts (reserved for the data policy; nothing reads it yet)")
+
     def _check_step_def(self, name: str, data: dict) -> None:
         key = f"step_defs/{name}"
         self._unknown_keys(key, data, STEP_DEF_KEYS)
+        self._check_reserved_data(key, data.get("data"))
         if data.get("kind") not in KINDS:
             self._problem(key, f"kind must be one of {', '.join(KINDS)}")
         for which in ("reads", "writes"):
@@ -289,7 +306,23 @@ class _Assembly:
             self._check_data_flow(key, flow_name, step_names, requires, initial)
             self._check_models(key, flow_name or "", step_names, resolver)
         prompts = self._prompt_overrides(key, data.get("overrides") or {}, step_names if declared else None)
-        return AssembledProfile(name, data, flow_name, step_names, resolver, returned, requires, accepts, prompts)
+        return AssembledProfile(name, data, flow_name, step_names, resolver, returned, requires, accepts, prompts,
+                                self._profile_hash(data, flow_name, prompts))
+
+    def _profile_hash(self, data: dict, flow_name: Optional[str], prompts: Dict[str, PromptOverride]) -> str:
+        """
+        The SHA-256 of the canonical JSON of what the profile is made of: its own file without the token hash (the token is a
+        check against a mistake and changing it changes nothing a client gets), the flow file it runs, the model set it names
+        and the text of its prompt overrides. A model, a step, a tool or a prompt that changes changes the hash; a token does not.
+        """
+        models = data.get("models")
+        content = {
+            "profile": {k: v for k, v in data.items() if k != "token_sha256"},
+            "flow": self.snapshot.flows.get(flow_name) if flow_name else None,
+            "model_set": self.snapshot.model_sets.get(models) if isinstance(models, str) else None,
+            "prompts": {step: {"replace": p.replace, "append": p.append} for step, p in sorted(prompts.items())},
+        }
+        return hashlib.sha256(json.dumps(content, sort_keys=True, separators=(",", ":"), ensure_ascii=False, default=str).encode("utf-8")).hexdigest()
 
     # -----------------------------------------------
     #  PROMPT OVERRIDES (T-05.14)

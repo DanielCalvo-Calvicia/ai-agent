@@ -33,6 +33,7 @@ from infrastructure.outbound.mcp.client_manager import MCPClientManager, quiet_c
 from infrastructure.outbound.mcp.config import load_supported_mcp_configs, load_tool_snapshot
 from infrastructure.outbound.mcp.tool_executor import MCPToolExecutor
 from infrastructure.outbound.usage.langfuse import LangfuseUsageReporter
+from infrastructure.outbound.usage.prices import cost_usd, load_prices
 
 # -----------------------------------------------
 #  APPLICATION SERVICES
@@ -97,6 +98,7 @@ def CreateApp() -> FastAPI:
     llmAdapter = VercelAIAdapter(Config=llmConfig)
 
     # Step 2: Application service — implements the inbound port
+    prices = load_prices()                                  # USD per 1M tokens, from config/: the cost of every call in the metrics
     usageReporter = LangfuseUsageReporter.from_env()        # None unless the LANGFUSE_* keys are set
     sessionService = SessionService(
         outbound_port=llmAdapter,
@@ -104,6 +106,7 @@ def CreateApp() -> FastAPI:
         mcp_tools=toolExecutor,
         history_turns=int(os.environ.get("AI_AGENT_HISTORY_TURNS", "6")),
         usage_reporter=usageReporter,
+        cost_of=lambda model, prompt, completion, total: cost_usd(prices, model, prompt, completion, total),
         agent=agent,
         response_reader=read_response_json,
     )

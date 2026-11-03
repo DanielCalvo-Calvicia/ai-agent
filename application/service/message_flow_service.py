@@ -36,20 +36,27 @@ class MessageFlowService(MessageInboundPort):
         agent: Optional[Agent] = None,
         profile: str = DEFAULT_PROFILE,
         inputs: Optional[dict] = None,
+        client: Optional[str] = None,
+        cost_of=None,
     ):
         self.outbound_port = outbound_port
         self.history = list(history or [])
         self.paused = paused
         self.paused_run: Optional[PausedRun] = paused   # after text(): the run still waiting for the user, if any
         self.last_response: Optional[Response] = None   # after text(): the Response of the run, None when it had no user_goal
-        self.metrics = SessionMetrics(usage_reporter)
+        self.metrics = SessionMetrics(usage_reporter, cost_of=cost_of)
+        self.client = client or ""                       # trust-based, for the metrics (Q06-19)
+        self.agent = agent
         self.mcp_list = mcp_list if mcp_list is not None else []
         self.inputs = inputs or {}
         self.profile = profile                           # until the API carries it (T-05.9) every message runs `default`
         self.runner = ProfileRunner(outbound_port, self.mcp_list, self.metrics, mcp_tools, agent)
 
     def text(self, request: TextRequestDTO) -> TextResponseDTO:
-        self.metrics.begin_message(str(request.request_id), request.session_name or request.session_id, request.content)
+        assembled = self.agent.profiles.get(self.profile) if self.agent else None
+        self.metrics.begin_message(str(request.request_id), request.session_name or request.session_id, request.content,
+                                   profile=self.profile if assembled else "", flow=(assembled.flow_name or "") if assembled else "",
+                                   client=self.client, profile_hash=assembled.profile_hash if assembled else "")
         result = self.main_flow(request.content, request.speak_movements)
         return TextResponseDTO(
             content=result.reply,
