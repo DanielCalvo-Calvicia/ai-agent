@@ -1,0 +1,20 @@
+{
+  "_about": "The fixed set of messages scripts/run_profile.py sends to a profile (PR-005 section 10, Q06-27, Q08-5). `expect` says what a good answer must contain: a person reads the saved answers and judges them; the script checks nothing but that every message got an answer. `profiles` limits a message to the profiles it makes sense for (no key: every profile). T-06.2 refines the set.",
+  "messages": [
+    {"id": "greeting", "message": "Hello! How are you today?",
+     "expect": "A short, friendly greeting in English. No plan, no tool, no question about data."},
+    {"id": "question", "message": "What is the capital of France, and what is it famous for?",
+     "expect": "Paris, and one or two well-known things about it, in English and short enough to be spoken."},
+    {"id": "plan", "message": "Make me a short plan to prepare a two-day trip to Madrid.",
+     "expect": "An ordered plan for two days (what to do each day), in English, spoken in plain sentences, no tables or markdown.",
+     "profiles": ["identification", "special", "dynamics", "default"]},
+    {"id": "movement", "message": "Raise your right arm 45 degrees.",
+     "expect": "For `movement`: one movement (right arm, 45 degrees) and a short spoken line. For `identification`: the domain `movement`.",
+     "profiles": ["identification", "movement"]},
+    {"id": "dynamics", "message": "Dime el estado de los pedidos del cliente CL-1001",
+     "expect": "In Spanish: the orders of the customer with their state, or an honest sentence that the tool had nothing. Needs the Dynamics service.",
+     "profiles": ["identification", "special", "dynamics"]},
+    {"id": "spanish", "message": "¿Puedes explicarme en dos frases qué es un robot colaborativo?",
+     "expect": "Two sentences in Spanish that explain what a collaborative robot is."}
+  ]
+}

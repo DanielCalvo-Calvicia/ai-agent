@@ -1,7 +1,7 @@
 """
 Builds the tables of Gemini models (docs/models/gemini_models_per_step.md) from config/gemini_models.json, the one
 place where prices and ratings are kept, and shows the model sets of model_sets/ next to them.
-`python tests/manual/show_models.py` shows them and writes the documents.
+`python scripts/model_tables.py` shows them and writes the documents.
 """
 import json
 import os
@@ -71,7 +71,7 @@ def markdown(data: Dict[str, Any], config: Dict[str, Any]) -> str:
     lines = [
         "# Gemini models for each step",
         "",
-        "_Generated from `config/gemini_models.json` by `tests/manual/show_models.py --write`. Edit that file, not this one._",
+        "_Generated from `config/gemini_models.json` by `scripts/model_tables.py --write`. Edit that file, not this one._",
         "",
         f"- {data['_source']}",
         f"- {data['_api_check']}",
@@ -161,7 +161,7 @@ def markdown(data: Dict[str, Any], config: Dict[str, Any]) -> str:
 
     lines += ["", "## 5. How to choose", "",
               "1. See the options of one step and what it uses now: "
-              "`windows\\Scripts\\python.exe tests\\manual\\show_models.py --step=project_manager`.",
+              "`windows\\Scripts\\python.exe scripts\\model_tables.py --step=project_manager`.",
               "2. Choose: write the model in the entry of that step of a model set (`\"project_manager\": [\"gemini-3.8-flash\"]` in "
               "`model_sets/<name>.json`), or in the profile that uses it. To change every step at once: name another model set in the profile "
               "(`budget`, `balanced`, `quality`, `proven`, ...). A change is a file change and a new start: no environment variable chooses a model.",

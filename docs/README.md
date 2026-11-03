@@ -45,8 +45,9 @@ They stay in `docs/models/` because the tests and the scripts of `tests/manual/`
 
 | File | Written by |
 |---|---|
-| [`gemini_models_per_step.md`](models/gemini_models_per_step.md) | `tests/manual/show_models.py --write`, from `config/gemini_models.json` |
-| [`models_per_step_budget.md`](models/models_per_step_budget.md) | `tests/manual/show_models.py --budget`, from `config/*.json` and the budget |
+| [`gemini_models_per_step.md`](models/gemini_models_per_step.md) | `scripts/model_tables.py --write`, from `config/gemini_models.json` |
+| [`models_per_step_budget.md`](models/models_per_step_budget.md) | `scripts/model_tables.py --budget`, from `config/*.json` and the budget |
+| [`profiles.md`](models/profiles.md) | `scripts/model_tables.py --profiles`, from the assembled profiles (T-05.17) |
 | [`cost_of_a_full_plan.md`](models/cost_of_a_full_plan.md) | `tests/manual/estimate_cost.py --write` |
 
 ## `reference/`: notes

@@ -1,6 +1,6 @@
 # Gemini models for each step
 
-_Generated from `config/gemini_models.json` by `tests/manual/show_models.py --write`. Edit that file, not this one._
+_Generated from `config/gemini_models.json` by `scripts/model_tables.py --write`. Edit that file, not this one._
 
 - Prices and status: Google's pages ai.google.dev/gemini-api/docs/pricing, /models and /thinking, read on 2026-09-21; the prices and the list of models were checked again on 2026-10-27 (T-02.6). Prices are USD per 1M tokens, text, standard paid tier, and the output price includes thinking tokens. Check the page before you rely on a number.
 - 'api_check' is the result of one tiny test call per model id through the OpenAI-compatible endpoint (GOOGLE_URL) with the key of this project, on 2026-09-21. It proves the id works with this key, not that the model is good at a step. Re-checked on 2026-10-28 (T-02.3, only the ids that have a free tier): gemini-3.1-flash-lite, gemini-3.5-flash-lite and gemini-3.6-flash answered; gemini-3.8-flash got a 503 "high demand" (a temporary capacity problem, so it keeps its answer of 2026-09-21); gemini-3.1-pro-preview was not called (no free tier). gemini-2.5-flash and gemini-2.5-flash-lite answered 404 "no longer available to new users" and were removed. Later the same day gemini-3-flash-preview answered a test call (1.6 s) and was added. gemini-4-argon was added without a call: it has no free tier, so calling it would cost money; its api_check says "not called" and the tables mark it as untested.
@@ -260,7 +260,7 @@ Set in use: **proven** (the service runs on it until the profiles choose theirs,
 
 ## 5. How to choose
 
-1. See the options of one step and what it uses now: `windows\Scripts\python.exe tests\manual\show_models.py --step=project_manager`.
+1. See the options of one step and what it uses now: `windows\Scripts\python.exe scripts\model_tables.py --step=project_manager`.
 2. Choose: write the model in the entry of that step of a model set (`"project_manager": ["gemini-3.8-flash"]` in `model_sets/<name>.json`), or in the profile that uses it. To change every step at once: name another model set in the profile (`budget`, `balanced`, `quality`, `proven`, ...). A change is a file change and a new start: no environment variable chooses a model.
 3. A list is an order: the first model answers and the next ones are the fallback when it is out of capacity.
 4. Try the model on that step before you trust it: run the flow once with `tests/manual/debug_flow.py --real`, then repeat the step with `--only=<step> --state=<file> --repeat=5`. The problems it finds and `compare.md` show if the model is steady.

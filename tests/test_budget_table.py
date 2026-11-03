@@ -99,7 +99,7 @@ class TestTheBudget:
 class TestTheDocument:
     def test_it_is_up_to_date(self):
         assert open(DOC_PATH, encoding="utf-8").read() == markdown(DATA, CONFIG, BUDGET, read(MEASURED_PATH)), \
-            "run: windows\\Scripts\\python.exe tests\\manual\\show_models.py --budget"
+            "run: windows\\Scripts\\python.exe scripts\\model_tables.py --budget"
 
     def test_every_step_has_a_table(self):
         text = open(DOC_PATH, encoding="utf-8").read()

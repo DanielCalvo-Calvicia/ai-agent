@@ -396,7 +396,7 @@ class TestTheTable:
     def test_the_document_is_up_to_date(self):
         expected = markdown(load_models(), read_config())
         actual = open(DOC_PATH, encoding="utf-8").read()
-        assert actual == expected, "run: windows\\Scripts\\python.exe tests\\manual\\show_models.py --write"
+        assert actual == expected, "run: windows\\Scripts\\python.exe scripts\\model_tables.py --write"
 
     def test_the_document_has_the_columns_that_were_asked_for(self):
         text = open(DOC_PATH, encoding="utf-8").read()

@@ -1,6 +1,6 @@
 # Models for each step, within a budget
 
-_Generated from `config/gemini_models.json`, `config/other_models.json`, `config/measured_runs.json` and `config/budget.json` by `tests/manual/show_models.py --budget`. Edit those files, not this one._
+_Generated from `config/gemini_models.json`, `config/other_models.json`, `config/measured_runs.json` and `config/budget.json` by `scripts/model_tables.py --budget`. Edit those files, not this one._
 
 ## The budget
 
@@ -117,7 +117,7 @@ Fits 50 EUR for 1,000 messages even if every message has a plan of 30 actions. G
 
 Cheaper than budget50: the planner, the gate, the worker, the draft and the editor use openai/gpt-oss-120b on Groq (strong reasoning at 0.15 in and 0.60 out per 1M tokens, tested end to end). Triage, tools, cleaning, the checker and the question use gemini-3.1-flash-lite. Needs GROQ_API_KEY and GROQ_URL. Untested as a combination.
 
-To use one: name that model set in the profile (`"models": "budget50"`); to change a step, write its entry in `model_sets/<name>.json` (`--step=<step>` of `show_models.py` shows the options).
+To use one: name that model set in the profile (`"models": "budget50"`); to change a step, write its entry in `model_sets/<name>.json` (`--step=<step>` of `model_tables.py` shows the options).
 
 ## 3. All the models, cheapest first
 
@@ -436,6 +436,6 @@ Big plan: 0 call(s), 0 tokens sent and 0 answered (measured per call with gemini
 
 1. One model set for every step: name it in the profile (`"models": "budget50"`).
 2. One step: write the line of the table in the entry of that step of a model set (`model_sets/<name>.json`). Only models the agent's provider table knows can be chosen (`domain/value_objects/llm_request/model_catalog.py`).
-3. See what is in use with its price: `windows\Scripts\python.exe tests\manual\show_models.py`.
+3. See what is in use with its price: `windows\Scripts\python.exe scripts\model_tables.py`.
 4. Before you trust a model on a step: `tests/manual/debug_flow.py --real`, then `--only=<step> --state=<file> --repeat=5`. The problems it finds and `compare.md` show if the model is steady.
-5. To change the budget, the rate or the size of the plans: `config/budget.json`, then `show_models.py --budget`.
+5. To change the budget, the rate or the size of the plans: `config/budget.json`, then `model_tables.py --budget`.

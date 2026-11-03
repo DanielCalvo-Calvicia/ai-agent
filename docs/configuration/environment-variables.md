@@ -80,18 +80,22 @@ Model sets shipped (the ten tables of the old `step_models.json`, with the fallb
 other steps; Google models with a free tier, needs only `GOOGLE_API_KEY` and `GOOGLE_URL`; on the free tier `gemini-3.6-flash` returned 429 after about 7 calls in 30 s,
 and Google uses free-tier content to improve its products; **untested as a combination**; decided in PR-004). The Claude sets are one-item lists on purpose: customer data must not move to another provider because one had a bad minute.
 
-See what every step uses and what it costs (nothing is sent to a provider), and write the generated documents:
+See what every step of every profile uses and what it costs (nothing is sent to a provider), and write the generated documents
+(since T-05.17 these tools read the **assembled profiles**; `tests/manual/show_models.py` is gone):
 
 ```powershell
-& windows\Scripts\python.exe tests\manual\show_models.py                              # what every step uses now, with its price
-& windows\Scripts\python.exe tests\manual\show_models.py --step=project_manager       # every model for a step, cost per call and rating
-& windows\Scripts\python.exe tests\manual\show_models.py --write                      # docs/models/gemini_models_per_step.md
+& windows\Scripts\python.exe scripts\check_agent.py --explain special                  # one profile in full: steps, models and where they come from, tools, prompts, hash, cost of a full plan
+& windows\Scripts\python.exe scripts\model_tables.py                                   # the model of every step of every profile, with its price
+& windows\Scripts\python.exe scripts\model_tables.py --step=project_manager            # every model for a step, cost per call and rating, and which profiles use it
+& windows\Scripts\python.exe scripts\model_tables.py --profiles                        # docs/models/profiles.md: one table per profile
+& windows\Scripts\python.exe scripts\model_tables.py --write                           # docs/models/gemini_models_per_step.md
+& windows\Scripts\python.exe scripts\run_profile.py special                            # the fixed set of messages on the REAL models (asks first; costs money)
 ```
 
 `config/gemini_models.json`, `other_models.json` (prices and ratings), `budget.json` (the monthly budget) and
 `measured_runs.json` feed the cost tools. `docs/models/gemini_models_per_step.md` and `docs/models/models_per_step_budget.md` are
-**generated** from them (`show_models.py --write` and `--budget`); `docs/models/cost_of_a_full_plan.md` by
-`tests/manual/estimate_cost.py --write`. Do not edit those three by hand. The cost and budget tables cover the text flows'
+**generated** from them (`model_tables.py --write` and `--budget`); `docs/models/cost_of_a_full_plan.md` by
+`tests/manual/estimate_cost.py --write`; `docs/models/profiles.md` (one table per profile, from the assembled profile) by `model_tables.py --profiles`. Do not edit those four by hand. The cost and budget tables cover the text flows'
 steps only; `motion_planner` can be set like any step and is left out of those tables.
 
 ## 4. MCP servers (`mcps/*.json`)

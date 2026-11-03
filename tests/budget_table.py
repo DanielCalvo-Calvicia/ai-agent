@@ -1,7 +1,7 @@
 """
 Builds docs/models/models_per_step_budget.md: the models of every provider, per step, with what they cost against a monthly
 budget (config/budget.json). Prices and ratings: config/gemini_models.json and config/other_models.json.
-`python tests/manual/show_models.py --budget` writes the document.
+`python scripts/model_tables.py --budget` writes the document.
 """
 import json
 import os
@@ -107,7 +107,7 @@ def markdown(data: Dict[str, Any], config: Dict[str, Any], budget: Dict[str, Any
         "# Models for each step, within a budget",
         "",
         "_Generated from `config/gemini_models.json`, `config/other_models.json`, `config/measured_runs.json` and "
-        "`config/budget.json` by `tests/manual/show_models.py --budget`. Edit those files, not this one._",
+        "`config/budget.json` by `scripts/model_tables.py --budget`. Edit those files, not this one._",
         "",
         "## The budget",
         "",
@@ -183,7 +183,7 @@ def markdown(data: Dict[str, Any], config: Dict[str, Any], budget: Dict[str, Any
 
     lines += [
         "To use one: name that model set in the profile (`\"models\": \"budget50\"`); to change a step, write its entry in "
-        "`model_sets/<name>.json` (`--step=<step>` of `show_models.py` shows the options).",
+        "`model_sets/<name>.json` (`--step=<step>` of `model_tables.py` shows the options).",
         "",
         "## 3. All the models, cheapest first",
         "",
@@ -228,9 +228,9 @@ def markdown(data: Dict[str, Any], config: Dict[str, Any], budget: Dict[str, Any
               "1. One model set for every step: name it in the profile (`\"models\": \"budget50\"`).",
               "2. One step: write the line of the table in the entry of that step of a model set (`model_sets/<name>.json`). "
               "Only models the agent's provider table knows can be chosen (`domain/value_objects/llm_request/model_catalog.py`).",
-              "3. See what is in use with its price: `windows\\Scripts\\python.exe tests\\manual\\show_models.py`.",
+              "3. See what is in use with its price: `windows\\Scripts\\python.exe scripts\\model_tables.py`.",
               "4. Before you trust a model on a step: `tests/manual/debug_flow.py --real`, then `--only=<step> --state=<file> "
               "--repeat=5`. The problems it finds and `compare.md` show if the model is steady.",
-              "5. To change the budget, the rate or the size of the plans: `config/budget.json`, then `show_models.py --budget`.",
+              "5. To change the budget, the rate or the size of the plans: `config/budget.json`, then `model_tables.py --budget`.",
               ""]
     return "\n".join(lines)

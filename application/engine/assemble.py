@@ -423,12 +423,12 @@ class _Assembly:
     def _profile_hash(self, data: dict, flow_name: Optional[str], prompts: Dict[str, PromptOverride]) -> str:
         """
         The SHA-256 of the canonical JSON of what the profile is made of: its own file without the token hash (the token is a
-        check against a mistake and changing it changes nothing a client gets), the flow file it runs, the model set it names
+        check against a mistake and changing it changes nothing a client gets; `tested` is a note: scripts/run_profile.py writes it), the flow file it runs, the model set it names
         and the text of its prompt overrides. A model, a step, a tool or a prompt that changes changes the hash; a token does not.
         """
         models = data.get("models")
         content = {
-            "profile": {k: v for k, v in data.items() if k != "token_sha256"},
+            "profile": {k: v for k, v in data.items() if k not in ("token_sha256", "tested")},
             "flow": self.snapshot.flows.get(flow_name) if flow_name else None,
             "model_set": self.snapshot.model_sets.get(models) if isinstance(models, str) else None,
             "prompts": {step: {"replace": p.replace, "append": p.append} for step, p in sorted(prompts.items())},
