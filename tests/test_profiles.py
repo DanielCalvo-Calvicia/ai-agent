@@ -86,7 +86,7 @@ class TestTheProfiles:
 
 class TestTheToolsOfEachProfile:
     def servers(self, agent, name):
-        return [s["name"] for s in runner(ScriptedLLM(), agent)._servers(agent.profile(name))]
+        return runner(ScriptedLLM(), agent).servers_of(name)
 
     def test_special_has_every_server(self, agent):
         assert self.servers(agent, "special") == ["dynamics_microservice", "aws_microservice"]

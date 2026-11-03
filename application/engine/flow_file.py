@@ -12,6 +12,7 @@ from application.steps.build import build_step_function
 from application.steps.conditions import CONDITIONS
 from application.steps.hooks import result_builder, state_factory
 from application.steps.phase import Step
+from application.outbound.ports.mcp_ports import ToolScope, scoped
 from application.steps.registry import step as registered_step
 
 
@@ -28,9 +29,10 @@ def flow_from_file(name: str, data: dict) -> Flow:
         for entry in entries:
             name = entry["step"]
             condition = entry.get("pause_if")
+            mcp_list, mcp_tools = scoped(context.mcp_list, context.mcp_tools, context.scope_of(name) if context.scope_of else ToolScope())
             steps.append(Step(
                 name,
-                build_step_function(name, context.runner, context.mcp_list, context.mcp_tools),
+                build_step_function(name, context.runner, mcp_list, mcp_tools),
                 pause_if=CONDITIONS[condition] if condition else None,
                 phase_id=registered_step(name).legacy_id,
                 retry_on_status=bool(entry.get("retry_on_status")),
@@ -44,4 +46,6 @@ def flow_from_file(name: str, data: dict) -> Flow:
         new_state=state_factory(entry["step"] for entry in entries),
         on_pause=data.get("on_pause"),
         on_resume=data.get("on_resume"),
+        tools=data.get("tools"),
+        step_tools={entry["step"]: entry["tools"] for entry in entries if isinstance(entry.get("tools"), dict)},
     )

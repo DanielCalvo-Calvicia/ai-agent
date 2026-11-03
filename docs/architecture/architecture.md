@@ -101,7 +101,7 @@ held both). The history is the session's own copy: it will never be read from th
 ### 4.1 One profile per message, and the client's chain (`engine/profile_runner.py`)
 
 The service runs the flow of **one profile** per message (`ProfileRunner.run`): the profile gives the flow, the models (its `ModelResolver`) and the MCP servers
-(`tools.servers`: a list is exactly those, an empty list is none, no `tools` is every configured server; the real scoping is T-05.13). Nothing routes. The
+(`tools`, see section 4.2: the tools a step may use are those every level allows). Nothing routes. The
 **client** chains the profiles, and `tests/brain_chain.py` models that chain for the tests:
 
 ```text
@@ -140,6 +140,12 @@ returns the question with `awaiting_user_input = true`. The next message of the 
 confirmation of the safety gate), **not an answer** (the question is asked again, the run keeps waiting) or **stop**
 (the run is forgotten). Pausing happens in: identification (triage), special (project manager, safety gate) and
 movement (motion planner). Stop and decline end the run with a fixed sentence (`FlowResult.ended_early`).
+
+### 4.2 Which tools a step may use (T-05.13)
+
+A `tools` object (`{"servers": [...], "tools": [...]}`) can be set at five levels: the profile, `flows.<flow>` of the profile, the flow file, a step of the flow file (`{"step": ..., "tools": ...}`) and `overrides.<step>` of the profile. A level names whole servers and/or single tools (`server.tool`, or a bare name when only one server has it; assembly refuses a bare name two servers share); **a level that sets nothing sets no limit; `{"servers": []}` is no tool**. The tools a step may use are those **every level that is set allows** (the narrowest wins): a flow or a step that names a tool the profile does not allow gets nothing extra. The outer limit stays `allowed_tools` of `mcps/*.json`.
+
+`Pipeline` builds each step with the servers and the tools port of its own scope (`application/outbound/ports/mcp_ports.py`: `ToolScope`, `ScopedTools`, `scoped`), so the planner and the MCP operator are **shown only** the allowed tools (and a server with none left is not shown). Each server descriptor of a limited scope carries the scope: the LLM adapter (`infrastructure/outbound/llm/tools.py`) exposes only the allowed tools to the model and runs them through `MCPToolExecutor.execute(..., scope=)`, which **refuses** any other and calls no server (outcome `not_found`, no try). The tools of the action executor are those of the step `action_executor` (its MCP operator runs inside it). `ProfileRunner.servers_of(profile, step)` says which servers a profile or a step may use. No log, metric or span holds an argument or an answer, as before.
 
 ## 5. Phases
 

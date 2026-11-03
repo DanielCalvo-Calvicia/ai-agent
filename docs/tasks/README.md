@@ -125,7 +125,7 @@ Verified on 2026-10-27 against both projects.
 | [T-04.1](T-04_llm-resilience/T-04.1_decisions.md) | Decisions | decision | done (2026-10-29) |
 | [T-04.2](T-04_llm-resilience/T-04.2_wait-and-fallback.md) | Wait, fallback models and the runner | code | done (2026-10-29) |
 | [T-04.3](T-04_llm-resilience/T-04.3_tests-and-documentation.md) | Tests and documentation | test | done (2026-10-29) |
-| [T-05](T-05_profiles-flows-steps/T-05_profiles-flows-steps.md) | **Structure: profiles, flows and steps as three pluggable layers** (epic) | epic | in-progress (T-05.1 to T-05.12 done on 2026-11-02 and 2026-11-03; plan in [PR-005](../proposals/PR-005-flows-steps-profiles.md)) |
+| [T-05](T-05_profiles-flows-steps/T-05_profiles-flows-steps.md) | **Structure: profiles, flows and steps as three pluggable layers** (epic) | epic | in-progress (T-05.1 to T-05.13 done on 2026-11-02 and 2026-11-03; plan in [PR-005](../proposals/PR-005-flows-steps-profiles.md)) |
 | [T-05.1](T-05_profiles-flows-steps/T-05.1_decisions.md) | Decisions | decision | done (2026-11-02) |
 | [T-05.2](T-05_profiles-flows-steps/T-05.2_step-registry.md) | Step registry | code | done (2026-11-02) |
 | [T-05.3](T-05_profiles-flows-steps/T-05.3_folder-layout.md) | Folder layout | code | done (2026-11-02) |
@@ -138,7 +138,7 @@ Verified on 2026-10-27 against both projects.
 | [T-05.10](T-05_profiles-flows-steps/T-05.10_tests-and-golden.md) | Tests and golden of the profiles | test | done (2026-11-03) |
 | [T-05.11](T-05_profiles-flows-steps/T-05.11_first-real-run.md) | First real run: the `special` profile | manual | done (2026-11-03) |
 | [T-05.12](T-05_profiles-flows-steps/T-05.12_flows-as-json.md) | Flows as JSON | code | done (2026-11-03) |
-| [T-05.13](T-05_profiles-flows-steps/T-05.13_tool-scoping.md) | Tool scoping | code | todo |
+| [T-05.13](T-05_profiles-flows-steps/T-05.13_tool-scoping.md) | Tool scoping | code | done (2026-11-03) |
 | [T-05.14](T-05_profiles-flows-steps/T-05.14_prompts-per-profile.md) | Prompts per profile | code | todo |
 | [T-05.15](T-05_profiles-flows-steps/T-05.15_metrics-and-hash.md) | Metrics, profile hash and reserved data fields | code | todo |
 | [T-05.16](T-05_profiles-flows-steps/T-05.16_steps-as-json.md) | Steps as JSON declarations | code | todo |

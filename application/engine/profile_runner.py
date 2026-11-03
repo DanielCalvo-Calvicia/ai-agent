@@ -1,7 +1,7 @@
 # ===============================================
 #  PROFILE RUNNER
 #  Runs one message through the flow of one profile. The profile says which flow, which models (its ModelResolver) and which
-#  MCP servers; the service does not choose between flows any more: the client asks a profile and chains them itself
+#  tools (the limits of the profile, the flow and the step, T-05.13); the service does not choose between flows any more: the client asks a profile and chains them itself
 #  (PR-005 section 2). A run that stopped to ask the user is resumed by the next message of the same profile.
 #
 #  A profile names a flow file (flows/<name>.json); the Agent holds the Flow built from each one (assemble.py).
@@ -19,7 +19,7 @@ from application.engine.state.paused_run import FlowResult, PausedRun
 from application.engine.support.expression_settings import speech_seconds
 from application.engine.support.metrics import SessionMetrics
 from application.outbound.ports.llm_ports import LLMOutboundPort
-from application.outbound.ports.mcp_ports import McpToolsPort
+from application.outbound.ports.mcp_ports import McpToolsPort, scoped
 from domain.value_objects.llm_request.message import Message
 
 
@@ -76,10 +76,23 @@ class ProfileRunner:
             if isinstance(state, MotionFlowState):
                 state.speak_movements = speak_movements
 
-        pipeline = Pipeline(self.outbound_port, self._servers(profile), self.metrics, self.mcp_tools, flow=flow, models=profile.resolver)
+        pipeline = self._pipeline(profile, flow)
         return pipeline.run(message, list(history or []), paused, state=state)
 
     # -----------------------------------------------
+
+    def _pipeline(self, profile: AssembledProfile, flow: Flow) -> Pipeline:
+        definition = profile.definition
+        return Pipeline(self.outbound_port, self.mcp_list, self.metrics, self.mcp_tools, flow=flow, models=profile.resolver,
+                        tool_levels=(definition.get("tools"), ((definition.get("flows") or {}).get(flow.name) or {}).get("tools")),
+                        tool_overrides={step: entry["tools"] for step, entry in (definition.get("overrides") or {}).items()
+                                        if isinstance(entry, dict) and isinstance(entry.get("tools"), dict)})
+
+    def servers_of(self, profile_name: str, step: Optional[str] = None) -> List[str]:
+        """The MCP servers the profile (or one of its steps) may use: those with a tool every level of the scope allows."""
+        profile = self.agent.profile(profile_name)
+        scope = self._pipeline(profile, self._flow_of(profile)).scope_of(step)
+        return [server["name"] for server in scoped(self.mcp_list, self.mcp_tools, scope)[0]]
 
     @staticmethod
     def _apply_inputs(state: FlowState, inputs: Optional[dict]) -> None:
@@ -94,16 +107,3 @@ class ProfileRunner:
         if profile.flow_name not in self.flows:
             raise ValueError(f"profile {profile.name!r}: unknown flow {profile.flow_name!r}. Flows: {', '.join(self.flows)}")
         return self.flows[profile.flow_name]
-
-    @staticmethod
-    def _servers_named(definition: dict) -> Optional[List[str]]:
-        tools = definition.get("tools")
-        return None if tools is None else list(tools.get("servers") or [])
-
-    def _servers(self, profile: AssembledProfile) -> list:
-        """
-        The MCP servers the profile may use: those it names in `tools.servers` (an empty list is none), every configured server
-        when it names none (nothing set, no limit). The real scoping (profile, flow and step, and single tools) is T-05.13.
-        """
-        names = self._servers_named(profile.definition)
-        return list(self.mcp_list) if names is None else [server for server in self.mcp_list if server["name"] in names]

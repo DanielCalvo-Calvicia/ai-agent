@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from application.outbound.ports.mcp_ports import (
     McpToolsPort,
     ToolCallRecord,
+    ToolScope,
     remaining_tool_wait,
     report_final_tool_failure,
     report_tool_call,
@@ -44,9 +45,10 @@ class MCPToolExecutor(McpToolsPort):
     def list_tools(self, server_name: str) -> List[ToolDefinition]:
         return self.catalog.list_tools(server_name)
 
-    def execute(self, tool_name: str, args: Dict[str, Any]) -> Dict[str, Any]:
+    def execute(self, tool_name: str, args: Dict[str, Any], scope: Optional[ToolScope] = None) -> Dict[str, Any]:
+        """`scope`: the tools the step that asks may use (T-05.13); a tool outside it is refused and no server is called."""
         started_ns, started = time.time_ns(), time.monotonic()
-        answer, outcome, attempts = anyio.run(self._execute_async, tool_name, args)
+        answer, outcome, attempts = anyio.run(self._execute_async, tool_name, args, scope)
         spend_tool_wait(time.monotonic() - started)       # what this message may still wait for tools shrinks
         self._report(ToolCallRecord(tool_name, outcome, round((time.monotonic() - started) * 1000), attempts,
                                     started_ns, time.time_ns()))
@@ -60,11 +62,13 @@ class MCPToolExecutor(McpToolsPort):
         logger.info("MCP tool call", tool_name=call.tool, outcome=call.outcome, duration_ms=call.duration_ms, attempts=call.attempts)
         report_tool_call(call)
 
-    async def _execute_async(self, tool_name: str, args: Dict[str, Any]) -> Tuple[Dict[str, Any], str, int]:
+    async def _execute_async(self, tool_name: str, args: Dict[str, Any], scope: Optional[ToolScope] = None) -> Tuple[Dict[str, Any], str, int]:
         """The answer, how the call ended (one of TOOL_OUTCOMES) and how many tries it took."""
         server_name = await self.catalog.server_of(tool_name)
         if not server_name:
             return {"error": f"Tool '{tool_name}' not found on any registered MCP server.", "is_error": True}, "not_found", 0
+        if scope is not None and not scope.allows(server_name, tool_name):
+            return {"error": f"Tool '{tool_name}' is not allowed for this step.", "is_error": True}, "not_found", 0
 
         # The message may wait only so long for its tools in total (the budget the action loop sets): a call gets what is left.
         left, begun = remaining_tool_wait(), time.monotonic()

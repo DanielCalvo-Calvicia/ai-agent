@@ -5,15 +5,15 @@
 #  from it); the tests may also make one by hand.
 # ===============================================
 
-from dataclasses import dataclass
-from typing import Callable, List, Optional
+from dataclasses import dataclass, field
+from typing import Callable, Dict, List, Optional
 
 from application.engine.state.flow_state import FlowState
 from application.engine.state.paused_run import FlowResult
 from application.steps.hooks import ANSWER_CHECKER, USER_CLARIFICATION
 from application.steps.phase import Step
 from application.engine.phase_runner import PhaseRunner
-from application.outbound.ports.mcp_ports import McpToolsPort
+from application.outbound.ports.mcp_ports import McpToolsPort, ToolScope
 from domain.value_objects.llm_request.message import Message
 
 
@@ -23,6 +23,7 @@ class FlowContext:
     runner: PhaseRunner
     mcp_list: list
     mcp_tools: Optional[McpToolsPort] = None
+    scope_of: Optional[Callable[[str], ToolScope]] = None     # the tools a step may use (profile, flow and step limits)
 
 
 @dataclass(frozen=True)
@@ -38,3 +39,6 @@ class Flow:
     # The hooks that run when a step asks the user and when the user answers (steps/hooks.py). None: the flow cannot ask.
     on_pause: Optional[str] = USER_CLARIFICATION
     on_resume: Optional[str] = ANSWER_CHECKER
+    # The tool limits of the flow file: for the whole flow and for single steps (a `tools` object each; None sets no limit).
+    tools: Optional[dict] = None
+    step_tools: Dict[str, dict] = field(default_factory=dict)

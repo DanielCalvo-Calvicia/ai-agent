@@ -13,7 +13,7 @@ One JSON file per profile: what a client asks for (PR-005, `docs/proposals/PR-00
 | `movement` | motion planner, motion validator | `proven` | none | yes |
 | `gesture` | emotion reader, gesture builder; input: the reply | `proven` | none | yes |
 
-- `tools.servers`: a list is exactly those servers, an empty list is none, no `tools` is every configured server. This is the interim rule (T-05.7); the scoping by profile, flow and step and by single tools is T-05.13.
+- `tools`: `{"servers": [...], "tools": ["server.tool", ...]}`; no `tools` is no limit, `{"servers": []}` is no tool. A flow file, a step of a flow file, `flows.<flow>.tools` and `overrides.<step>.tools` can narrow it: a step may use only what every level that is set allows (T-05.13; `docs/architecture/architecture.md` section 4.2).
 - `token_sha256` holds a **placeholder** (64 zeros: no token has this SHA-256). Replace it with the SHA-256 of the real token of each profile before a client can use it; the token itself is never written in a file. Nothing checks a token yet (T-05.9).
 - `_unverified/` holds the ten generic profiles of the old model tables on the `default` flow. They are not loaded until each is tested with the real-run command (T-05.17) and the maintainer keeps it.
 - Until the request carries the profile (T-05.9) the service runs `default` for every message.

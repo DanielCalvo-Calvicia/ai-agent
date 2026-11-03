@@ -8,7 +8,7 @@
 #  the hooks for a question to the user (`on_pause`, `on_resume`) come from the Flow it is given.
 # ===============================================
 
-from typing import List, Optional
+from typing import Dict, List, Optional, Sequence
 
 from application.engine.answer_check import ANSWERED, CONFIRMED, DECLINED, STOP, AnswerChecker
 from application.engine.clarification import Clarifier
@@ -23,7 +23,7 @@ from application.steps.hooks import ANSWER_CHECKER, USER_CLARIFICATION
 from application.steps.phase import Step
 from application.engine.phase_runner import PhaseRunner
 from application.outbound.ports.llm_ports import LLMOutboundPort
-from application.outbound.ports.mcp_ports import McpToolsPort
+from application.outbound.ports.mcp_ports import McpToolsPort, ToolScope, scoped
 from domain.value_objects.llm_request.message import Message
 from shared_logging import get_logger
 
@@ -43,10 +43,25 @@ class Pipeline:
         *,
         flow: Flow,
         models: Optional[ModelResolver] = None,
+        tool_levels: Sequence[Optional[dict]] = (),
+        tool_overrides: Optional[Dict[str, dict]] = None,
     ) -> None:
-        runner = PhaseRunner(outbound_port, metrics, server_names(mcp_list, mcp_tools), models=models, flow_name=flow.name)
+        """
+        `tool_levels`: the `tools` of the profile (and of its entry for this flow), None where a level sets nothing. The tools a
+        step may use are those every level allows (T-05.13): these, the flow file's, the step's in the flow file and the profile's
+        `overrides.<step>.tools`. `mcp_list` is every configured server; a step is built with the ones it may use.
+        """
+        overrides = tool_overrides or {}
+
+        def scope_of(step_name: Optional[str]) -> ToolScope:
+            return ToolScope.of(*tool_levels, flow.tools, flow.step_tools.get(step_name) if step_name else None,
+                                overrides.get(step_name) if step_name else None)
+
+        self.scope_of = scope_of
+        flow_servers, flow_tools = scoped(mcp_list, mcp_tools, scope_of(None))
+        runner = PhaseRunner(outbound_port, metrics, server_names(flow_servers, flow_tools), models=models, flow_name=flow.name)
         self.flow = flow
-        self.steps = flow.build_steps(FlowContext(runner, mcp_list, mcp_tools))
+        self.steps = flow.build_steps(FlowContext(runner, mcp_list, mcp_tools, scope_of))
         self.clarifier = Clarifier(runner)
         self.answer_checker = AnswerChecker(runner)
 
