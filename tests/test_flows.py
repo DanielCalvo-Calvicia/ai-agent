@@ -22,7 +22,7 @@ from application.flows.special import SPECIAL_FLOW
 from application.engine.support.metrics import SessionMetrics
 from application.engine.pipeline import Pipeline
 from application.steps.phase import Step
-from application.service.session_service import SessionService
+from brain_chain import ChainedSessionService as SessionService
 from infrastructure.inbound.http.fastapi import SessionFastAPI
 
 from test_flow_golden import ScriptedLLM
@@ -63,15 +63,17 @@ class TestTheStepsOfEachFlow:
     @pytest.mark.parametrize("flow,steps", [
         (IDENTIFICATION_FLOW, ["triage_specialist"]),
         (CONVERSATION_FLOW, ["draft_writer", "editor_in_chief"]),
-        (SPECIAL_FLOW, ["project_manager", "safety_quality_gatekeeper", "action_executor", "draft_writer", "editor_in_chief"]),
+        (SPECIAL_FLOW, ["triage_specialist", "project_manager", "safety_quality_gatekeeper", "action_executor", "draft_writer", "editor_in_chief"]),
         (MOVEMENT_FLOW, ["motion_planner", "motion_validator"]),
     ])
     def test_the_steps(self, flow, steps):
         assert [step.name for step in Pipeline(ScriptedLLM(), [], SessionMetrics(), flow=flow).steps] == steps
 
-    def test_only_identification_runs_triage(self):
-        for flow in (CONVERSATION_FLOW, SPECIAL_FLOW, MOVEMENT_FLOW):
+    def test_only_identification_and_special_run_triage(self):
+        # the special flow starts with its own triage (T-05.7), so its profile works on its own
+        for flow in (CONVERSATION_FLOW, MOVEMENT_FLOW):
             assert "triage_specialist" not in [s.name for s in Pipeline(ScriptedLLM(), [], SessionMetrics(), flow=flow).steps]
+        assert [s.name for s in Pipeline(ScriptedLLM(), [], SessionMetrics(), flow=SPECIAL_FLOW).steps][0] == "triage_specialist"
 
     def test_a_pipeline_tags_its_result_with_the_flow_and_the_state(self):
         result = Pipeline(ScriptedLLM(), [], SessionMetrics(), flow=IDENTIFICATION_FLOW).run("hello")

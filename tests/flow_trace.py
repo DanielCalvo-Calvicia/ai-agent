@@ -37,12 +37,12 @@ from application.flows.identification import IDENTIFICATION_FLOW
 from application.flows.special import SPECIAL_FLOW
 from domain.entities.llm_response.response import Response
 
-# The identification flow and the special flow as ONE flow, the way the whole text chain ran before the router split it
-# (triage, plan, check, execute, write, polish). The tools below trace and re-run its steps one by one; the router has its
-# own tests (test_router.py).
+# The whole text chain as ONE flow: triage, plan, check, execute, write, polish. The `special` flow starts with the triage
+# (T-05.7), so it is that flow; `IDENTIFICATION_FLOW` stays imported for the tests that use it. The tools below trace and re-run its
+# steps one by one; the client's chain has its own tests (test_router.py, tests/brain_chain.py).
 FULL_FLOW = Flow(
     name="full",
-    build_steps=lambda context: IDENTIFICATION_FLOW.build_steps(context) + SPECIAL_FLOW.build_steps(context),
+    build_steps=SPECIAL_FLOW.build_steps,
     build_result=SPECIAL_FLOW.build_result,
 )
 

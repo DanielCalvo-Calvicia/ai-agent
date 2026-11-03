@@ -17,20 +17,19 @@ POST /session/message
    -> SessionFastAPI            infrastructure/inbound/http/fastapi.py   (HTTP <-> DTOs, runs the flow in a worker thread)
    -> SessionService            application/service/session_service.py  (sessions, history, the run waiting for the user)
    -> MessageFlowService        application/service/message_flow_service.py   (one per message; owns the metrics)
-   -> AgentRouter.run()         application/flows/router.py
-        1. identification flow   triage: what is this message?         (always)
-        2. ONE of these, picked by task_category.domain:
-              communication -> conversation flow    draft writer, editor
-              movement      -> movement flow        motion planner, motion validator
-              anything else -> special flow         project manager, safety gate, action executor, draft writer, editor
-   -> for a conversation or special reply: EXPRESSION flow (emotion_reader -> gesture_builder), after the reply is final
+   -> ProfileRunner.run()       application/flows/profiles.py   (ONE profile: its flow, its models, its MCP servers)
+        the profile of the request (T-05.9; until then `default`) names one flow:
+           identification -> triage                                                      chat -> draft writer, editor
+           special, dynamics, default -> triage, project manager, safety gate, action executor, draft writer, editor
+           movement -> motion planner, motion validator                                  gesture -> emotion reader, gesture builder
    -> FlowResult(reply, movements, paused, flow, state, gesture)
+
    -> MessageReceivedResponseDTO -> contracts AIAgentMessageResponse (response, directives, awaiting_user_input, flow)
 ```
 
 Every flow is run by the same engine (`Pipeline`). A flow is only data: a name, its steps, and how to build its result.
-The engine knows no particular flow, and the flows never call each other: **only the router moves a message from one
-flow to the next**.
+The engine knows no particular flow, and the flows never call each other. **The service does not move a message from one flow to the next
+any more** (T-05.7, PR-005 section 2): the client does, by asking one profile after another (section 4.1).
 
 ## 2. The folders
 
@@ -59,7 +58,7 @@ Dependencies point inward: `domain` imports nothing of the application; `applica
 Five folders, each with one job (until 2026-11-02 they were the five folders of `application/orchestration/`, T-05.3). The dependencies go one way and `tests/test_orchestration_layout.py` keeps it so:
 
 ```text
-flows/          WHAT each agent is          one file per flow, the router, the registry, the action executor
+flows/          WHAT each agent is          one file per flow, `profiles.py` (the runner of one profile), the registry, the action executor
 steps/          the steps (the phases)      one phase per file, constants first; the registry; the catalog; the shape of a phase
 engine/         HOW any flow runs           Pipeline, Flow, PhaseRunner, clarification, answer check, `config_snapshot.py` (the configuration read once through `ConfigSourcePort`); knows no particular flow
 engine/state/   WHAT travels through a run  FlowState, MotionFlowState, PausedRun, FlowResult
@@ -84,29 +83,30 @@ declaration: the checks that need `reads` and `writes` skip them. Nothing serves
 
 | Flow | File | Steps | Answers | LLM calls |
 |---|---|---|---|---|
-| `identification` | `flows/identification.py` | triage | nothing: its state is what the router reads | 1 |
+| `identification` | `flows/identification.py` | triage | nothing: its `Response` is what the client reads (`default_return: full`) | 1 |
 | `conversation` | `flows/conversation.py` | draft writer, editor | a plain reply | 2 (3 with identification) |
 | `special` | `flows/special.py` | project manager, safety gate, action executor, draft writer, editor | a reply after planning and executing | 5 or more, plus one per action |
 | `movement` | `flows/movement.py` | motion planner, motion validator (plain code) | movements to run and a short spoken line | 1 (2 with identification) |
 
-### 4.1 The router (`flows/router.py`)
+### 4.1 One profile per message, and the client's chain (`flows/profiles.py`)
+
+The service runs the flow of **one profile** per message (`ProfileRunner.run`): the profile gives the flow, the models (its `ModelResolver`) and the MCP servers
+(`tools.servers`: a list is exactly those, an empty list is none, no `tools` is every configured server; the real scoping is T-05.13). Nothing routes. The
+**client** chains the profiles, and `tests/brain_chain.py` models that chain for the tests:
 
 ```text
-run(message, history, paused, speak_movements):
-  if a run is waiting for the user (paused):
-        resume the flow that stopped it (paused.flow); the message is its answer, nothing is identified again
-        (if that flow is identification and it now finished, continue as a new message below)
-  else:
-        result = identification.run(message)
-        if identification paused (triage needs a detail): return its question
-  flow = FLOW_BY_DOMAIN.get(task_category.domain, special)
-  state = flow.new_state(...); state.take_over(identification state)      # nothing is classified twice
-  return that flow's pipeline.run(state=state)
+identification(message)                      -> the Response (the classification); stops here if the triage asks the user
+domain = task_category.domain
+  communication -> chat(message, inputs=that Response)       movement -> movement(message)       anything else -> special(message)
+reply -> gesture(reply, message)             (not after movement: the user asked for movements, the robot does those)
 ```
 
-- `FLOW_BY_DOMAIN`: `communication` -> conversation, `movement` -> movement. Any other domain, or none, -> special.
+- Before T-05.9 the `inputs` of a profile are a state the caller builds (`ProfileRunner.run(..., state=...)`); the request carries none yet, and every message runs `default`.
+- `special` and `dynamics` start with their own triage: a client that asks `identification` and then `special` classifies twice, and the service does not report it.
+- A run that stopped to ask the user is resumed by the next message **of the same profile** (`PausedRun.flow`); another profile gets `ProfileMismatch` (T-05.9 turns it into `PROFILE_MISMATCH`).
 - The domain comes from triage (`task_category.domain`, an enum of nine values, defined in the schema and in
   `domain/value_objects/llm_response/task_category/domain.py`). The triage prompt tells the model what each value means.
+
 - `speak_movements` is Brain's setting. It is put in the movement flow's state for the message (also for a resumed run,
   so the answer to a question uses the setting of its own message).
 - `FlowResult.flow` and `FlowResult.state` say which flow answered and with which state; `PausedRun.flow` says which flow
@@ -169,7 +169,7 @@ the model sets of `model_sets/` through `ModelResolver` (`engine/support/model_s
 `Pipeline(outbound_port, mcp_list, metrics, mcp_tools, flow=...)` builds the steps of a flow once and then
 `run(message, history, paused, state)`:
 
-1. a paused run is resumed (`_resume`); otherwise a state is created (or the router's is used);
+1. a paused run is resumed (`_resume`); otherwise a state is created (or the caller's is used);
 2. each step runs (`_run_step`: a step whose answer says `retry` or `error` runs again, up to `AI_AGENT_MAX_ATTEMPTS`,
    then an `AgentFailure`);
 3. after a step, `pause_if` can stop the run (section 4.3); `Flow.jump_after` can jump to another step (no flow uses it today);
@@ -285,16 +285,17 @@ response mapper builds them from the LLM's JSON, one function per section.
 | `test_phase_structure.py` | one phase per file, every constant, every referenced file exists |
 | `test_schema_tree.py` | the schema tree matches `full.schema.json`, the motion enums match `ARMS` / `DIRECTIONS` |
 | `test_flow_golden.py` | every LLM call (model, prompts, messages, schema, sampling, tools) against `tests/golden/flow_golden.json` |
-| `test_router.py`, `test_flows.py`, `test_motion_flow.py`, `test_resume.py` | routing, flows, pausing and resuming |
+| `test_router.py`, `test_flows.py`, `test_motion_flow.py`, `test_resume.py` | the client's chain (`brain_chain.py`), flows, pausing and resuming |
+| `test_profiles.py` | the seven profiles, one profile per message, the tools and models of each, the resume rule |
 | `contracts/tests/e2e/` (workspace) | a real ai-agent process driven over HTTP and by Brain, with a scripted LLM |
 
 ## 13. How to extend it
 
 - **A new phase:** its file (constants first, then `register_step(__name__, kind)`) in `steps/<folder>/`, a step in its flow. Nothing else lists it.
-- **A new flow:** a file in `flows/` with its steps and result, its phase files, one line in `flows/registry.py`, and a line in
-  `FLOW_BY_DOMAIN` in `flows/router.py` (plus the domain in the schema and the triage prompt if it is a new one).
+- **A new flow:** a file in `flows/` with its steps and result, its phase files, one line in `flows/registry.py`, and a profile in `profiles/` that names it
+  (the client chooses the profile; the domain in the schema and the triage prompt only if it is a new one).
 - **A new domain value:** `schema/response/general/full.schema.json` (then `python scripts/split_schemas.py --write`),
-  `domain/value_objects/llm_response/task_category/domain.py`, the triage prompt, `FLOW_BY_DOMAIN`.
+  `domain/value_objects/llm_response/task_category/domain.py`, the triage prompt, and the client's table from domain to profile (`docs/api/api.md`).
 - **A new field in an answer:** the full schema, the prompt, the domain object and the response mapper, together
   (`rules/schemas-and-prompts.md`, section 4).
 - **A new provider:** a row in `infrastructure/outbound/llm/provider_models.py`, its key and URL in `VercelAIConfig`, its

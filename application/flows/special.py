@@ -1,8 +1,9 @@
 # ===============================================
 #  SPECIAL FLOW
 #  Everything that is not a plain reply and not a movement: a task that needs a plan, several steps, a document
-#  or a tool. Plan, check safety, execute the actions, write the draft, polish it. It starts from the state
-#  identification left (intent, goal, category).
+#  or a tool. Classify the message (the triage, so the profile works on its own), plan, check safety, execute the
+#  actions, write the draft, polish it. A client that already asked the `identification` profile may ask this one too:
+#  the triage then runs a second time (the client's knowledge, PR-005 section 3.3).
 # ===============================================
 
 from typing import List
@@ -10,6 +11,7 @@ from typing import List
 from application.engine.flow import Flow, FlowContext
 from application.flows.action_executor import ActionExecutor
 from application.steps.common import draft_writer, editor_in_chief
+from application.steps.identification import triage
 from application.steps.phase import PhaseSpec, Step
 from application.steps.special import project_manager, safety_gate
 from application.engine.state.flow_state import FlowState
@@ -32,6 +34,8 @@ def build_steps(context: FlowContext) -> List[Step]:
         return state.needs_user_input()
 
     return [
+        # 1 - Classifies the message: intent, goal, category (pauses to ask when a detail is missing).
+        Step(triage.STEP_NAME, llm_phase(triage.TRIAGE), pause_if=needs_user_input, phase_id=triage.PHASE_ID, retry_on_status=True),
         # 2 - Decomposes the goal into actions and identifies required inputs per action.
         Step(project_manager.STEP_NAME, llm_phase(project_manager.make_project_manager(context.mcp_list, context.mcp_tools)),
              pause_if=needs_user_input, phase_id=project_manager.PHASE_ID, retry_on_status=True),

@@ -37,12 +37,12 @@ Answer (`AIAgentMessageResponse`):
 |---|---|
 | `success` | `false` when the message could not be processed (unknown session, LLM failure) |
 | `response` | What to say. **Always speakable**: an apology when `success` is `false`. Empty only for a movement that goes ahead with `speak_movements` off; a refusal or a question is always said |
-| `directives` | The movements to run, in order: `[{arm, degrees, direction}]`. `degrees` is signed (left 90 then left -90 returns the arm). Set by the movement flow, and by the expression flow with `gesture: true` |
+| `directives` | The movements to run, in order: `[{arm, degrees, direction}]`. `degrees` is signed (left 90 then left -90 returns the arm). Set by the `movement` profile, and by the `gesture` profile with `gesture: true` |
 | `awaiting_user_input` | `true` when `response` is a question: the next message of the session is its answer |
-| `flow` | Which flow answered: `identification` (only when triage itself asks), `conversation`, `special` or `movement` |
+| `flow` | Which flow answered: `identification`, `conversation`, `special`, `movement` or `expression` (the flow of the profile that ran) |
 | `message`, `error_code` | The technical reason of a failure and a code |
 
-A gesture (`directives` with `gesture: true`, `pause_seconds` between movements) goes with a conversation or special reply when `AI_AGENT_EXPRESSION` is on. It is never required: if the expression flow fails or the validator refuses the gesture, the reply goes out without one. Brain starts it when the robot starts to speak. A movement the user asked for gets no gesture.
+**Until the request carries a profile (T-05.9, planned) every message runs the profile `default`** (triage, plan, check, execute, write, edit, with no tools): the service no longer chooses between a conversation, a task and a movement, and adds no gesture to a reply. A client that wants those asks the profile itself, by the chain of `docs/architecture/architecture.md` section 4.1 (`identification`, then `chat`, `special` or `movement` by `task_category.domain`, then `gesture`). A gesture (`directives` with `gesture: true`, `pause_seconds` between movements) is the answer of the `gesture` profile and is never required. Brain starts it when the robot starts to speak.
 
 ## Sessions
 

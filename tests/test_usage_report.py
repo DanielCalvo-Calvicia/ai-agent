@@ -191,7 +191,7 @@ class TestTheChatName:
             self.seen.append((session_id, details.message if details else None))
 
     def service(self, recorder):
-        from application.service.session_service import SessionService
+        from brain_chain import ChainedSessionService as SessionService
         from test_flow_golden import ScriptedLLM
         return SessionService(outbound_port=ScriptedLLM(), usage_reporter=recorder)
 

@@ -1,22 +1,17 @@
 # ===============================================
 #  EXPRESSION SETTINGS
-#  The environment variables of the expression flow (the arm gesture that goes with a spoken reply).
+#  The environment variables of the expression flow (the arm gesture that goes with a spoken reply): how fast the robot talks and
+#  the seed of the random gesture. Whether a reply gets a gesture is the client's choice now: it asks the `gesture` profile (T-05.7).
 # ===============================================
 
 import os
 import random
 from typing import Optional
 
-EXPRESSION_VARIABLE = "AI_AGENT_EXPRESSION"                       # 1 (default) = gestures on, 0 = off
 CHARS_PER_SECOND_VARIABLE = "AI_AGENT_SPEECH_CHARS_PER_SECOND"    # how fast the robot talks, to size the gesture
 SEED_VARIABLE = "AI_AGENT_EXPRESSION_SEED"                        # a number makes the gestures repeatable (tests)
 
 DEFAULT_CHARS_PER_SECOND = 14.0
-_FALSE = ("0", "false", "no", "off")
-
-
-def expression_enabled() -> bool:
-    return os.environ.get(EXPRESSION_VARIABLE, "1").strip().lower() not in _FALSE
 
 
 def chars_per_second() -> float:

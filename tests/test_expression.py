@@ -17,7 +17,7 @@ if PROJECT_ROOT not in sys.path:
 
 from application.inbound.dto.session import MessageReceivedResponseDTO
 from application.flows.expression import EXPRESSION_FLOW
-from application.flows.router import EXPRESSIVE_FLOWS, AgentRouter
+from brain_chain import EXPRESSIVE_FLOWS, AgentRouter
 from application.steps.expression import emotion_reader, gesture_builder
 from application.steps.movement import motion_validator as validator
 from application.engine.state.expression_state import ExpressionFlowState
@@ -173,12 +173,17 @@ class TestEmotionReaderPhase:
 
 
 class TestSettings:
-    def test_it_is_on_unless_switched_off(self, monkeypatch):
+    def test_the_service_has_no_switch_for_the_gesture_any_more(self):
+        # the client asks the `gesture` profile; the knob of the tests' model of the client lives in tests/brain_chain.py
+        assert not hasattr(expression_settings, "expression_enabled") and not hasattr(expression_settings, "EXPRESSION_VARIABLE")
+
+    def test_the_knob_of_the_tests_model_of_the_client_is_on_unless_switched_off(self, monkeypatch):
+        from brain_chain import expression_enabled
         monkeypatch.delenv("AI_AGENT_EXPRESSION", raising=False)
-        assert expression_settings.expression_enabled() is True
+        assert expression_enabled() is True
         for off in ("0", "false", "No", "OFF"):
             monkeypatch.setenv("AI_AGENT_EXPRESSION", off)
-            assert expression_settings.expression_enabled() is False
+            assert expression_enabled() is False
 
     def test_the_speech_length_comes_from_the_text_and_the_speaking_rate(self, monkeypatch):
         monkeypatch.delenv("AI_AGENT_SPEECH_CHARS_PER_SECOND", raising=False)

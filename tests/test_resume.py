@@ -17,7 +17,7 @@ from application.inbound.dto.session import MessageReceivedRequestDTO, StartSess
 from application.engine.answer_check import AnswerChecker, Check, FALLBACK_MESSAGE
 from application.engine.state.paused_run import CONFIRMATION, INPUT
 from application.engine.pipeline import DECLINED_TEXT, STOPPED_TEXT
-from application.service.session_service import SessionService
+from brain_chain import ChainedSessionService as SessionService
 
 from test_flow_golden import GATE, PM, TRIAGE, ScriptedLLM, _action, _plan
 

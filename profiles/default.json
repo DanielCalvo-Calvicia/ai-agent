@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "name": "default",
+  "about": "What a request with no profile gets (no token): triage, plan, check, execute, write, edit, with no tools. A plain conversation is the `chat` profile.",
+  "flow": "special",
+  "models": "proven",
+  "tools": {
+    "servers": []
+  },
+  "tested": null
+}

@@ -18,7 +18,7 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from application.engine.support.model_selection import ModelResolver
-from application.service.session_service import SessionService
+from brain_chain import ChainedSessionService as SessionService
 from application.system_prompts.general import LoadSystemPrompt
 from domain.entities.llm_request.payload import Payload
 from domain.entities.llm_response.response import Response

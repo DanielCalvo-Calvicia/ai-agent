@@ -26,7 +26,7 @@ if PROJECT_ROOT not in sys.path:
 
 from application.inbound.dto.message import TextRequestDTO
 from application.outbound.ports.llm_ports import LLMOutboundPort
-from application.service.message_flow_service import MessageFlowService
+from brain_chain import ChainedMessageFlowService as MessageFlowService
 from domain.entities.llm_request.payload import Payload
 from domain.entities.llm_response.response import Response
 from infrastructure.outbound.llm.response_mapper import build_response as _build_response

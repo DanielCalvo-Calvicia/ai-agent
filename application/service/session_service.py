@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional
 
 from application.inbound.dto.message import TextRequestDTO
 from application.engine.support.failure import UNKNOWN_SESSION_APOLOGY, apology_for_unexpected, classify
-from application.engine.support.model_selection import ModelResolver
+from application.engine.assemble import DEFAULT_PROFILE, Agent
 from application.inbound.dto.session import (
     EndSessionRequestDTO,
     EndSessionResponseDTO,
@@ -44,9 +44,11 @@ class SessionService(SessionInboundPort):
         history_turns: int = 6,
         mcp_tools: Optional[McpToolsPort] = None,
         usage_reporter: Optional[UsageReporterPort] = None,
-        models: Optional[ModelResolver] = None,
+        agent: Optional[Agent] = None,
+        profile: str = DEFAULT_PROFILE,
     ) -> None:
-        self.models = models
+        self.agent = agent
+        self.profile = profile
         self.usage_reporter = usage_reporter
         self.llm_adapter = outbound_port
         self.message_service_type = message_service_type
@@ -103,8 +105,9 @@ class SessionService(SessionInboundPort):
 
     def _run_agent(self, request: MessageReceivedRequestDTO, user_session: UserSession):
         extra = {"usage_reporter": self.usage_reporter} if self.usage_reporter is not None else {}
-        if self.models is not None:
-            extra["models"] = self.models
+        if self.agent is not None:
+            extra["agent"] = self.agent
+            extra["profile"] = self.profile
         agent: MessageInboundPort = self.message_service_type(
             outbound_port=self.llm_adapter,
             mcp_list=self.mcp_list,

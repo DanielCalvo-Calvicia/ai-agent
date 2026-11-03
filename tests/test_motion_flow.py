@@ -17,12 +17,12 @@ if PROJECT_ROOT not in sys.path:
 
 from application.flows.movement import MOVEMENT_FLOW
 from application.flows.registry import FLOWS
-from application.flows.router import AgentRouter
+from brain_chain import AgentRouter
 from application.engine.support.metrics import SessionMetrics
 from application.engine.support.model_selection import ModelResolver
 from application.steps.movement import motion_validator as validator
 from application.engine.pipeline import Pipeline
-from application.service.session_service import SessionService
+from brain_chain import ChainedSessionService as SessionService
 from application.system_prompts.general import build_system_prompt
 from domain.value_objects.llm_request.model import GoogleModels
 from domain.value_objects.movement.movement import Movement

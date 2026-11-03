@@ -125,14 +125,14 @@ Verified on 2026-10-27 against both projects.
 | [T-04.1](T-04_llm-resilience/T-04.1_decisions.md) | Decisions | decision | done (2026-10-29) |
 | [T-04.2](T-04_llm-resilience/T-04.2_wait-and-fallback.md) | Wait, fallback models and the runner | code | done (2026-10-29) |
 | [T-04.3](T-04_llm-resilience/T-04.3_tests-and-documentation.md) | Tests and documentation | test | done (2026-10-29) |
-| [T-05](T-05_profiles-flows-steps/T-05_profiles-flows-steps.md) | **Structure: profiles, flows and steps as three pluggable layers** (epic) | epic | in-progress (T-05.1 to T-05.6 done on 2026-11-02; plan in [PR-005](../proposals/PR-005-flows-steps-profiles.md)) |
+| [T-05](T-05_profiles-flows-steps/T-05_profiles-flows-steps.md) | **Structure: profiles, flows and steps as three pluggable layers** (epic) | epic | in-progress (T-05.1 to T-05.7 done on 2026-11-02 and 2026-11-03; plan in [PR-005](../proposals/PR-005-flows-steps-profiles.md)) |
 | [T-05.1](T-05_profiles-flows-steps/T-05.1_decisions.md) | Decisions | decision | done (2026-11-02) |
 | [T-05.2](T-05_profiles-flows-steps/T-05.2_step-registry.md) | Step registry | code | done (2026-11-02) |
 | [T-05.3](T-05_profiles-flows-steps/T-05.3_folder-layout.md) | Folder layout | code | done (2026-11-02) |
 | [T-05.4](T-05_profiles-flows-steps/T-05.4_config-source.md) | Config source port and file loader | code | done (2026-11-02) |
 | [T-05.5](T-05_profiles-flows-steps/T-05.5_model-sets-and-resolution.md) | Model sets, profile files and model resolution | code | done (2026-11-02) |
 | [T-05.6](T-05_profiles-flows-steps/T-05.6_assemble.md) | assemble() and its checks | code | done (2026-11-02) |
-| [T-05.7](T-05_profiles-flows-steps/T-05.7_profiles-of-todays-flows.md) | The profiles of today's flows | code | todo |
+| [T-05.7](T-05_profiles-flows-steps/T-05.7_profiles-of-todays-flows.md) | The profiles of today's flows | code | done (2026-11-03) |
 | [T-05.8](T-05_profiles-flows-steps/T-05.8_session-responses.md) | Session list of Response | code | todo |
 | [T-05.9](T-05_profiles-flows-steps/T-05.9_api.md) | API: profile, token, inputs, return, pause_id | code | todo |
 | [T-05.10](T-05_profiles-flows-steps/T-05.10_tests-and-golden.md) | Tests and golden of the profiles | test | todo |

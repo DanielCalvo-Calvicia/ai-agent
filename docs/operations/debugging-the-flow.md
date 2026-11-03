@@ -11,13 +11,13 @@ The tools run the **text chain as one flow**: `FULL_FLOW` in `tests/flow_trace.p
 by the special flow's steps (triage, project manager, safety gate, action executor, draft writer, editor). That is the
 chain a task goes through, and it lets you trace and re-run each step on its own.
 
-They do **not** go through the router, so they do not show the routing to the conversation or movement flow, and they never
+They run ONE flow (all the text steps as one), so they do not show the chain of profiles the client makes, and they never
 run the movement flow's steps. For those:
 
-- routing, flows and pausing: `tests/test_router.py`, `tests/test_flows.py`, `tests/test_motion_flow.py`, `tests/test_resume.py`;
+- the client's chain, flows and pausing: `tests/test_router.py` (the chain is `tests/brain_chain.py`), `tests/test_profiles.py`, `tests/test_flows.py`, `tests/test_motion_flow.py`, `tests/test_resume.py`;
 - a real process over HTTP with a scripted LLM: `contracts/tests/e2e/test_flow_separation.py` and
   `test_brain_ai_agent_flows.py` (workspace root);
-- the router with a real LLM: `tests/manual/chat_session.py` or `full_flow_real_llm.py` (they send messages through the whole
+- the whole chain with a real LLM: `tests/manual/chat_session.py` or `full_flow_real_llm.py` (they send messages through the whole
   agent; they cost money).
 
 The step names to use with `--only` and `--step`: `triage_specialist`, `project_manager`, `safety_quality_gatekeeper`,
@@ -90,7 +90,7 @@ Search for the names, not for line numbers (they move):
 | Where | File and function |
 |---|---|
 | a step is about to run | `application/engine/pipeline.py`, `Pipeline._run_step` (the `step.run(state)` line) |
-| the router moves a message to a flow | `application/flows/router.py`, `AgentRouter._answer` |
+| a profile starts its flow | `application/flows/profiles.py`, `ProfileRunner.run` |
 | the answer just became a `Response` (every phase) | `application/engine/phase_runner.py`, `PhaseRunner.send`, right after `self.outbound_port.ask(payload)` |
 | the `Response` is built from the JSON | `infrastructure/outbound/llm/response_mapper.py`, `build_response` |
 | the response is loaded into the state | the `apply` of the phase (`_apply` in its file; triage uses `FlowState.load_from`), called from the flow's `llm_phase` |

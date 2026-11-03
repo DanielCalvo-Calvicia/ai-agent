@@ -32,7 +32,7 @@ copy .env.example .env          # fill in at least one provider key and its URL;
 - When ai-agent runs **inside the Kubernetes network** (a web chat as the client), the value becomes a cluster service name: change the variable, nothing else. That step is documented here, not built.
 - The Go service is started with `MCP_EXPOSE_GENERIC_TOOLS=false` (the agent only needs the workflows; ai-agent also hides every tool outside `allowed_tools`) and with its own `MCP_ENVIRONMENT` and `MCP_COMPANY` (the sandbox): ai-agent never sends an environment or a company.
 - Neither service authenticates yet; see [security](../security/security.md).
-- A deployment with **no robot connected** (a web chat) sets `AI_AGENT_EXPRESSION=0`: the expression flow would spend one more model call per reply on a gesture nobody runs.
+- A deployment with **no robot connected** (a web chat) never asks the `gesture` profile: the service adds no gesture to a reply any more (T-05.7), so there is no variable to turn off.
 - Model: the profile `claude_sonnet` (one Claude Sonnet model on every step) needs `ANTHROPIC_API_KEY`; it is not the active profile until the maintainer sets `profile` after the first real run.
 
 ## State

@@ -27,10 +27,10 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from application.inbound.dto.session import MessageReceivedRequestDTO, StartSessionRequestDTO
-from application.flows.router import AgentRouter
+from brain_chain import AgentRouter
 from application.engine.support.mcp_servers import describe_servers, server_names
 from application.engine.support.metrics import SessionMetrics
-from application.service.session_service import SessionService
+from brain_chain import ChainedSessionService as SessionService
 from application.system_prompts.general import LoadCapabilities, LoadSystemPrompt
 from infrastructure.outbound.mcp.client_manager import MCPClientManager
 from infrastructure.outbound.mcp.config import load_supported_mcp_configs

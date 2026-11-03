@@ -25,8 +25,8 @@ POST /session/message
                                               executor -> 7 draft writer -> 8 editor                    execute, write
 ```
 
-- The flows never call each other. `AgentRouter` (`application/flows/router.py`) hands the identification
-  state to the chosen flow, so nothing is classified twice.
+- The flows never call each other and the service does not choose between them: a request runs the flow of ONE profile
+  (`application/flows/profiles.py`); the client asks `identification` and then the profile that answers (T-05.7).
 - A flow that asks the user a question is **resumed by the next message** (the answer), without identifying it again.
 - A greeting costs 3 LLM calls, a movement 2, a task 5 or more (one per action, plus one per tool result).
 - Only the movement flow returns movements. Whether a movement that goes ahead is announced out loud is Brain's setting,
@@ -120,7 +120,7 @@ All run without keys, network or cost (about 880 tests, a few minutes).
 
 | File | Covers |
 |---|---|
-| `test_router.py`, `test_flows.py`, `test_motion_flow.py` | the routing by domain, the four flows, the routes, the movement flow and its validator |
+| `test_router.py`, `test_flows.py`, `test_motion_flow.py` | the client's chain (the old routing, tests/brain_chain.py), the flows, the routes, the movement flow and its validator |
 | `test_resume.py` | pausing to ask the user and resuming (answers, confirmations, stop) |
 | `test_flow_golden.py` | every LLM call of the pipeline (model, prompts, messages, schema, sampling, tools) against `tests/golden/flow_golden.json` |
 | `test_flow_objects.py` (with `flow_trace.py`) | the real steps traced to files; which step writes which field |
@@ -146,7 +146,7 @@ Open:
 3. **stdio MCP servers** (`fetch`, `filesystem`) are not supported, but the project manager is still told they exist, so it may plan
    actions that cannot run. `mcps/aws_microservice.json` (SSE, hardcoded to `http://localhost:8080/mcp/sse`) is used by nothing; the Dynamics tools are `mcps/dynamics_microservice.json` (Streamable HTTP, the URL in `DYNAMICS_MCP_URL`).
 4. **Langfuse receives the user's text and the prompts** (not only metadata) when its keys are set. Use a project you trust.
-5. `SessionService` builds a `MessageFlowService` (a router and four pipelines) per message. It is cheap, but it is not "once".
+5. `SessionService` builds a `MessageFlowService` (a `ProfileRunner` and the pipeline of one profile) per message. It is cheap, but it is not "once".
 6. `constraints`, `mcp_routing` and `missing_information` are in the schemas and the domain but no phase writes them; `next_step.retry_action_id`
    is read but nothing acts on it.
 7. The movement flow was exercised only with scripted LLMs and fake hardware (never a real LLM or a real stepper).

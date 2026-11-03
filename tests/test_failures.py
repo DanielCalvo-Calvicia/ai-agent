@@ -20,7 +20,7 @@ from application.engine.support.failure import (
 )
 from application.engine.support.metrics import SessionMetrics
 from application.engine.phase_runner import PhaseRunner
-from application.service.session_service import SessionService
+from brain_chain import ChainedSessionService as SessionService
 from domain.entities.llm_request.payload import Payload
 from infrastructure.outbound.llm.response_mapper import build_response
 

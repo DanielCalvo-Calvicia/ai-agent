@@ -40,7 +40,6 @@ from infrastructure.outbound.usage.langfuse import LangfuseUsageReporter
 from application.engine.assemble import assemble
 from application.engine.config_snapshot import build_snapshot
 from application.flows.registry import FLOWS
-from application.engine.support.model_selection import DEFAULT_MODEL_SET, ModelResolver
 from application.service.session_service import SessionService
 
 # -----------------------------------------------
@@ -83,9 +82,6 @@ def CreateApp() -> FastAPI:
             get_logger(__name__).error("Configuration problem", file=file, problem=message)
     for profile in agent.disabled():
         get_logger(__name__).error("Profile disabled", profile=profile)
-    # Until profiles choose (T-05.7) there is one agent for the whole service: it runs on the model set `proven`, the profile that
-    # was active in config/step_models.json. A model set that is missing or wrong stops the start, with a message that names it.
-    modelResolver = ModelResolver({"models": DEFAULT_MODEL_SET}, configSnapshot.model_sets)
     get_logger(__name__).info("Configuration loaded", profiles=len(configSnapshot.profiles), flows=len(configSnapshot.flows),
                               step_defs=len(configSnapshot.step_defs), model_sets=len(configSnapshot.model_sets),
                               profiles_ready=len(agent.profiles))
@@ -110,7 +106,7 @@ def CreateApp() -> FastAPI:
         mcp_tools=toolExecutor,
         history_turns=int(os.environ.get("AI_AGENT_HISTORY_TURNS", "6")),
         usage_reporter=usageReporter,
-        models=modelResolver,
+        agent=agent,
     )
 
     # Step 3: FastAPI application

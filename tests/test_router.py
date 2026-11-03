@@ -16,7 +16,7 @@ if PROJECT_ROOT not in sys.path:
 
 from application.flows.conversation import CONVERSATION_FLOW
 from application.flows.movement import MOVEMENT_FLOW
-from application.flows.router import AgentRouter, DEFAULT_FLOW, FLOW_BY_DOMAIN, flow_for
+from brain_chain import AgentRouter, DEFAULT_FLOW, FLOW_BY_DOMAIN, flow_for
 from application.flows.special import SPECIAL_FLOW
 from application.engine.state.flow_state import FlowState
 from application.engine.support.metrics import SessionMetrics

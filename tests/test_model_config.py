@@ -204,7 +204,7 @@ class TestReachesTheCalls:
         resolver = ModelResolver({"overrides": {step: {"models": [model]} for step, model in models.items()}})
         scenario = SCENARIOS["full_path_with_mcp"]
         llm = ScriptedLLM(**scenario["llm"])
-        from application.service.message_flow_service import MessageFlowService
+        from brain_chain import ChainedMessageFlowService as MessageFlowService
         from application.inbound.dto.message import TextRequestDTO
         MessageFlowService(outbound_port=llm, mcp_list=MCP_LIST, models=resolver).text(
             TextRequestDTO(user_id="tester", session_id="s", content=scenario["message"]))
@@ -219,7 +219,7 @@ class TestReachesTheCalls:
             "editor_in_chief": {"models": ["gemini-3.8-flash"]}}}}})
         scenario = SCENARIOS["full_path_with_mcp"]
         llm = ScriptedLLM(**scenario["llm"])
-        from application.service.message_flow_service import MessageFlowService
+        from brain_chain import ChainedMessageFlowService as MessageFlowService
         from application.inbound.dto.message import TextRequestDTO
         MessageFlowService(outbound_port=llm, mcp_list=MCP_LIST, models=resolver).text(
             TextRequestDTO(user_id="tester", session_id="s", content=scenario["message"]))
@@ -231,7 +231,7 @@ class TestReachesTheCalls:
         resolver = ModelResolver({"overrides": {"answer_checker": {"models": ["gemini-3.1-flash-lite"]},
                                                 "user_clarification": {"models": ["gemini-3.5-flash-lite"]}}})
         from application.inbound.dto.session import MessageReceivedRequestDTO, StartSessionRequestDTO
-        from application.service.session_service import SessionService
+        from brain_chain import ChainedSessionService as SessionService
         from test_resume import CHECK, TRIAGE_ASKS, TRIAGE_OK, Script, _verdict
         from test_flow_golden import TRIAGE as TRIAGE_FORMAT
         llm = ScriptedLLM(overrides={TRIAGE_FORMAT: Script(TRIAGE_ASKS, TRIAGE_OK),
@@ -247,7 +247,7 @@ class TestReachesTheCalls:
     def test_without_a_resolver_the_defaults_of_the_code_are_used(self):
         scenario = SCENARIOS["full_path_with_mcp"]
         llm = ScriptedLLM(**scenario["llm"])
-        from application.service.message_flow_service import MessageFlowService
+        from brain_chain import ChainedMessageFlowService as MessageFlowService
         from application.inbound.dto.message import TextRequestDTO
         MessageFlowService(outbound_port=llm, mcp_list=MCP_LIST).text(
             TextRequestDTO(user_id="tester", session_id="s", content=scenario["message"]))

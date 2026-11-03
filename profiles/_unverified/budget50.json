@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "name": "budget50",
+  "about": "The old model table `budget50` on the `default` flow, as a generic profile. Not loaded: it is tested with the real-run command (T-05.17) and the maintainer keeps or deletes it.",
+  "token_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "flow": "special",
+  "models": "budget50",
+  "tools": {
+    "servers": []
+  },
+  "tested": null
+}
