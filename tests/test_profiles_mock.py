@@ -8,7 +8,6 @@ import pytest
 from application.engine.assemble import Agent, assemble
 from application.engine.config_snapshot import build_snapshot
 from application.engine.profile_access import sha256_hex
-from application.flows.registry import FLOWS
 from application.inbound.dto.message import TextRequestDTO
 from application.inbound.dto.session import MessageReceivedRequestDTO, StartSessionRequestDTO
 from application.service.message_flow_service import MessageFlowService
@@ -25,7 +24,7 @@ SERVERS = [{"name": "dynamics_microservice", "type": "streamable_http", "config"
 
 @pytest.fixture(scope="module")
 def agent():
-    built = assemble(build_snapshot(FileConfigSource(PROJECT_ROOT)), known_flows={flow.name for flow in FLOWS})
+    built = assemble(build_snapshot(FileConfigSource(PROJECT_ROOT)))
     built.raise_on_errors()
     profiles = {}
     for name, profile in built.profiles.items():
@@ -33,7 +32,7 @@ def agent():
         if name != "default":
             definition["token_sha256"] = sha256_hex(f"{name}-token")
         profiles[name] = dataclasses.replace(profile, definition=definition)
-    return Agent(profiles, {})
+    return Agent(profiles, {}, built.flows)
 
 
 def run(agent, profile, scenario="full_path_with_mcp"):

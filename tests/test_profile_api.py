@@ -12,7 +12,6 @@ from application.engine.config_snapshot import build_snapshot
 from application.engine.profile_access import NO_HASH, check_access, sha256_hex
 from application.engine.profile_inputs import INVALID_INPUT, MISSING_INPUT, InputsError, read_inputs
 from application.engine.state.response_json import response_to_json
-from application.flows.registry import FLOWS
 from application.inbound.dto.session import MessageReceivedRequestDTO, StartSessionRequestDTO
 from application.service.session_service import SessionService
 from infrastructure.inbound.http.fastapi import SessionFastAPI
@@ -32,7 +31,7 @@ TOKENS = {"special": "special-token", "chat": "chat-token", "identification": "i
 @pytest.fixture(scope="module")
 def agent():
     """The real profiles, each with the SHA-256 of a known token instead of the placeholder."""
-    built = assemble(build_snapshot(FileConfigSource(PROJECT_ROOT)), known_flows={flow.name for flow in FLOWS})
+    built = assemble(build_snapshot(FileConfigSource(PROJECT_ROOT)))
     built.raise_on_errors()
     profiles = {}
     for name, profile in built.profiles.items():
@@ -40,7 +39,7 @@ def agent():
         if name in TOKENS:
             definition["token_sha256"] = sha256_hex(TOKENS[name])
         profiles[name] = dataclasses.replace(profile, definition=definition)
-    return Agent(profiles, {})
+    return Agent(profiles, {}, built.flows)
 
 
 def service(llm, agent, **kwargs):
@@ -77,13 +76,13 @@ class TestProfileAccess:
         assert check_access(agent, "special", "bad").reason == "wrong_token"
 
     def test_a_placeholder_hash_opens_for_nobody_not_even_the_empty_token(self):
-        built = assemble(build_snapshot(FileConfigSource(PROJECT_ROOT)), known_flows={flow.name for flow in FLOWS})
+        built = assemble(build_snapshot(FileConfigSource(PROJECT_ROOT)))
         assert built.profile("special").definition["token_sha256"] == NO_HASH
         for token in ("", "0", NO_HASH, "special-token"):
             assert not check_access(built, "special", token).allowed
 
     def test_a_disabled_profile_is_refused_like_an_unknown_one(self, agent):
-        smaller = Agent({n: p for n, p in agent.profiles.items() if n != "special"}, {})
+        smaller = Agent({n: p for n, p in agent.profiles.items() if n != "special"}, {}, agent.flows)
         assert check_access(smaller, "special", "special-token").reason == "unknown_or_disabled_profile"
 
     def test_no_agent_refuses_everything(self):
@@ -228,7 +227,7 @@ class TestInputs:
     def test_the_output_of_a_plan_can_be_read_back_unchanged(self):
         from application.engine.pipeline import Pipeline
         from application.engine.support.metrics import SessionMetrics
-        from application.flows.special import SPECIAL_FLOW
+        from flow_files import SPECIAL_FLOW
         from test_flow_golden import MCP_LIST
         scenario = SCENARIOS["action_with_subactions"]
         state = Pipeline(ScriptedLLM(**scenario["llm"]), MCP_LIST, SessionMetrics(), flow=SPECIAL_FLOW).run(scenario["message"]).state

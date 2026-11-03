@@ -1,13 +1,12 @@
 """
 The layout of application/ says what each folder is for, and the dependencies go one way:
 
-    flows   ->  engine, steps, state, support
-    engine  ->  steps (the shape of a step, the shared steps), state, support        (never a flow)
+    engine  ->  steps (the shape of a step, the shared steps), state, support        (a flow is a file: flows/<name>.json, T-05.12)
     steps   ->  state, support                                                       (never a flow or the engine)
     engine/state, engine/support -> nothing of the above (support only reads the step catalog)
 
 `state` and `support` are the base and live inside engine/ (application/engine/state, application/engine/support).
-These tests keep it so. A new flow goes in flows/ and its steps in steps/<group>/; the engine never has to know it.
+These tests keep it so. A new flow is a file in flows/ and its steps are in steps/<group>/; the engine never has to know it.
 """
 import ast
 import os

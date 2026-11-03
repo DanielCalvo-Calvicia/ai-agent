@@ -14,10 +14,10 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.flows.conversation import CONVERSATION_FLOW
-from application.flows.movement import MOVEMENT_FLOW
+from flow_files import CONVERSATION_FLOW
+from flow_files import MOVEMENT_FLOW
 from brain_chain import AgentRouter, DEFAULT_FLOW, FLOW_BY_DOMAIN, flow_for
-from application.flows.special import SPECIAL_FLOW
+from flow_files import SPECIAL_FLOW
 from application.engine.state.flow_state import FlowState
 from application.engine.support.metrics import SessionMetrics
 from application.engine.support.schemas import load_schema_file

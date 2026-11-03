@@ -4,8 +4,7 @@
 #  MCP servers; the service does not choose between flows any more: the client asks a profile and chains them itself
 #  (PR-005 section 2). A run that stopped to ask the user is resumed by the next message of the same profile.
 #
-#  Until flows are files (T-05.12) a profile names a Python flow of flows/registry.py; and until the API carries the profile
-#  (T-05.9) the service runs `default` for every message.
+#  A profile names a flow file (flows/<name>.json); the Agent holds the Flow built from each one (assemble.py).
 # ===============================================
 
 from typing import Iterable, List, Optional
@@ -19,7 +18,6 @@ from application.engine.state.motion_state import MotionFlowState
 from application.engine.state.paused_run import FlowResult, PausedRun
 from application.engine.support.expression_settings import speech_seconds
 from application.engine.support.metrics import SessionMetrics
-from application.flows.registry import FLOWS
 from application.outbound.ports.llm_ports import LLMOutboundPort
 from application.outbound.ports.mcp_ports import McpToolsPort
 from domain.value_objects.llm_request.message import Message
@@ -44,7 +42,7 @@ class ProfileRunner:
         self.metrics = metrics
         self.mcp_tools = mcp_tools
         self.agent = agent
-        self.flows = {flow.name: flow for flow in (flows if flows is not None else FLOWS)}
+        self.flows = {flow.name: flow for flow in (flows if flows is not None else (agent.flows.values() if agent else []))}
 
     def run(
         self,

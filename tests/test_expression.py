@@ -16,7 +16,7 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from application.inbound.dto.session import MessageReceivedResponseDTO
-from application.flows.expression import EXPRESSION_FLOW
+from flow_files import EXPRESSION_FLOW
 from brain_chain import EXPRESSIVE_FLOWS, AgentRouter
 from application.steps.expression import emotion_reader, gesture_builder
 from application.steps.movement import motion_validator as validator

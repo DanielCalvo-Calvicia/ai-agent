@@ -140,7 +140,7 @@ class TestAGoodAgent:
 
     def test_the_repository_itself_assembles(self):
         snapshot = build_snapshot(FileConfigSource(PROJECT_ROOT))
-        agent = assemble(snapshot, known_flows={"conversation", "special", "movement", "identification", "expression"},
+        agent = assemble(snapshot,
                          mcp_servers=load_tool_snapshot(), schema_rules=SCHEMA_RULES)
         agent.raise_on_errors()
 

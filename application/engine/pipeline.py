@@ -4,8 +4,8 @@
 #  ask the user when a step leaves the flow waiting. The next
 #  message of the user is checked as the answer, and the flow
 #  continues from the step that was waiting.
-#  It knows nothing about a particular agent: the steps, the jumps and the
-#  result come from the Flow it is given.
+#  It knows nothing about a particular flow: the steps, the jumps, the result and
+#  the hooks for a question to the user (`on_pause`, `on_resume`) come from the Flow it is given.
 # ===============================================
 
 from typing import List, Optional
@@ -19,6 +19,7 @@ from application.engine.support.mcp_servers import server_names
 from application.engine.support.metrics import SessionMetrics
 from application.engine.support.model_selection import ModelResolver
 from application.engine.state.paused_run import CONFIRMATION, INPUT, FlowResult, PausedRun
+from application.steps.hooks import ANSWER_CHECKER, USER_CLARIFICATION
 from application.steps.phase import Step
 from application.engine.phase_runner import PhaseRunner
 from application.outbound.ports.llm_ports import LLMOutboundPort
@@ -79,6 +80,8 @@ class Pipeline:
             self._run_step(step, state)
 
             if step.pause_if and step.pause_if(state):
+                if self.flow.on_pause != USER_CLARIFICATION:
+                    raise ValueError(f"flow {self.flow.name!r}: step {step.name!r} can ask the user, but the flow has no on_pause hook")
                 kind = CONFIRMATION if state.needs_confirmation() else INPUT
                 question = self.clarifier.ask(state)
                 return self._tag(FlowResult(
@@ -110,6 +113,8 @@ class Pipeline:
     # -----------------------------------------------
 
     def _resume(self, paused: PausedRun, message: str, history: List[Message]) -> FlowResult:
+        if self.flow.on_resume != ANSWER_CHECKER:
+            raise ValueError(f"flow {self.flow.name!r} has no on_resume hook: it cannot be resumed")
         check = self.answer_checker.check(paused, message)
 
         if check.verdict == STOP:

@@ -68,3 +68,9 @@ def _build_input(state, mcp_list: list, mcp_tools: Optional[McpToolsPort]) -> di
 def _apply(state, response):
     state.actions = response.actions
     state.next_step = response.next_step
+
+
+def build_step(runner, mcp_list: list, mcp_tools: Optional[McpToolsPort] = None):
+    """The function a flow runs for this step (steps/build.py): its schema takes the names of the MCP servers."""
+    spec = make_project_manager(mcp_list, mcp_tools)
+    return lambda state: spec.apply(state, runner.run_phase(spec, state))

@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | in-progress (created 2026-11-02; T-05.1 to T-05.10 done) |
+| Status | in-progress (created 2026-11-02; T-05.1 to T-05.10 and T-05.12 done) |
 | Kind | epic |
 | Parent | project |
 | Depends on | — (T-01 to T-04 are done) |
@@ -41,7 +41,7 @@ A client asks a **profile** on every request; a profile names one flow (or an or
 | 9 | [T-05.9 API: profile, token, inputs, return, pause_id](T-05.9_api.md) | code | done (2026-11-03) |
 | 10 | [T-05.10 Tests and golden of the profiles](T-05.10_tests-and-golden.md) | test | done (2026-11-03) |
 | 11 | [T-05.11 First real run: the `special` profile](T-05.11_first-real-run.md) | manual | todo |
-| 12 | [T-05.12 Flows as JSON](T-05.12_flows-as-json.md) | code | todo |
+| 12 | [T-05.12 Flows as JSON](T-05.12_flows-as-json.md) | code | done (2026-11-03) |
 | 13 | [T-05.13 Tool scoping](T-05.13_tool-scoping.md) | code | todo |
 | 14 | [T-05.14 Prompts per profile](T-05.14_prompts-per-profile.md) | code | todo |
 | 15 | [T-05.15 Metrics, profile hash and reserved data fields](T-05.15_metrics-and-hash.md) | code | todo |

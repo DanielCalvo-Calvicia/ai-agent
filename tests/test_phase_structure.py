@@ -92,14 +92,14 @@ class TestCatalog:
         assert len(self.ALL) == len(PHASE_FILES)
 
     def test_the_order_is_the_text_flows_first_then_movement_then_expression(self):
-        assert [e.legacy_id for e in self.ALL] == [1, 2, 3, 4, 5, 6, 7, 8, 9, 99, 20, 21, 30, 31]
+        assert [e.legacy_id for e in self.ALL] == [1, 2, 3, 4, 5, 6, 7, 8, 9, 40, 99, 20, 21, 30, 31]
 
     def test_the_kinds_are_the_ones_of_the_design(self):
         kinds = {e.name: e.kind for e in self.ALL}
         assert {name for name, kind in kinds.items() if kind == step_registry.LLM_PER_ACTION} == {
             "cognitive_worker", "mcp_operator", "data_engineer"}
         assert {name for name, kind in kinds.items() if kind == step_registry.CODE} == {
-            "motion_validator", "gesture_builder"}
+            "motion_validator", "gesture_builder", "action_executor"}
 
     def test_conversation_flow_keeps_its_own_table_for_the_cost_tools(self):
         from application.engine.support.metrics import ALL_PHASE_NAMES, PHASE_NAMES

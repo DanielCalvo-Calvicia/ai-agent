@@ -12,7 +12,6 @@ from application.engine.config_snapshot import build_snapshot
 from application.engine.profile_access import sha256_hex
 from application.engine.profile_inputs import read_inputs
 from application.engine.state.response_json import response_to_json
-from application.flows.registry import FLOWS
 from application.inbound.dto.session import MessageReceivedRequestDTO, StartSessionRequestDTO
 from application.service.message_flow_service import MessageFlowService
 from application.inbound.dto.message import TextRequestDTO
@@ -40,7 +39,7 @@ def fingerprint(root):
 
 @pytest.fixture
 def copy_of_the_configuration(tmp_path):
-    for folder in ("profiles", "model_sets"):
+    for folder in ("profiles", "flows", "model_sets"):
         shutil.copytree(os.path.join(PROJECT_ROOT, folder), tmp_path / folder, ignore=shutil.ignore_patterns("_unverified"))
     os.makedirs(tmp_path / "config")
     shutil.copy(os.path.join(PROJECT_ROOT, "config", "state_fields.json"), tmp_path / "config" / "state_fields.json")
@@ -55,7 +54,7 @@ def write(root, relative, data):
 
 
 def agent_of(root):
-    built = assemble(build_snapshot(FileConfigSource(str(root))), known_flows={flow.name for flow in FLOWS})
+    built = assemble(build_snapshot(FileConfigSource(str(root))))
     built.raise_on_errors()
     return built
 
@@ -104,6 +103,25 @@ class TestAProfileIsOneFile:
         service.text(TextRequestDTO(user_id="tester", session_id="s", content="hello"))
         assert {c["model"] for c in llm.calls} == {"gemini-3.5-flash-lite"}
 
+    def test_a_new_flow_file_and_a_profile_that_names_it_run_without_any_python(self, copy_of_the_configuration):
+        # T-05.12: the flow is only a list of steps that exist; the profile only names it
+        write(copy_of_the_configuration, "flows/just_write.json", {
+            "schema_version": 1, "name": "just_write", "about": "The editor alone.",
+            "steps": [{"step": "draft_writer"}], "result_from": "draft_writer"})
+        write(copy_of_the_configuration, "profiles/mine.json", chat_like("mine", "mine-token", flow="just_write"))
+        agent = agent_of(copy_of_the_configuration)
+        llm = ScriptedLLM()
+        inputs = read_inputs(agent.profile("mine"), classification(agent), read_response_json)
+        service = MessageFlowService(outbound_port=llm, mcp_list=[], agent=agent, profile="mine", inputs=inputs)
+        service.text(TextRequestDTO(user_id="tester", session_id="s", content="hello"))
+        assert [c["format"].split("_response")[0] for c in llm.calls] == ["draft_writer_phase7"]
+
+    def test_a_flow_file_with_a_name_nobody_wrote_is_refused(self, copy_of_the_configuration):
+        write(copy_of_the_configuration, "flows/bad.json", {
+            "schema_version": 1, "name": "bad", "steps": [{"step": "draft_writer", "pause_if": "whenever"}], "result_from": "draft_writer"})
+        built = assemble(build_snapshot(FileConfigSource(str(copy_of_the_configuration))))
+        assert "unknown condition 'whenever'" in built.problems["flows/bad"][0] and "bad" not in built.flows
+
     def test_the_token_of_the_new_profile_is_the_only_one_that_opens_it(self, copy_of_the_configuration):
         write(copy_of_the_configuration, "profiles/mine.json", chat_like("mine", "mine-token"))
         agent = agent_of(copy_of_the_configuration)
@@ -116,7 +134,7 @@ class TestAProfileIsOneFile:
 
     def test_a_file_with_a_mistake_is_refused_and_the_other_profiles_still_assemble(self, copy_of_the_configuration):
         write(copy_of_the_configuration, "profiles/broken.json", chat_like("broken", "x", flow="no-such-flow"))
-        built = assemble(build_snapshot(FileConfigSource(str(copy_of_the_configuration))), known_flows={flow.name for flow in FLOWS})
+        built = assemble(build_snapshot(FileConfigSource(str(copy_of_the_configuration))))
         assert "unknown flow 'no-such-flow'" in built.disabled()["broken"] and "chat" in built.profiles
 
     def test_nothing_of_the_repository_had_to_change(self, copy_of_the_configuration):

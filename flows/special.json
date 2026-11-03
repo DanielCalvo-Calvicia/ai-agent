@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "name": "special",
+  "about": "A task that needs a plan: triage, plan, check safety, execute the actions, write, edit.",
+  "steps": [
+    {
+      "step": "triage_specialist",
+      "pause_if": "needs_user_input",
+      "retry_on_status": true
+    },
+    {
+      "step": "project_manager",
+      "pause_if": "needs_user_input",
+      "retry_on_status": true
+    },
+    {
+      "step": "safety_quality_gatekeeper",
+      "pause_if": "needs_user_input",
+      "retry_on_status": true
+    },
+    {
+      "step": "action_executor"
+    },
+    {
+      "step": "draft_writer"
+    },
+    {
+      "step": "editor_in_chief",
+      "retry_on_status": true
+    }
+  ],
+  "on_pause": "user_clarification",
+  "on_resume": "answer_checker",
+  "result_from": "editor_in_chief"
+}

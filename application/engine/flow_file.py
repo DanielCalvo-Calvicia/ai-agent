@@ -1,0 +1,47 @@
+# ===============================================
+#  FLOW FILE
+#  Builds the Flow object the Pipeline runs from the JSON of a flow file (flows/<name>.json, PR-005 section 3.3): an ordered
+#  list of steps with named pause and retry rules, `on_pause` and `on_resume` hooks and the step the result comes from. The
+#  names of steps, conditions and hooks are checked by assemble() before this runs; here they are looked up.
+# ===============================================
+
+from typing import List
+
+from application.engine.flow import Flow, FlowContext
+from application.steps.build import build_step_function
+from application.steps.conditions import CONDITIONS
+from application.steps.hooks import result_builder, state_factory
+from application.steps.phase import Step
+from application.steps.registry import step as registered_step
+
+
+def step_entries(data: dict) -> List[dict]:
+    """The steps of a flow file as dictionaries: a plain name is a step with no rules."""
+    return [entry if isinstance(entry, dict) else {"step": entry} for entry in data["steps"]]
+
+
+def flow_from_file(name: str, data: dict) -> Flow:
+    entries = step_entries(data)
+
+    def build_steps(context: FlowContext) -> List[Step]:
+        steps = []
+        for entry in entries:
+            name = entry["step"]
+            condition = entry.get("pause_if")
+            steps.append(Step(
+                name,
+                build_step_function(name, context.runner, context.mcp_list, context.mcp_tools),
+                pause_if=CONDITIONS[condition] if condition else None,
+                phase_id=registered_step(name).legacy_id,
+                retry_on_status=bool(entry.get("retry_on_status")),
+            ))
+        return steps
+
+    return Flow(
+        name=name,
+        build_steps=build_steps,
+        build_result=result_builder(data.get("result_from")),
+        new_state=state_factory(entry["step"] for entry in entries),
+        on_pause=data.get("on_pause"),
+        on_resume=data.get("on_resume"),
+    )

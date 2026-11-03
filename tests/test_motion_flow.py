@@ -15,8 +15,7 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.flows.movement import MOVEMENT_FLOW
-from application.flows.registry import FLOWS
+from flow_files import FLOWS, MOVEMENT_FLOW
 from brain_chain import AgentRouter
 from application.engine.support.metrics import SessionMetrics
 from application.engine.support.model_selection import ModelResolver
@@ -79,7 +78,7 @@ class TestTheFlow:
         assert steps == ["motion_planner", "motion_validator"]
 
     def test_the_flow_is_registered(self):
-        assert FLOWS.get("movement") is MOVEMENT_FLOW
+        assert FLOWS["movement"] is MOVEMENT_FLOW
 
     def test_one_movement(self):
         llm = scripted(plan(("left", 90, "forward"), spoken_reply="Turning my left arm."))

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "name": "movement",
+  "about": "Arm movements: the motion planner (asks when the arm or the degrees are missing) and the motion validator (plain code).",
+  "steps": [
+    {
+      "step": "motion_planner",
+      "pause_if": "needs_user_input",
+      "retry_on_status": true
+    },
+    {
+      "step": "motion_validator"
+    }
+  ],
+  "on_pause": "user_clarification",
+  "on_resume": "answer_checker",
+  "result_from": "motion_validator"
+}

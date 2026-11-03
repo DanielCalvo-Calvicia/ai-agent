@@ -31,13 +31,12 @@ from application.engine.state.paused_run import FlowResult, PausedRun
 from application.engine.support.expression_settings import speech_seconds
 from application.engine.support.metrics import SessionMetrics
 from application.engine.support.model_selection import ModelResolver
-from application.flows.conversation import CONVERSATION_FLOW
-from application.flows.expression import EXPRESSION_FLOW
-from application.flows.identification import IDENTIFICATION_FLOW
-from application.flows.movement import MOVEMENT_FLOW
-from application.flows.profiles import ProfileRunner
-from application.flows.registry import FLOWS
-from application.flows.special import SPECIAL_FLOW
+from flow_files import CONVERSATION_FLOW
+from flow_files import EXPRESSION_FLOW
+from flow_files import IDENTIFICATION_FLOW
+from flow_files import MOVEMENT_FLOW
+from application.engine.profile_runner import ProfileRunner
+from flow_files import FLOWS, SPECIAL_FLOW
 from application.outbound.ports.llm_ports import LLMOutboundPort
 from application.outbound.ports.mcp_ports import McpToolsPort
 from application.service.message_flow_service import MessageFlowService
@@ -78,10 +77,10 @@ def expression_enabled() -> bool:
 
 def test_agent(models: Optional[ModelResolver] = None) -> Agent:
     """The real profiles of profiles/, every one with `models` (none: the default model of each step), as the tests expect."""
-    agent = assemble(build_snapshot(FileConfigSource(PROJECT_ROOT)), known_flows={flow.name for flow in FLOWS})
+    agent = assemble(build_snapshot(FileConfigSource(PROJECT_ROOT)))
     agent.raise_on_errors()
     profiles = {name: dataclasses.replace(profile, resolver=models or ModelResolver()) for name, profile in agent.profiles.items()}
-    return Agent(profiles, agent.problems)
+    return Agent(profiles, agent.problems, agent.flows)
 
 
 def flow_for(state: FlowState) -> Flow:
@@ -101,7 +100,7 @@ class AgentRouter:
         mcp_tools: Optional[McpToolsPort] = None,
         models: Optional[ModelResolver] = None,
     ) -> None:
-        flows = [flow for flow in FLOWS if flow.name != SPECIAL_FLOW.name] + [SPECIAL_AFTER_TRIAGE]
+        flows = [flow for flow in FLOWS.values() if flow.name != SPECIAL_FLOW.name] + [SPECIAL_AFTER_TRIAGE]
         self.runner = ProfileRunner(outbound_port, mcp_list, metrics, mcp_tools, test_agent(models), flows=flows)
 
     def run(

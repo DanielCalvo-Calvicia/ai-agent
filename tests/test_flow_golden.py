@@ -383,7 +383,6 @@ from application.engine.assemble import assemble
 from application.engine.config_snapshot import build_snapshot
 from application.engine.profile_inputs import read_inputs
 from application.engine.state.response_json import response_to_json
-from application.flows.registry import FLOWS
 from application.service.message_flow_service import MessageFlowService as OneProfileService
 from infrastructure.outbound.config.file_source import FileConfigSource
 from infrastructure.outbound.llm.response_mapper import read_response_json
@@ -393,7 +392,7 @@ REPLY_TO_GIVE_A_GESTURE = "Hello! How can I help you today?"
 
 def _agent():
     """The real profiles of profiles/, with the models each one names (the golden pins them)."""
-    agent = assemble(build_snapshot(FileConfigSource(PROJECT_ROOT)), known_flows={flow.name for flow in FLOWS})
+    agent = assemble(build_snapshot(FileConfigSource(PROJECT_ROOT)))
     agent.raise_on_errors()
     return agent
 

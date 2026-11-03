@@ -78,7 +78,7 @@ The order follows the stages of [PR-005](../proposals/PR-005-flows-steps-profile
 
 | # | Task | Name | Kind | State | Detail | Depends on | Last updated |
 |---|---|---|---|---|---|---|---|
-| 37 | [T-05](T-05_profiles-flows-steps/T-05_profiles-flows-steps.md) | Structure: profiles, flows and steps (epic) | epic | In progress | T-05.1 to T-05.10 done; S1 complete | — | 2026-11-02 |
+| 37 | [T-05](T-05_profiles-flows-steps/T-05_profiles-flows-steps.md) | Structure: profiles, flows and steps (epic) | epic | In progress | T-05.1 to T-05.10 and T-05.12 done; S1 complete | — | 2026-11-02 |
 | 38 | [T-05.1](T-05_profiles-flows-steps/T-05.1_decisions.md) | Decisions | decision | Done | Q05 to Q09, PR-005, ADR-015 | — | 2026-11-02 |
 | 39 | [T-05.2](T-05_profiles-flows-steps/T-05.2_step-registry.md) | Step registry | code | Done | S1; 1003 passed, golden untouched | T-05.1 | 2026-11-02 |
 | 40 | [T-05.3](T-05_profiles-flows-steps/T-05.3_folder-layout.md) | Folder layout | code | Done | S1; 1004 passed, golden untouched | T-05.2 | 2026-11-02 |
@@ -90,7 +90,7 @@ The order follows the stages of [PR-005](../proposals/PR-005-flows-steps-profile
 | 46 | [T-05.9](T-05_profiles-flows-steps/T-05.9_api.md) | API: profile, token, inputs, return, pause_id | code | Done | S2; 1212 passed; a request with none of the new fields gets today's answer | T-05.6, T-05.7, T-05.8 | 2026-11-02 |
 | 47 | [T-05.10](T-05_profiles-flows-steps/T-05.10_tests-and-golden.md) | Tests and golden of the profiles | test | Done | S2; 1245 passed; the 14 old golden blocks are unchanged, five profile blocks added | T-05.7 to T-05.9 | 2026-11-02 |
 | 48 | [T-05.11](T-05_profiles-flows-steps/T-05.11_first-real-run.md) | First real run: the `special` profile | manual | Todo | S2 acceptance; needs the Dynamics service up | T-05.10 | 2026-11-02 |
-| 49 | [T-05.12](T-05_profiles-flows-steps/T-05.12_flows-as-json.md) | Flows as JSON | code | Todo | S3, golden byte-identical | T-05.10 | 2026-11-02 |
+| 49 | [T-05.12](T-05_profiles-flows-steps/T-05.12_flows-as-json.md) | Flows as JSON | code | Done | S3; golden byte-identical; the files keep the old flow names | T-05.10 | 2026-11-02 |
 | 50 | [T-05.13](T-05_profiles-flows-steps/T-05.13_tool-scoping.md) | Tool scoping | code | Todo | S4 | T-05.12 | 2026-11-02 |
 | 51 | [T-05.14](T-05_profiles-flows-steps/T-05.14_prompts-per-profile.md) | Prompts per profile | code | Todo | S5 | T-05.12 | 2026-11-02 |
 | 52 | [T-05.15](T-05_profiles-flows-steps/T-05.15_metrics-and-hash.md) | Metrics, profile hash and reserved data fields | code | Todo | S6 | T-05.12 | 2026-11-02 |

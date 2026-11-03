@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "name": "identification",
+  "about": "Classifies the message (the triage): intent, goal, task category. It never answers.",
+  "steps": [
+    {
+      "step": "triage_specialist",
+      "pause_if": "needs_user_input",
+      "retry_on_status": true
+    }
+  ],
+  "on_pause": "user_clarification",
+  "on_resume": "answer_checker",
+  "result_from": "triage_specialist"
+}

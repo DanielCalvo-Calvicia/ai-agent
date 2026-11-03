@@ -23,7 +23,7 @@ from application.engine.support.action_tree import (
 from application.engine.support.failure import AgentFailure, max_attempts, max_mcp_calls
 from application.engine.state.flow_state import FlowState
 from application.steps.phase import ActionPhaseSpec
-from application.engine.phase_runner import PhaseRunner
+from application.steps.registry import register_step
 from application.steps.special import cognitive_worker, mcp_operator
 from application.steps.special.cognitive_worker import COGNITIVE_WORKER
 from application.steps.special.data_engineer import DATA_ENGINEER
@@ -34,6 +34,13 @@ from domain.value_objects.llm_response.action.output import create_output
 from shared_logging import get_logger
 
 logger = get_logger(__name__)
+
+# --- What this step uses ----------------------------------------------------
+LLM = False                              # the composite: it has no call of its own, its three steps make them
+PHASE_ID = 40
+STEP_NAME = "action_executor"            # runs phases 4, 5 and 6 for every planned action
+# -----------------------------------------------------------------------------
+register_step(__name__, "code")
 
 PARALLEL_VARIABLE = "AI_AGENT_PARALLEL_ACTIONS"
 
@@ -46,8 +53,13 @@ MCP_CAP_REACHED = ("The step was not run: the limit of {cap} tool calls for one 
 UNRESOLVABLE = "The step could not run: circular or unknown dependencies."
 
 
+def build_step(runner, mcp_list: list, mcp_tools: Optional[McpToolsPort] = None):
+    """The function a flow runs for this step (steps/build.py)."""
+    return ActionExecutor(runner, mcp_list, mcp_tools).run
+
+
 class ActionExecutor:
-    def __init__(self, runner: PhaseRunner, mcp_list: list, mcp_tools: Optional[McpToolsPort] = None) -> None:
+    def __init__(self, runner, mcp_list: list, mcp_tools: Optional[McpToolsPort] = None) -> None:
         self.runner = runner
         self.mcp_list = mcp_list
         self.mcp_tools = mcp_tools

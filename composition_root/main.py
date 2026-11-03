@@ -40,7 +40,6 @@ from infrastructure.outbound.usage.langfuse import LangfuseUsageReporter
 
 from application.engine.assemble import assemble
 from application.engine.config_snapshot import build_snapshot
-from application.flows.registry import FLOWS
 from application.service.session_service import SessionService
 
 # -----------------------------------------------
@@ -61,8 +60,7 @@ def CreateApp() -> FastAPI:
 
     Dependency graph:
         MCPToolExecutor + VercelAIAdapter (outbound) -> SessionService (application) -> SessionFastAPI (inbound)
-    One session per user: every message is identified first and then answered by one flow (see
-    application/flows/router.py). Routes: /session/*, /health, /available.
+    One session per user: every message runs ONE profile and its flow (flows/<name>.json; the client chains profiles). Routes: /session/*, /health, /available.
     """
 
     init_logging("ai-agent")
@@ -74,7 +72,6 @@ def CreateApp() -> FastAPI:
     configSnapshot = build_snapshot(FileConfigSource(PROJECT_ROOT))
     agent = assemble(
         configSnapshot,
-        known_flows=[flow.name for flow in FLOWS],
         mcp_servers=load_tool_snapshot(),
         schema_rules={"anthropic": anthropic_schema_problems},
     )

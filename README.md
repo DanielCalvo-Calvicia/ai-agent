@@ -26,7 +26,7 @@ POST /session/message
 ```
 
 - The flows never call each other and the service does not choose between them: a request runs the flow of ONE profile
-  (`application/flows/profiles.py`); the client asks `identification` and then the profile that answers (T-05.7).
+  (`application/engine/profile_runner.py`); the client asks `identification` and then the profile that answers (T-05.7).
 - A flow that asks the user a question is **resumed by the next message** (the answer), without identifying it again.
 - A greeting costs 3 LLM calls, a movement 2, a task 5 or more (one per action, plus one per tool result).
 - Only the movement flow returns movements. Whether a movement that goes ahead is announced out loud is Brain's setting,
@@ -86,10 +86,10 @@ exactly "this session no longer exists here": open a new one and, for a message,
 
 ```text
 composition_root/   app wiring (main.py)
-application/        ports, DTOs, services, flows/, steps/ (the phases), engine/ (with state/ and support/), system prompts
+application/        ports, DTOs, services, steps/ (the phases), engine/ (with state/ and support/), system prompts
 domain/             entities/ and value_objects/, each grouped in llm_request / llm_response / movement
 infrastructure/     FastAPI inbound adapter, LLM adapter (ai_sdk), MCP client, Langfuse reporter
-profiles/ flows/ step_defs/ model_sets/   data folders of PR-005, empty until T-05.4 onward (each has a README)
+profiles/ flows/ step_defs/ model_sets/   data folders of PR-005 (each has a README); `flows/` holds the five flows as JSON (T-05.12), `step_defs/` is empty until T-05.16
 prompts/            one prompt per phase (<id>_<name>.txt), the generic rules and capabilities.txt
 schema/response/    JSON Schemas of the answers: general/ (text flows) and motion/ (movement flow)
 config/             models per step, prices, budget

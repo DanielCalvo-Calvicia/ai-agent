@@ -9,7 +9,7 @@ if PROJECT_ROOT not in sys.path:
 
 from application.engine.pipeline import Pipeline
 from application.engine.support.metrics import SessionMetrics
-from application.flows.action_executor import MAX_TOOL_WAIT_SECONDS
+from application.steps.special.action_executor import MAX_TOOL_WAIT_SECONDS
 from application.outbound.ports.mcp_ports import remaining_tool_wait, report_final_tool_failure, watch_tool_failures
 from flow_trace import FULL_FLOW
 from test_flow_golden import PM, ScriptedLLM, _action, _no_result, _plan

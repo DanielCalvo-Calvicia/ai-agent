@@ -1,7 +1,6 @@
 # ===============================================
 #  MESSAGE FLOW SERVICE
-#  Inbound adapter for one user message. The flows live in
-#  application/flows; the router (flows/router.py) says which one answers.
+#  Inbound adapter for one user message. The profile asked runs its flow (flows/<name>.json, built by assemble).
 # ===============================================
 
 from typing import List, Optional
@@ -10,7 +9,7 @@ from application.inbound.dto.message import TextRequestDTO, TextResponseDTO
 from application.inbound.ports.message_flow_ports import MessageInboundPort
 from application.engine.assemble import DEFAULT_PROFILE, Agent
 from application.engine.state.history import response_of
-from application.flows.profiles import ProfileRunner
+from application.engine.profile_runner import ProfileRunner
 from application.engine.support.metrics import SessionMetrics
 from application.engine.state.paused_run import PausedRun
 from application.outbound.ports.llm_ports import LLMOutboundPort

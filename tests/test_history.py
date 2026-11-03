@@ -10,7 +10,6 @@ from application.engine.config_snapshot import build_snapshot
 from application.engine.state.flow_state import FlowState
 from application.engine.state.history import HistoryEntry, messages_of, response_of
 from application.engine.state.paused_run import FlowResult
-from application.flows.registry import FLOWS
 from application.inbound.dto.session import MessageReceivedRequestDTO, StartSessionRequestDTO
 from application.service.message_flow_service import MessageFlowService
 from application.service.session_service import SessionService
@@ -45,7 +44,7 @@ def pairs(history):
 
 @pytest.fixture(scope="module")
 def agent():
-    built = assemble(build_snapshot(FileConfigSource(PROJECT_ROOT)), known_flows={flow.name for flow in FLOWS})
+    built = assemble(build_snapshot(FileConfigSource(PROJECT_ROOT)))
     built.raise_on_errors()
     return built
 
@@ -107,7 +106,7 @@ class TestTheResponseOfARun:
         llm = ScriptedLLM()
         from application.engine.support.metrics import SessionMetrics
         from application.engine.pipeline import Pipeline
-        from application.flows.identification import IDENTIFICATION_FLOW
+        from flow_files import IDENTIFICATION_FLOW
         return Pipeline(llm, [], SessionMetrics(), flow=IDENTIFICATION_FLOW).run("hello")
 
     def test_a_run_with_a_user_goal_gives_a_response_with_every_field_of_the_state(self):

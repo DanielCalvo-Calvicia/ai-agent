@@ -33,8 +33,8 @@ from application.engine.state.flow_state import FlowState
 from application.engine.support.metrics import SessionMetrics
 from application.engine.pipeline import Pipeline
 from application.engine.flow import Flow
-from application.flows.identification import IDENTIFICATION_FLOW
-from application.flows.special import SPECIAL_FLOW
+from flow_files import IDENTIFICATION_FLOW
+from flow_files import SPECIAL_FLOW
 from domain.entities.llm_response.response import Response
 
 # The whole text chain as ONE flow: triage, plan, check, execute, write, polish. The `special` flow starts with the triage
@@ -718,7 +718,7 @@ def run_with_stops(
     Returns the FlowResult of the pipeline.
     """
     from unittest.mock import patch
-    from application.flows.action_executor import ActionExecutor
+    from application.steps.special.action_executor import ActionExecutor
     from application.engine.phase_runner import PhaseRunner
 
     stop = stop or _pause

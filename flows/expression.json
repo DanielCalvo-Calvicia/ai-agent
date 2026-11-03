@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "name": "expression",
+  "about": "The gesture that goes with a reply: the emotion reader, then the gesture builder (plain code).",
+  "steps": [
+    {
+      "step": "emotion_reader"
+    },
+    {
+      "step": "gesture_builder"
+    }
+  ],
+  "result_from": "gesture_builder"
+}

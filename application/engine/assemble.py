@@ -5,8 +5,8 @@
 #  a model that cannot run a step, a missing token, a tool that does not exist. Every problem names its file and its key.
 #
 #  It runs at start (a profile with a problem is disabled and logged, the others serve: Q07-18 C), in scripts/check_agent.py
-#  and in the tests (strict: any problem stops). Until flows and steps are JSON (T-05.12, T-05.16) a profile may name a Python
-#  flow (`known_flows`) and a step that has no declaration: the checks that need `reads` and `writes` skip them.
+#  and in the tests (strict: any problem stops). A flow is a file (T-05.12) and the Agent holds the Flow built from it. Until steps are
+#  JSON (T-05.16) a step may have no declaration: the checks that need `reads` and `writes` skip it.
 # ===============================================
 
 import re
@@ -14,10 +14,14 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Collection, Dict, List, Mapping, Optional, Sequence
 
 from application.engine.config_snapshot import ConfigSnapshot
+from application.engine.flow import Flow
+from application.engine.flow_file import flow_from_file
 from application.engine.support.model_selection import ModelResolver, check_model_set
 from application.engine.support.schemas import load_schema_file
 from application.outbound.ports.config_ports import ConfigError
 from application.steps.catalog import PHASES
+from application.steps.conditions import CONDITIONS
+from application.steps.hooks import HOOKS
 from application.steps.registry import CODE, KINDS, all_steps
 from domain.value_objects.llm_request.model import GoogleModels
 
@@ -55,6 +59,7 @@ class AssembledProfile:
 class Agent:
     profiles: Dict[str, AssembledProfile]
     problems: Dict[str, List[str]]           # "<kind>/<name>" -> every problem of that file
+    flows: Dict[str, Flow] = field(default_factory=dict)     # the flow files that are fine, built
 
     def profile(self, name: str) -> AssembledProfile:
         if name not in self.profiles:
@@ -81,17 +86,19 @@ def assemble(
     snapshot: ConfigSnapshot,
     *,
     known_flows: Collection[str] = (),
-    conditions: Collection[str] = (),
-    hooks: Collection[str] = (),
+    conditions: Optional[Collection[str]] = None,
+    hooks: Optional[Collection[str]] = None,
     mcp_servers: Optional[Mapping[str, Optional[Sequence[str]]]] = None,
     schema_rules: Optional[Mapping[str, SchemaRule]] = None,
 ) -> Agent:
     """
-    `known_flows`: the Python flows a profile may name until flows are files. `conditions` and `hooks`: the names a flow may use.
+    `known_flows`: names of flows that exist without a file (a test's own); a profile may name them. `conditions` and `hooks`: the names
+    a flow may use (the lists of steps/conditions.py and steps/hooks.py when none are given).
     `mcp_servers`: server name -> its allowed tools (None = the server lists none); None = tool names are not checked.
     `schema_rules`: provider (`anthropic`) -> a function that returns what that provider refuses in a custom answer schema.
     """
-    return _Assembly(snapshot, set(known_flows), set(conditions), set(hooks), mcp_servers, dict(schema_rules or {})).run()
+    return _Assembly(snapshot, set(known_flows), set(CONDITIONS if conditions is None else conditions),
+                     set(HOOKS if hooks is None else hooks), mcp_servers, dict(schema_rules or {})).run()
 
 
 class _Assembly:
@@ -123,7 +130,8 @@ class _Assembly:
             assembled = self._check_profile(name, data)
             if assembled is not None and f"profiles/{name}" not in self.problems:
                 profiles[name] = assembled
-        return Agent(profiles, self.problems)
+        flows = {name: flow_from_file(name, data) for name, data in self.snapshot.flows.items() if f"flows/{name}" not in self.problems}
+        return Agent(profiles, self.problems, flows)
 
     def _problem(self, key: str, message: str) -> None:
         self.problems.setdefault(key, []).append(f"{key}.json: {message}" if "/" in key and not message.startswith(key) else message)

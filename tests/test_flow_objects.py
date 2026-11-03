@@ -675,7 +675,7 @@ class TestStops:
             run_with_stops("hi", ScriptedLLM(), MCP_LIST, at=("middle",), stop=Stops())
 
     def test_the_real_code_is_left_as_it_was(self):
-        from application.flows.action_executor import ActionExecutor
+        from application.steps.special.action_executor import ActionExecutor
         from application.engine.phase_runner import PhaseRunner
         send, succeed = PhaseRunner.send, ActionExecutor.__dict__["_succeed"]
         run_stops(at=("start", "response", "loaded"))

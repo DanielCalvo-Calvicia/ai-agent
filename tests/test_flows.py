@@ -14,11 +14,10 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from application.engine.flow import Flow
-from application.flows.conversation import CONVERSATION_FLOW
-from application.flows.identification import IDENTIFICATION_FLOW
-from application.flows.movement import MOVEMENT_FLOW
-from application.flows.registry import FLOWS, FlowRegistry
-from application.flows.special import SPECIAL_FLOW
+from flow_files import CONVERSATION_FLOW, FLOWS
+from flow_files import IDENTIFICATION_FLOW
+from flow_files import MOVEMENT_FLOW
+from flow_files import SPECIAL_FLOW
 from application.engine.support.metrics import SessionMetrics
 from application.engine.pipeline import Pipeline
 from application.steps.phase import Step
@@ -39,24 +38,20 @@ def _app() -> TestClient:
     return TestClient(app)
 
 
-class TestRegistry:
-    def test_the_flows_are_registered_under_their_public_names(self):
-        assert FLOWS.get("identification") is IDENTIFICATION_FLOW
-        assert FLOWS.get("conversation") is CONVERSATION_FLOW
-        assert FLOWS.get("special") is SPECIAL_FLOW
-        assert FLOWS.get("movement") is MOVEMENT_FLOW
-        assert FLOWS.names() == ["identification", "conversation", "special", "movement", "expression"]
+class TestTheFlowFiles:
+    def test_the_flows_are_the_files_of_flows_under_their_public_names(self):
+        assert list(FLOWS) == ["conversation", "expression", "identification", "movement", "special"]
+        assert FLOWS["identification"] is IDENTIFICATION_FLOW and FLOWS["conversation"] is CONVERSATION_FLOW
+        assert FLOWS["special"] is SPECIAL_FLOW and FLOWS["movement"] is MOVEMENT_FLOW
 
-    def test_an_unknown_flow_fails_loudly(self):
-        with pytest.raises(KeyError, match="unknown flow"):
-            FLOWS.get("nope")
+    def test_every_flow_file_has_the_name_of_its_file(self):
+        for name, flow in FLOWS.items():
+            assert flow.name == name
 
-    def test_a_flow_cannot_be_registered_twice(self):
-        with pytest.raises(ValueError, match="already registered"):
-            FlowRegistry([CONVERSATION_FLOW, CONVERSATION_FLOW])
-
-    def test_the_registry_is_iterable_in_registration_order(self):
-        assert [flow.name for flow in FlowRegistry([CONVERSATION_FLOW])] == ["conversation"]
+    def test_only_the_flows_that_can_ask_the_user_carry_the_hooks(self):
+        asking = {name for name, flow in FLOWS.items() if flow.on_pause and flow.on_resume}
+        assert asking == {"identification", "special", "movement"}
+        assert FLOWS["conversation"].on_pause is None and FLOWS["expression"].on_resume is None
 
 
 class TestTheStepsOfEachFlow:

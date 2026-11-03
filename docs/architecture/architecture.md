@@ -17,7 +17,7 @@ POST /session/message
    -> SessionFastAPI            infrastructure/inbound/http/fastapi.py   (HTTP <-> DTOs, runs the flow in a worker thread)
    -> SessionService            application/service/session_service.py  (sessions, history, the run waiting for the user)
    -> MessageFlowService        application/service/message_flow_service.py   (one per message; owns the metrics)
-   -> ProfileRunner.run()       application/flows/profiles.py   (ONE profile: its flow, its models, its MCP servers)
+   -> ProfileRunner.run()       application/engine/profile_runner.py   (ONE profile: its flow, its models, its MCP servers)
         the profile of the request (`default` when it names none) names one flow:
            identification -> triage                                                      chat -> draft writer, editor
            special, dynamics, default -> triage, project manager, safety gate, action executor, draft writer, editor
@@ -53,19 +53,19 @@ docs/                             this documentation
 Dependencies point inward: `domain` imports nothing of the application; `application` never imports `infrastructure`;
 `composition_root` is the only place that knows every layer.
 
-## 3. `application/flows/`, `steps/` and `engine/`
+## 3. `flows/` (files), `application/steps/` and `application/engine/`
 
-Five folders, each with one job (until 2026-11-02 they were the five folders of `application/orchestration/`, T-05.3). The dependencies go one way and `tests/test_orchestration_layout.py` keeps it so:
+Four folders, each with one job (until 2026-11-02 they were the five folders of `application/orchestration/`, T-05.3; since T-05.12 the flows are JSON files at the root and `application/flows/` is gone). The dependencies go one way and `tests/test_orchestration_layout.py` keeps it so:
 
 ```text
-flows/          WHAT each agent is          one file per flow, `profiles.py` (the runner of one profile), the registry, the action executor
-steps/          the steps (the phases)      one phase per file, constants first; the registry; the catalog; the shape of a phase
-engine/         HOW any flow runs           Pipeline, Flow, PhaseRunner, clarification, answer check, `config_snapshot.py` (the configuration read once through `ConfigSourcePort`); knows no particular flow
+flows/ (root)   WHAT each flow is          one JSON file per flow: its steps in order, its pause and retry rules, its hooks and the step its result comes from
+steps/          the steps (the phases)      one phase per file, constants first; the registry; the catalog; the shape of a phase; `conditions.py`, `hooks.py` and `build.py` (the names a flow file may use); the action executor
+engine/         HOW any flow runs           Pipeline, Flow, `flow_file.py` (a flow file -> a Flow), `profile_runner.py`, PhaseRunner, clarification, answer check, `config_snapshot.py` (the configuration read once through `ConfigSourcePort`); knows no particular flow
 engine/state/   WHAT travels through a run  FlowState, MotionFlowState, PausedRun, FlowResult
 engine/support/ shared helpers              model choice, metrics, failures, schemas, action tree, MCP server list (a server with no tools is left out), clock
 ```
 
-`flows` use everything below; `engine` never imports a flow; `steps` never import the engine (only its base, `state` and `support`);
+`engine` never imports the steps of one flow (the flow files name them and the registry finds them); `steps` never import the engine (only its base, `state` and `support`);
 `state` and `support` are the base (`support` reads only `steps.catalog`).
 
 ## 3.1 Assembling the agent (T-05.6)
@@ -93,12 +93,12 @@ held both). The history is the session's own copy: it will never be read from th
 
 | Flow | File | Steps | Answers | LLM calls |
 |---|---|---|---|---|
-| `identification` | `flows/identification.py` | triage | nothing: its `Response` is what the client reads (`default_return: full`) | 1 |
-| `conversation` | `flows/conversation.py` | draft writer, editor | a plain reply | 2 (3 with identification) |
-| `special` | `flows/special.py` | project manager, safety gate, action executor, draft writer, editor | a reply after planning and executing | 5 or more, plus one per action |
-| `movement` | `flows/movement.py` | motion planner, motion validator (plain code) | movements to run and a short spoken line | 1 (2 with identification) |
+| `identification` | `flows/identification.json` | triage | nothing: its `Response` is what the client reads (`default_return: full`) | 1 |
+| `conversation` | `flows/conversation.json` | draft writer, editor | a plain reply | 2 (3 with identification) |
+| `special` | `flows/special.json` | project manager, safety gate, action executor, draft writer, editor | a reply after planning and executing | 5 or more, plus one per action |
+| `movement` | `flows/movement.json` | motion planner, motion validator (plain code) | movements to run and a short spoken line | 1 (2 with identification) |
 
-### 4.1 One profile per message, and the client's chain (`flows/profiles.py`)
+### 4.1 One profile per message, and the client's chain (`engine/profile_runner.py`)
 
 The service runs the flow of **one profile** per message (`ProfileRunner.run`): the profile gives the flow, the models (its `ModelResolver`) and the MCP servers
 (`tools.servers`: a list is exactly those, an empty list is none, no `tools` is every configured server; the real scoping is T-05.13). Nothing routes. The
@@ -224,7 +224,7 @@ action; the draft writer and editor `user_goal` (and the editor `next_step`); th
 `spoken_reply`, `next_step`; the validator `movements` and `motion_rejection`. `constraints`, `mcp_routing` and
 `missing_information` have schemas and domain objects but no phase writes them today.
 
-## 8. The special flow's action executor (`flows/action_executor.py`)
+## 8. The special flow's action executor (`steps/special/action_executor.py`)
 
 An action is ready when its subactions and every action it depends on are settled (done or failed). It receives their
 outputs. Its type picks the phase: `mcp_tool_call` goes to the MCP operator (phase 5) and then the data engineer (6), any
@@ -304,7 +304,7 @@ response mapper builds them from the LLM's JSON, one function per section.
 ## 13. How to extend it
 
 - **A new phase:** its file (constants first, then `register_step(__name__, kind)`) in `steps/<folder>/`, a step in its flow. Nothing else lists it.
-- **A new flow:** a file in `flows/` with its steps and result, its phase files, one line in `flows/registry.py`, and a profile in `profiles/` that names it
+- **A new flow:** a file in `flows/` (its steps in order, `pause_if` and `retry_on_status`, `on_pause` and `on_resume` if a step can ask, `result_from`) and a profile in `profiles/` that names it; no Python while it uses the steps, conditions and hooks that exist (`scripts/check_agent.py` says what is wrong)
   (the client chooses the profile; the domain in the schema and the triage prompt only if it is a new one).
 - **A new domain value:** `schema/response/general/full.schema.json` (then `python scripts/split_schemas.py --write`),
   `domain/value_objects/llm_response/task_category/domain.py`, the triage prompt, and the client's table from domain to profile (`docs/api/api.md`).

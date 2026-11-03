@@ -90,11 +90,11 @@ Search for the names, not for line numbers (they move):
 | Where | File and function |
 |---|---|
 | a step is about to run | `application/engine/pipeline.py`, `Pipeline._run_step` (the `step.run(state)` line) |
-| a profile starts its flow | `application/flows/profiles.py`, `ProfileRunner.run` |
+| a profile starts its flow | `application/engine/profile_runner.py`, `ProfileRunner.run` |
 | the answer just became a `Response` (every phase) | `application/engine/phase_runner.py`, `PhaseRunner.send`, right after `self.outbound_port.ask(payload)` |
 | the `Response` is built from the JSON | `infrastructure/outbound/llm/response_mapper.py`, `build_response` |
 | the response is loaded into the state | the `apply` of the phase (`_apply` in its file; triage uses `FlowState.load_from`), called from the flow's `llm_phase` |
-| an action got its result | `application/flows/action_executor.py`: `_succeed`, `_fail`, `_set_output` |
+| an action got its result | `application/steps/special/action_executor.py`: `_succeed`, `_fail`, `_set_output` |
 | a run resumes after a question | `application/engine/pipeline.py`, `Pipeline._resume` |
 
 The two best places for "where the full response is allocated" are `PhaseRunner.send` (the `Response` exists, the state does

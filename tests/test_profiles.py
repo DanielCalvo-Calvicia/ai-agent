@@ -9,8 +9,7 @@ from application.engine.config_snapshot import build_snapshot
 from application.engine.state.expression_state import ExpressionFlowState
 from application.engine.state.paused_run import PausedRun
 from application.engine.support.metrics import SessionMetrics
-from application.flows.profiles import ProfileMismatch, ProfileRunner
-from application.flows.registry import FLOWS
+from application.engine.profile_runner import ProfileMismatch, ProfileRunner
 from application.service.message_flow_service import MessageFlowService
 from infrastructure.outbound.config.file_source import FileConfigSource
 from infrastructure.outbound.llm.anthropic_schema import anthropic_schema_problems
@@ -30,7 +29,7 @@ MCP_LIST = [{"name": "dynamics_microservice", "type": "streamable_http", "config
 @pytest.fixture(scope="module")
 def agent():
     snapshot = build_snapshot(FileConfigSource(PROJECT_ROOT))
-    built = assemble(snapshot, known_flows={flow.name for flow in FLOWS}, mcp_servers=load_tool_snapshot(),
+    built = assemble(snapshot, mcp_servers=load_tool_snapshot(),
                      schema_rules={"anthropic": anthropic_schema_problems})
     built.raise_on_errors()
     return built
