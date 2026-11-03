@@ -89,7 +89,7 @@ composition_root/   app wiring (main.py)
 application/        ports, DTOs, services, steps/ (the phases), engine/ (with state/ and support/), system prompts
 domain/             entities/ and value_objects/, each grouped in llm_request / llm_response / movement
 infrastructure/     FastAPI inbound adapter, LLM adapter (ai_sdk), MCP client, Langfuse reporter
-profiles/ flows/ step_defs/ model_sets/   data folders of PR-005 (each has a README); `flows/` holds the five flows as JSON (T-05.12), `step_defs/` is empty until T-05.16
+profiles/ flows/ step_defs/ model_sets/   data folders of PR-005 (each has a README); `flows/` holds the five flows as JSON (T-05.12), `step_defs/` holds the declaration of every step (T-05.16)
 prompts/            one prompt per phase (<id>_<name>.txt), the generic rules and capabilities.txt
 schema/response/    JSON Schemas of the answers: general/ (text flows) and motion/ (movement flow)
 config/             models per step, prices, budget

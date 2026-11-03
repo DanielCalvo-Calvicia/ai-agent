@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "name": "editor_in_chief",
+  "about": "Polishes the draft into the final reply.",
+  "kind": "llm",
+  "legacy_id": 8,
+  "group": "common",
+  "prompt": {
+    "file": "prompts/8_editor_in_chief.txt"
+  },
+  "default_models": [
+    "gemini-3.6-flash"
+  ],
+  "intent": {
+    "primary": "decision_support",
+    "secondary": [
+      "information_request"
+    ],
+    "confidence": 0.9
+  },
+  "format_name": "editor_in_chief_phase8_response_format",
+  "answer": {
+    "required": [
+      "user_goal",
+      "next_step"
+    ],
+    "pieces": [
+      {
+        "name": "user_goal",
+        "file": "general/user_goal/user_goal.schema.json",
+        "key": "user_goal"
+      },
+      {
+        "name": "next_step",
+        "file": "general/next_steps/next_step.schema.json",
+        "key": "next_step"
+      }
+    ]
+  },
+  "reads": [
+    "user_goal",
+    "constraints?",
+    "next_step?"
+  ],
+  "writes": [
+    "user_goal",
+    "next_step"
+  ]
+}

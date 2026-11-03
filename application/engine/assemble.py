@@ -22,10 +22,12 @@ from application.engine.support.model_selection import ModelResolver, check_mode
 from application.engine.support.prompt_overrides import SOURCE_KEYS, PromptOverride
 from application.engine.support.schemas import load_schema_file
 from application.outbound.ports.config_ports import ConfigError
+from application.steps import functions as step_functions
 from application.steps.catalog import PHASES
 from application.steps.conditions import CONDITIONS
 from application.steps.hooks import HOOKS
-from application.steps.registry import CODE, KINDS, LLM_PER_ACTION, all_steps
+from application.steps.declared import parse_reads
+from application.steps.registry import CODE, GROUP_ORDER, KINDS, LLM, LLM_PER_ACTION, all_steps
 from domain.value_objects.llm_request.model import GoogleModels
 
 DEFAULT_PROFILE = "default"                       # the profile of a request with no profile: it needs no token
@@ -40,9 +42,12 @@ OVERRIDE_KEYS = {"models", "tools", "prompt_replace", "prompt_append"}
 PROFILE_FLOW_KEYS = {"models", "tools", "steps"}
 FLOW_KEYS = {"schema_version", "name", "about", "steps", "on_pause", "on_resume", "result_from", "tools", "models"}
 FLOW_STEP_KEYS = {"step", "pause_if", "retry_on_status", "optional", "tools"}
-STEP_DEF_KEYS = {"schema_version", "name", "about", "kind", "legacy_id", "prompt", "answer", "reads", "writes", "data", "tools",
-                 "default_models", "for_each", "function"}
+STEP_DEF_KEYS = {"schema_version", "name", "about", "kind", "legacy_id", "group", "prompt", "answer", "reads", "writes", "write_always",
+                 "data", "tools", "default_models", "intent", "format_name", "for_each", "function", "functions"}
 ANSWER_KEYS = {"pieces", "required", "schema", "schema_file"}
+PIECE_KEYS = {"name", "file", "key", "mcp_servers"}
+INTENT_KEYS = {"primary", "secondary", "confidence"}
+FUNCTION_KEYS = ("input", "apply", "extra")
 TOOL_KEYS = {"servers", "tools"}
 
 
@@ -65,6 +70,8 @@ class Agent:
     profiles: Dict[str, AssembledProfile]
     problems: Dict[str, List[str]]           # "<kind>/<name>" -> every problem of that file
     flows: Dict[str, Flow] = field(default_factory=dict)     # the flow files that are fine, built
+    step_defs: Dict[str, dict] = field(default_factory=dict)  # the step declarations that are fine
+    step_prompts: Dict[str, str] = field(default_factory=dict)  # step -> its prompt, read through the configuration source
 
     def profile(self, name: str) -> AssembledProfile:
         if name not in self.profiles:
@@ -115,7 +122,7 @@ class _Assembly:
         self.mcp_servers = mcp_servers
         self.schema_rules = schema_rules
         self.fields: Dict[str, dict] = snapshot.state_fields
-        self.registry = {entry.name: entry for entry in all_steps()}
+        self.registry = {entry.name: entry for entry in all_steps() if not hasattr(entry.module, "declaration")}   # Python steps
         self.problems: Dict[str, List[str]] = {key: [message] for key, message in snapshot.errors.items()}
 
     # -----------------------------------------------
@@ -136,7 +143,10 @@ class _Assembly:
             if assembled is not None and f"profiles/{name}" not in self.problems:
                 profiles[name] = assembled
         flows = {name: flow_from_file(name, data) for name, data in self.snapshot.flows.items() if f"flows/{name}" not in self.problems}
-        return Agent(profiles, self.problems, flows)
+        step_defs = {name: data for name, data in self.snapshot.step_defs.items() if f"step_defs/{name}" not in self.problems}
+        step_prompts = {name: self.snapshot.prompt(d["prompt"]["file"]) for name, d in step_defs.items()
+                        if d.get("kind") in (LLM, LLM_PER_ACTION) and isinstance(d.get("prompt"), dict) and "file" in d["prompt"]}
+        return Agent(profiles, self.problems, flows, step_defs, step_prompts)
 
     def _problem(self, key: str, message: str) -> None:
         self.problems.setdefault(key, []).append(f"{key}.json: {message}" if "/" in key and not message.startswith(key) else message)
@@ -208,12 +218,10 @@ class _Assembly:
         key = f"step_defs/{name}"
         self._unknown_keys(key, data, STEP_DEF_KEYS)
         self._check_reserved_data(key, data.get("data"))
-        if data.get("kind") not in KINDS:
+        kind = data.get("kind")
+        if kind not in KINDS:
             self._problem(key, f"kind must be one of {', '.join(KINDS)}")
-        for which in ("reads", "writes"):
-            for field_name in data.get(which) or []:
-                if field_name not in self.fields:
-                    self._problem(key, f"{which}: {field_name!r} is not a field of config/state_fields.json. Fields: {', '.join(self.fields)}")
+        self._check_reads_and_writes(key, data)
         answer = data.get("answer")
         if answer is not None:
             if not isinstance(answer, dict):
@@ -223,6 +231,109 @@ class _Assembly:
         self._check_tools(key, data.get("tools"), "tools")
         if "default_models" in data:
             self._try(key, lambda: ModelResolver({"models": data["default_models"]}))
+        if kind in (LLM, LLM_PER_ACTION):
+            self._check_runnable(key, name, data)
+        elif kind == CODE and data.get("function") is not None:
+            if data["function"] not in self.registry or self.registry[data["function"]].kind != CODE:
+                self._problem(key, f"function {data['function']!r} is not a code step of application/steps/. Code steps: "
+                                   f"{', '.join(n for n, e in self.registry.items() if e.kind == CODE) or 'none'}")
+
+    def _check_reads_and_writes(self, key: str, data: dict) -> None:
+        for which in ("reads", "writes"):
+            entries = data.get(which)
+            if entries is None:
+                continue
+            if not isinstance(entries, list):
+                self._problem(key, f"{which} must be a list")
+                continue
+            for entry in entries:
+                shaped = (isinstance(entry, str) or (which == "reads" and isinstance(entry, dict) and len(entry) == 1
+                                                     and all(isinstance(k, str) and isinstance(v, str) for k, v in entry.items())))
+                if not shaped:
+                    self._problem(key, f"{which}: {entry!r} must be a field name" + (" (`field?` when it may be missing) or {\"key\": \"field\"}" if which == "reads" else ""))
+                    continue
+                field_name = next(iter(entry.values())) if isinstance(entry, dict) else entry
+                field_name = field_name.rstrip("?")
+                if field_name not in self.fields:
+                    self._problem(key, f"{which}: {field_name!r} is not a field of config/state_fields.json. Fields: {', '.join(self.fields)}")
+
+    def _check_runnable(self, key: str, name: str, data: dict) -> None:
+        """What an LLM step needs to run: its old number, group, prompt file, default model, intent, format name, answer and named functions."""
+        if isinstance(data.get("legacy_id"), bool) or not isinstance(data.get("legacy_id"), int):
+            self._problem(key, "legacy_id must be a whole number (the old phase number, a label)")
+        else:
+            clash = next((other for other, entry in self.registry.items() if other != name and entry.legacy_id == data["legacy_id"]), None) or \
+                next((other for other, d in self.snapshot.step_defs.items() if other != name and d.get("legacy_id") == data["legacy_id"]), None)
+            if clash:
+                self._problem(key, f"legacy_id {data['legacy_id']} is already the number of step {clash!r}")
+        if data.get("group") not in GROUP_ORDER:
+            self._problem(key, f"group must be one of {', '.join(GROUP_ORDER)}")
+        prompt = data.get("prompt")
+        if not isinstance(prompt, dict) or set(prompt) != {"file"} or not isinstance(prompt.get("file"), str):
+            self._problem(key, "prompt must be {\"file\": \"prompts/...\"} (an inline text is not supported yet)")
+        else:
+            try:
+                self.snapshot.prompt(prompt["file"])
+            except ConfigError as error:
+                self._problem(key, f"prompt.file: {error}")
+        models = data.get("default_models")
+        if not isinstance(models, list) or not models or models[0] not in {m.value for m in GoogleModels}:
+            self._problem(key, "default_models must be a list whose first model is one of the Google models of the code (the default of the step)")
+        intent = data.get("intent")
+        if (not isinstance(intent, dict) or set(intent) - INTENT_KEYS or not isinstance(intent.get("primary"), str)
+                or not isinstance(intent.get("confidence"), (int, float)) or not isinstance(intent.get("secondary", []), list)):
+            self._problem(key, "intent must be {\"primary\": text, \"secondary\": [texts], \"confidence\": number}")
+        if not isinstance(data.get("format_name"), str) or not data.get("format_name"):
+            self._problem(key, "format_name must be a text (the name of the answer format sent to the model)")
+        answer = data.get("answer") if isinstance(data.get("answer"), dict) else {}
+        if data["kind"] == LLM:
+            if "pieces" in answer:
+                self._check_pieces(key, answer, data)
+            elif isinstance(answer.get("schema"), dict):
+                pass                                                  # a whole answer schema written in the declaration
+            elif isinstance(answer.get("schema_file"), str):
+                self._schema_file(key, "answer.schema_file", answer["schema_file"])
+            else:
+                self._problem(key, "answer must have `pieces` (pieces of schema/response/), or a whole `schema` or a `schema_file`")
+        else:
+            if data.get("for_each") != "actions":
+                self._problem(key, "for_each must be \"actions\" for a step run once per action")
+            if not isinstance(answer.get("schema_file"), str):
+                self._problem(key, "answer.schema_file must be the actions schema file of schema/response/")
+            else:
+                self._schema_file(key, "answer.schema_file", answer["schema_file"])
+        for slot, function_name in (data.get("functions") or {}).items():
+            if slot not in FUNCTION_KEYS:
+                self._problem(key, f"functions: unknown key {slot!r}. Keys: {', '.join(FUNCTION_KEYS)}")
+            elif function_name not in step_functions.TABLES[slot]:
+                self._problem(key, f"functions.{slot}: {function_name!r} is not a function of application/steps/functions.py. "
+                                   f"Functions: {', '.join(step_functions.TABLES[slot]) or 'none'}")
+        if data["kind"] == LLM and "input" not in (data.get("functions") or {}) and not isinstance(data.get("reads"), list):
+            self._problem(key, "a step with no functions.input must list the fields it reads")
+
+    def _check_pieces(self, key: str, answer: dict, data: dict) -> None:
+        pieces = answer.get("pieces")
+        if not isinstance(pieces, list) or not pieces:
+            return self._problem(key, "answer.pieces must be a list of pieces of schema/response/ ({\"name\", \"file\", \"key\"})")
+        names = []
+        for index, piece in enumerate(pieces):
+            if not isinstance(piece, dict) or set(piece) - PIECE_KEYS or not isinstance(piece.get("name"), str) or not isinstance(piece.get("file"), str):
+                self._problem(key, f"answer.pieces[{index}] must be {{\"name\", \"file\", \"key\"}}")
+                continue
+            names.append(piece["name"])
+            loaded = self._schema_file(key, f"answer.pieces[{index}]", piece["file"])
+            if loaded is not None and not piece.get("mcp_servers") and piece.get("key", piece["name"]) not in loaded:
+                self._problem(key, f"answer.pieces[{index}]: the file {piece['file']!r} has no key {piece.get('key', piece['name'])!r}")
+        required = answer.get("required")
+        if not isinstance(required, list) or any(item not in names for item in required):
+            self._problem(key, f"answer.required must name pieces of the answer. Pieces: {', '.join(names)}")
+
+    def _schema_file(self, key: str, where: str, file: str) -> Optional[dict]:
+        try:
+            return load_schema_file(file)
+        except (OSError, ValueError):
+            self._problem(key, f"{where}: the schema file {file!r} does not exist in schema/response/")
+            return None
 
     def _check_flow_file(self, name: str, data: dict) -> None:
         key = f"flows/{name}"
@@ -436,11 +547,11 @@ class _Assembly:
         available = {name for name, entry in self.fields.items() if entry.get("always")} | set(requires) | set(initial)
         for step in steps:
             definition = self._declaration(step)
-            for field_name in definition["reads"]:
-                if field_name not in available:
+            for _, field_name, optional in parse_reads(definition["reads"]):
+                if not optional and field_name not in available:
                     self._problem(key, f"{flow_name or 'steps'}: {step!r} reads {field_name!r} but no step before it writes it, "
                                        f"no required input gives it and no initial_state gives it")
-            available |= set(definition["writes"])
+            available |= {w.rstrip("?") for w in definition["writes"]}
 
         result = self._result_step(flow_name, steps)
         declaration = self._declaration(result) if result in steps else None

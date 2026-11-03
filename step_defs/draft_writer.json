@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "name": "draft_writer",
+  "about": "Synthesizes the action outputs into a first draft of the reply (the conversation flow runs it right after identification).",
+  "kind": "llm",
+  "legacy_id": 7,
+  "group": "common",
+  "prompt": {
+    "file": "prompts/7_drawf_writter.txt"
+  },
+  "default_models": [
+    "gemini-3.6-flash"
+  ],
+  "intent": {
+    "primary": "decision_support",
+    "secondary": [
+      "information_request"
+    ],
+    "confidence": 0.9
+  },
+  "format_name": "draft_writer_phase7_response_format",
+  "answer": {
+    "required": [
+      "user_goal"
+    ],
+    "pieces": [
+      {
+        "name": "user_goal",
+        "file": "general/user_goal/user_goal.schema.json",
+        "key": "user_goal"
+      }
+    ]
+  },
+  "reads": [
+    {
+      "user_message": "message"
+    },
+    "user_goal",
+    "task_category",
+    "actions?",
+    "constraints?"
+  ],
+  "writes": [
+    "user_goal"
+  ]
+}

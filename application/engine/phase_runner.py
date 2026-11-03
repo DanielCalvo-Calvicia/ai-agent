@@ -47,6 +47,7 @@ class PhaseRunner:
         models: Optional[ModelResolver] = None,
         flow_name: str = "",
         prompts: Optional[Mapping[str, PromptOverride]] = None,
+        step_texts: Optional[Mapping[str, str]] = None,
     ) -> None:
         self.outbound_port = outbound_port
         self.metrics = metrics
@@ -54,6 +55,7 @@ class PhaseRunner:
         self.models = models if models is not None else ModelResolver()       # no profile: every step uses its own default model
         self.flow_name = flow_name
         self.prompts = dict(prompts or {})                  # step name -> what the profile does to its prompt (T-05.14)
+        self.step_texts = dict(step_texts or {})            # step name -> its prompt as the configuration source read it (T-05.16)
 
     def models_for(self, step_name: str, default: GoogleModels) -> List[SelectedModel]:
         """The ordered models of a step in this flow: the first answers, the others are the fallback (ADR-014)."""
@@ -71,6 +73,7 @@ class PhaseRunner:
         payload = _build_payload(
             prompt_file=spec.prompt_file,
             override=self.prompts.get(spec.step_name),
+            step_text=self.step_texts.get(spec.step_name),
             model=model,
             intent=spec.intent,
             user_message=_as_message_text(spec.build_input(state)),
@@ -105,6 +108,7 @@ class PhaseRunner:
         payload = _build_payload(
             prompt_file=spec.prompt_file,
             override=self.prompts.get(spec.step_name),
+            step_text=self.step_texts.get(spec.step_name),
             model=model,
             intent=spec.intent,
             user_message={"action": action, **user_message_extra}.__str__(),
@@ -240,6 +244,7 @@ def _build_payload(
     response_format: ResponseFormat,
     tools: list,
     override: Optional[PromptOverride] = None,
+    step_text: Optional[str] = None,
 ) -> Payload:
     """The request every phase sends: same system prompt scheme and sampling, different content."""
     primary, secondary, confidence = intent
@@ -247,7 +252,7 @@ def _build_payload(
     return Payload(
         intent=create_intent(primary=primary, secondary=list(secondary), confidence=confidence),
         model=model,
-        system_prompt=build_system_prompt_from_file(prompt_file, override=override),
+        system_prompt=build_system_prompt_from_file(prompt_file, override=override, step_text=step_text),
         message=create_message(Role.USER, user_message),
         reasoning=None,
         temperature=create_temperature(DEFAULT_TEMPERATURE),

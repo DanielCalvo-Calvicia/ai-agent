@@ -47,6 +47,8 @@ class Pipeline:
         tool_levels: Sequence[Optional[dict]] = (),
         tool_overrides: Optional[Dict[str, dict]] = None,
         prompts: Optional[Mapping[str, PromptOverride]] = None,
+        step_defs: Optional[Dict[str, dict]] = None,
+        step_texts: Optional[Mapping[str, str]] = None,
     ) -> None:
         """
         `tool_levels`: the `tools` of the profile (and of its entry for this flow), None where a level sets nothing. The tools a
@@ -61,9 +63,9 @@ class Pipeline:
 
         self.scope_of = scope_of
         flow_servers, flow_tools = scoped(mcp_list, mcp_tools, scope_of(None))
-        runner = PhaseRunner(outbound_port, metrics, server_names(flow_servers, flow_tools), models=models, flow_name=flow.name, prompts=prompts)
+        runner = PhaseRunner(outbound_port, metrics, server_names(flow_servers, flow_tools), models=models, flow_name=flow.name, prompts=prompts, step_texts=step_texts)
         self.flow = flow
-        self.steps = flow.build_steps(FlowContext(runner, mcp_list, mcp_tools, scope_of))
+        self.steps = flow.build_steps(FlowContext(runner, mcp_list, mcp_tools, scope_of, step_defs))
         self.clarifier = Clarifier(runner)
         self.answer_checker = AnswerChecker(runner)
 

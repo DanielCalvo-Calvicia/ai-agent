@@ -43,16 +43,18 @@ def LoadCapabilities() -> str:
 
 
 def build_system_prompt_from_file(prompt_file: Optional[str], clock: Optional[Callable[[], str]] = None,
-                                  override: Optional[PromptOverride] = None) -> Message:
+                                  override: Optional[PromptOverride] = None, step_text: Optional[str] = None) -> Message:
     """
     The SYSTEM message of a phase: the generic invariants (phase 0), then what the robot can do
-    and the current date and time, then the prompt file of the phase (replaced or added to by the profile's `override`, T-05.14).
+    and the current date and time, then the prompt file of the phase (replaced or added to by the profile's `override`, T-05.14). `step_text` is that prompt already read through the configuration
+    source (the Agent holds it, T-05.16); without it the file is read from the repository.
     """
+    step_part = step_text if step_text is not None else (_read(prompt_file) if prompt_file else None)
     parts = [
         _read(GENERIC_PROMPT_FILE),
         LoadCapabilities(),
         f"CURRENT DATE AND TIME: {(clock or now_text)()}",
-        override.apply(_read(prompt_file) if prompt_file else None) if override else (_read(prompt_file) if prompt_file else None),
+        override.apply(step_part) if override else step_part,
     ]
 
     return create_message(Role.SYSTEM, "\n\n".join(part for part in parts if part))

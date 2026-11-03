@@ -216,7 +216,7 @@ def agent():
 def limited(agent, **tools):
     """The `special` profile with the given `tools` object."""
     profile = agent.profile("special")
-    return Agent({"special": dataclasses.replace(profile, definition={**profile.definition, "tools": tools})}, {}, agent.flows)
+    return Agent({"special": dataclasses.replace(profile, definition={**profile.definition, "tools": tools})}, {}, agent.flows, agent.step_defs, agent.step_prompts)
 
 
 class TestAProfileLimitedToOneTool:

@@ -24,10 +24,7 @@ from application.engine.support.failure import AgentFailure, max_attempts, max_m
 from application.engine.state.flow_state import FlowState
 from application.steps.phase import ActionPhaseSpec
 from application.steps.registry import register_step
-from application.steps.special import cognitive_worker, mcp_operator
-from application.steps.special.cognitive_worker import COGNITIVE_WORKER
-from application.steps.special.data_engineer import DATA_ENGINEER
-from application.steps.special.mcp_operator import MCP_OPERATOR
+from application.steps.declared import action_spec_from, extra_function, repository_declarations
 from application.outbound.ports.mcp_ports import McpToolsPort, tool_wait_budget, watch_tool_failures
 from domain.entities.llm_response.action import Action
 from domain.value_objects.llm_response.action.output import create_output
@@ -53,14 +50,18 @@ MCP_CAP_REACHED = ("The step was not run: the limit of {cap} tool calls for one 
 UNRESOLVABLE = "The step could not run: circular or unknown dependencies."
 
 
-def build_step(runner, mcp_list: list, mcp_tools: Optional[McpToolsPort] = None):
+def build_step(runner, mcp_list: list, mcp_tools: Optional[McpToolsPort] = None, declarations: Optional[Dict[str, dict]] = None):
     """The function a flow runs for this step (steps/build.py)."""
-    return ActionExecutor(runner, mcp_list, mcp_tools).run
+    return ActionExecutor(runner, mcp_list, mcp_tools, declarations).run
 
 
 class ActionExecutor:
-    def __init__(self, runner, mcp_list: list, mcp_tools: Optional[McpToolsPort] = None) -> None:
+    def __init__(self, runner, mcp_list: list, mcp_tools: Optional[McpToolsPort] = None, declarations: Optional[Dict[str, dict]] = None) -> None:
         self.runner = runner
+        declared = declarations if declarations is not None else repository_declarations()
+        # the three steps it runs, as their declarations say (prompt, answer, what each is told besides the action)
+        self.worker, self.operator, self.engineer = (action_spec_from(declared[name]) for name in ("cognitive_worker", "mcp_operator", "data_engineer"))
+        self.worker_extra, self.operator_extra = extra_function(declared["cognitive_worker"]), extra_function(declared["mcp_operator"])
         self.mcp_list = mcp_list
         self.mcp_tools = mcp_tools
         self._mcp_cap = 0         # set by run(): MCP actions allowed in this message (0 = no limit)
@@ -170,8 +171,8 @@ class ActionExecutor:
             self._fail(action, error or NO_RESULT, failures)
 
     def _run_worker(self, action, state, dependency_outputs, subaction_outputs) -> tuple:
-        extra = cognitive_worker.build_extra(state, dependency_outputs, subaction_outputs)
-        return self._ask(action, COGNITIVE_WORKER, extra)
+        extra = self.worker_extra(state, self.mcp_list, self.mcp_tools, dependency_outputs, subaction_outputs)
+        return self._ask(action, self.worker, extra)
 
     def _run_mcp(self, action, state, dependency_outputs, subaction_outputs) -> tuple:
         if state.requires_confirmation():
@@ -184,13 +185,13 @@ class ActionExecutor:
             return "", MCP_CAP_REACHED.format(cap=self._mcp_cap)
         self._mcp_started += 1
 
-        extra = mcp_operator.build_extra(state, self.mcp_list, self.mcp_tools, dependency_outputs, subaction_outputs)
+        extra = self.operator_extra(state, self.mcp_list, self.mcp_tools, dependency_outputs, subaction_outputs)
 
         output, error = "", ""
         for attempt in range(max_attempts()):
             with watch_tool_failures() as tool_failures:
                 try:
-                    output, error = self._ask(action, MCP_OPERATOR, extra, tools=self.mcp_list)
+                    output, error = self._ask(action, self.operator, extra, tools=self.mcp_list)
                 finally:
                     for call in tool_failures.calls:
                         self.runner.metrics.record_tool_call(call)
@@ -212,7 +213,7 @@ class ActionExecutor:
         _set_output(action, output)   # so the data engineer sees the raw result in the action
         response = self.runner.run_action(
             action=action,
-            spec=DATA_ENGINEER,
+            spec=self.engineer,
             user_message_extra={},
             action_id=action.id.get_value(),
         )

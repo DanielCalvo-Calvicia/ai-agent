@@ -18,7 +18,8 @@ if PROJECT_ROOT not in sys.path:
 from application.inbound.dto.session import MessageReceivedResponseDTO
 from flow_files import EXPRESSION_FLOW
 from brain_chain import EXPRESSIVE_FLOWS, AgentRouter
-from application.steps.expression import emotion_reader, gesture_builder
+from application.steps.expression import gesture_builder
+from step_specs import EMOTION_READER, prompt_file
 from application.steps.movement import motion_validator as validator
 from application.engine.state.expression_state import ExpressionFlowState
 from application.engine.state.paused_run import FlowResult
@@ -136,7 +137,7 @@ class Answer:
 class TestEmotionReaderPhase:
     def apply(self, raw):
         state = ExpressionFlowState(message="hi", reply="hello")
-        emotion_reader.EMOTION_READER.apply(state, Answer(raw))
+        EMOTION_READER.apply(state, Answer(raw))
         return state
 
     def test_it_reads_the_emotion_the_intensity_and_the_ideas(self):
@@ -157,17 +158,17 @@ class TestEmotionReaderPhase:
 
     def test_the_model_sees_what_the_user_said_and_what_the_robot_answers(self):
         state = ExpressionFlowState(message="I got a puppy!", reply="How wonderful!")
-        text = emotion_reader.EMOTION_READER.build_input(state)
+        text = EMOTION_READER.build_input(state)
         assert "I got a puppy!" in text and "How wonderful!" in text
 
     def test_the_schema_asks_for_the_emotion_the_intensity_and_the_ideas(self):
-        properties = emotion_reader.EMOTION_READER.properties()
+        properties = EMOTION_READER.properties()
         assert set(properties) == {"emotion", "intensity", "improvised"}
         assert properties["emotion"]["enum"] == list(EMOTIONS)
         assert properties["improvised"]["maxItems"] == 3
 
     def test_the_prompt_names_every_emotion_the_builder_knows(self):
-        with open(os.path.join(PROJECT_ROOT, emotion_reader.PROMPT_FILE), encoding="utf-8") as f:
+        with open(os.path.join(PROJECT_ROOT, prompt_file("emotion_reader")), encoding="utf-8") as f:
             prompt = f.read()
         assert all(emotion in prompt for emotion in EMOTIONS)
 

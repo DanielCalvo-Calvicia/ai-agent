@@ -39,7 +39,7 @@ def agent():
         if name in TOKENS:
             definition["token_sha256"] = sha256_hex(TOKENS[name])
         profiles[name] = dataclasses.replace(profile, definition=definition)
-    return Agent(profiles, {}, built.flows)
+    return Agent(profiles, {}, built.flows, built.step_defs, built.step_prompts)
 
 
 def service(llm, agent, **kwargs):
@@ -82,7 +82,7 @@ class TestProfileAccess:
             assert not check_access(built, "special", token).allowed
 
     def test_a_disabled_profile_is_refused_like_an_unknown_one(self, agent):
-        smaller = Agent({n: p for n, p in agent.profiles.items() if n != "special"}, {}, agent.flows)
+        smaller = Agent({n: p for n, p in agent.profiles.items() if n != "special"}, {}, agent.flows, agent.step_defs, agent.step_prompts)
         assert check_access(smaller, "special", "special-token").reason == "unknown_or_disabled_profile"
 
     def test_no_agent_refuses_everything(self):

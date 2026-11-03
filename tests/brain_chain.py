@@ -80,7 +80,7 @@ def test_agent(models: Optional[ModelResolver] = None) -> Agent:
     agent = assemble(build_snapshot(FileConfigSource(PROJECT_ROOT)))
     agent.raise_on_errors()
     profiles = {name: dataclasses.replace(profile, resolver=models or ModelResolver()) for name, profile in agent.profiles.items()}
-    return Agent(profiles, agent.problems, agent.flows)
+    return Agent(profiles, agent.problems, agent.flows, agent.step_defs, agent.step_prompts)
 
 
 def flow_for(state: FlowState) -> Flow:

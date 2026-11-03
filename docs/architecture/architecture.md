@@ -153,25 +153,25 @@ A `tools` object (`{"servers": [...], "tools": [...]}`) can be set at five level
 
 ## 5. Phases
 
-One phase per file under `application/steps/<folder>/`. Every file declares what it uses as constants at the
-top (`PHASE_ID`, `STEP_NAME`, `MODEL_ENV_VAR`, `DEFAULT_MODEL`, `PROMPT_FILE`, `FORMAT_NAME`, `INTENT`, `SCHEMAS`, ...) and
-each file registers itself in `steps/registry.py` (`register_step(__name__, kind)`: `llm`, `llm_per_action` or `code`; a name or a phase id used twice is an error) and `steps/catalog.py` reads the registry: the prompt loader, the model selection and the metrics take their tables from it.
+**Since T-05.16 an LLM step is a JSON declaration**, `step_defs/<name>.json` (below, section 5.1); Python stays for the `code` steps and for the two prompts the engine runs itself (the answer check, phase 9, and the clarification, phase 99). A Python step file declares what it uses as constants at the
+top (`PHASE_ID`, `STEP_NAME`, `DEFAULT_MODEL`, `PROMPT_FILE`, ...; the numbers are labels) and
+registers itself in `steps/registry.py` (`register_step(__name__, kind)`: `llm`, `llm_per_action` or `code`; a name or a phase id used twice is an error) and `steps/catalog.py` reads the registry: the prompt loader, the model selection and the metrics take their tables from it.
 `tests/test_phase_structure.py` enforces one phase per file and that every constant and file exists.
 
 | Id | Step name | Folder / file | Used by | What it does |
 |---|---|---|---|---|
-| 1 | `triage_specialist` | `identification/triage.py` | identification | Classifies: `intent`, `user_goal`, `task_category` (its `domain` picks the flow) and `next_step` (asks the user when a detail is missing) |
-| 2 | `project_manager` | `special/project_manager.py` | special | Splits the goal into a tree of `actions` (with subactions) and sets `next_step`. Sees the MCP servers and the history |
-| 3 | `safety_quality_gatekeeper` | `special/safety_gate.py` | special | Fills `safety_and_validation`; may require a confirmation |
-| 4 | `cognitive_worker` | `special/cognitive_worker.py` | special | Runs one non-MCP action given the outputs it depends on |
-| 5 | `mcp_operator` | `special/mcp_operator.py` | special | Runs one `mcp_tool_call` action with the tools of the MCP servers (blocked if a confirmation is pending); it follows a `running` answer up once, within the 60 s the tool calls of a message share |
-| 6 | `data_engineer` | `special/data_engineer.py` | special | Cleans the result of an MCP action |
-| 7 | `draft_writer` | `common/draft_writer.py` | conversation, special | Writes the first user-facing answer into `user_goal.expected_outcome` (the reply read by `FlowState.final_text()` has stray model tags stripped); reads the user's own words (`user_message`) so it answers in their language, short and speakable |
-| 8 | `editor_in_chief` | `common/editor_in_chief.py` | conversation, special | Polishes it; the reply is `user_goal.expected_outcome` |
+| 1 | `triage_specialist` | `step_defs/triage_specialist.json` | identification | Classifies: `intent`, `user_goal`, `task_category` (its `domain` picks the flow) and `next_step` (asks the user when a detail is missing) |
+| 2 | `project_manager` | `step_defs/project_manager.json` | special | Splits the goal into a tree of `actions` (with subactions) and sets `next_step`. Sees the MCP servers and the history |
+| 3 | `safety_quality_gatekeeper` | `step_defs/safety_quality_gatekeeper.json` | special | Fills `safety_and_validation`; may require a confirmation |
+| 4 | `cognitive_worker` | `step_defs/cognitive_worker.json` | special | Runs one non-MCP action given the outputs it depends on |
+| 5 | `mcp_operator` | `step_defs/mcp_operator.json` | special | Runs one `mcp_tool_call` action with the tools of the MCP servers (blocked if a confirmation is pending); it follows a `running` answer up once, within the 60 s the tool calls of a message share |
+| 6 | `data_engineer` | `step_defs/data_engineer.json` | special | Cleans the result of an MCP action |
+| 7 | `draft_writer` | `step_defs/draft_writer.json` | conversation, special | Writes the first user-facing answer into `user_goal.expected_outcome` (the reply read by `FlowState.final_text()` has stray model tags stripped); reads the user's own words (`user_message`) so it answers in their language, short and speakable |
+| 8 | `editor_in_chief` | `step_defs/editor_in_chief.json` | conversation, special | Polishes it; the reply is `user_goal.expected_outcome` |
 | 9 | `answer_checker` | `common/answer_checker.py` | the engine | Reads the next message of a session with a saved run (answer / yes / no / not an answer / stop) |
-| 20 | `motion_planner` | `movement/motion_planner.py` | movement | Writes the ordered movement list, `is_motion_request` and a short `spoken_reply`; asks the user when the arm or the degrees are missing |
+| 20 | `motion_planner` | `step_defs/motion_planner.json` | movement | Writes the ordered movement list, `is_motion_request` and a short `spoken_reply`; asks the user when the arm or the degrees are missing |
 | 21 | `motion_validator` | `movement/motion_validator.py` | movement | **No LLM call.** Valid arm and direction, degrees within limits, at most 20 movements and 3600 degrees in total; one bad movement refuses the whole sequence |
-| 30 | `emotion_reader` | `expression/emotion_reader.py` | expression | Reads the feeling of an exchange (what the user said and what the robot answers): `emotion`, `intensity` 1 to 5 and up to 3 optional movements of its own |
+| 30 | `emotion_reader` | `step_defs/emotion_reader.json` | expression | Reads the feeling of an exchange (what the user said and what the robot answers): `emotion`, `intensity` 1 to 5 and up to 3 optional movements of its own |
 | 31 | `gesture_builder` | `expression/gesture_builder.py` | expression | **No LLM call.** Builds the gesture: random movements shaped by the emotion (`domain/operations/gesture.py`), about as long as the speech, every arm back where it started; the motion validator checks it and a refused gesture is dropped |
 | 99 | `user_clarification` | `common/user_clarification.py` | the engine | Writes the question for the user (plain text, temperature 0.7, 2000 tokens) |
 
@@ -181,6 +181,12 @@ A phase's answer is one JSON object built from the schema pieces it names in `SC
 The code defaults of `DEFAULT_MODEL` are Google models with a free tier: `gemini-3.1-flash-lite` for triage, data engineer, answer
 checker, clarification and emotion reader, `gemini-3.6-flash` for the others ([ADR-012](../decisions/ADR-012-gemini-free-tier-default-no-github-models.md)). The model really used is chosen by
 the model sets of `model_sets/` through `ModelResolver` (`engine/support/model_selection.py`, see `configuration.md`): an ordered list per step, the most specific value wins; the service runs on the set `proven` until profiles exist (T-05.7), which puts `gemini-3.1-flash-lite` on every step ([ADR-012](../decisions/ADR-012-gemini-free-tier-default-no-github-models.md)).
+
+### 5.1 What a step declaration is (T-05.16)
+
+`step_defs/<name>.json` says everything an LLM step is: `kind` (`llm` one call, `llm_per_action` one call per planned action with `for_each: "actions"`, `code` a Python step), `legacy_id` and `group` (labels: the old phase number and the family it sorts with), `prompt.file`, `default_models` (the default of the step when a profile says nothing), `intent`, `format_name`, `answer` (`pieces`: `{name, file, key}` of existing schema pieces of `schema/response/`, and `required`; or a whole `schema` / `schema_file`; a piece with `mcp_servers: true` is the actions schema that names the servers the step may use), `reads` and `writes`. **`reads` and `writes` are fields of `config/state_fields.json` only** (a non-coder cannot create a field): a read is `"field"`, `"field?"` (it may be missing: nothing before it has to write it) or `{"key": "field"}` (the model is told it under another key; `draft_writer` tells the user's words as `user_message`). A plain `reads` is what the model is told, in that order; a plain `writes` copies each field of the answer into the state when it is there (`write_always` copies it even when it is not). When the input or the result is more than that the declaration names a function of `application/steps/functions.py` (`functions.input`, `functions.apply`, `functions.extra`: a developer writes it, a declaration cannot invent one). `application/steps/declared.py` builds the `PhaseSpec` (or `ActionPhaseSpec`) a flow runs from the declaration; `steps/build.py` builds the function of a step. `assemble()` checks every key (the schema files and their keys, the prompt file, the number, the group, the model, the functions, the fields) and then the data flow of every profile: a step may read only what an input, an initial value or an earlier step gives it. The three steps of the action executor (4, 5 and 6) are declared too and run by it, not by a flow; the three code steps (`action_executor`, `motion_validator`, `gesture_builder`) are declared for their `reads` and `writes` and name their Python function.
+
+The prompt of a declared step is read **through the configuration source** at assembly (`Agent.step_prompts`), so a configuration in another folder brings its own prompts. **Adding a step is one JSON file and its prompt**, and a flow that names it (`tests/test_step_declarations.py` does it on a temporary copy). Known limit: the tables that are not part of the agent (`PHASES`, the metric names of a phase id, the cost tables) are built from the declarations of this repository, so a step added elsewhere shows as `phase_<number>` in the metrics and cannot be named in `overrides` of a profile.
 
 ## 6. The engine
 
@@ -313,7 +319,7 @@ response mapper builds them from the LLM's JSON, one function per section.
 
 ## 13. How to extend it
 
-- **A new phase:** its file (constants first, then `register_step(__name__, kind)`) in `steps/<folder>/`, a step in its flow. Nothing else lists it.
+- **A new LLM step:** `step_defs/<name>.json` (copy `draft_writer.json`) and its prompt in `prompts/`, then a flow that names it; a Python function only when its input or result is not a plain list of fields (`steps/functions.py`). **A new code step:** its file in `steps/<folder>/` (constants first, then `register_step(__name__, "code")`) and a declaration for its `reads` and `writes`.
 - **A new flow:** a file in `flows/` (its steps in order, `pause_if` and `retry_on_status`, `on_pause` and `on_resume` if a step can ask, `result_from`) and a profile in `profiles/` that names it; no Python while it uses the steps, conditions and hooks that exist (`scripts/check_agent.py` says what is wrong)
   (the client chooses the profile; the domain in the schema and the triage prompt only if it is a new one).
 - **A new domain value:** `schema/response/general/full.schema.json` (then `python scripts/split_schemas.py --write`),

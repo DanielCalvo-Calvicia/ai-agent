@@ -1,6 +1,7 @@
 # assemble() builds the whole agent from the configuration and refuses what cannot work: one test for each problem it names
 # (PR-005 section 9), the production mode (a wrong profile is disabled, the others serve) and scripts/check_agent.py.
 import ast
+import itertools
 import dataclasses
 import json
 import os
@@ -41,11 +42,24 @@ class FakeSource(ConfigSourcePort):
     def load_step_defs(self): return self._loaded("step_defs")
     def load_model_sets(self): return self._loaded("model_sets")
     def load_state_fields(self): return Loaded(items=dict(FIELDS))
-    def load_prompt(self, name): raise ConfigError(name)
+    def load_prompt(self, name):
+        if name.startswith("prompts/") and ".." not in name and "missing" not in name:
+            return "a prompt"
+        raise ConfigError(name)
+
+
+_NUMBERS = itertools.count(1000)
 
 
 def step(reads, writes, kind="llm", **extra):
-    return {"schema_version": 1, "kind": kind, "reads": reads, "writes": writes, **extra}
+    """A declaration; an `llm` one is complete (it can run): number, group, prompt, model, intent, format and answer."""
+    base = {"schema_version": 1, "kind": kind, "reads": reads, "writes": writes}
+    if kind == "llm":
+        base.update(legacy_id=next(_NUMBERS), group="common", prompt={"file": "prompts/a_step.txt"}, default_models=["gemini-3.1-flash-lite"],
+                    intent={"primary": "decision_support", "secondary": [], "confidence": 0.5}, format_name="a_step_format",
+                    answer={"required": ["user_goal"], "pieces": [{"name": "user_goal", "file": "general/user_goal/user_goal.schema.json", "key": "user_goal"}]},
+                    functions={"input": "message_with_history"})
+    return {**base, **extra}
 
 
 def flow(*steps, result_from=None, **extra):
@@ -400,6 +414,8 @@ class TestCheckAgentScript:
     def test_a_good_folder_says_ok_and_exits_0(self, tmp_path):
         write(tmp_path, "config/state_fields.json", {"schema_version": 1, "fields": FIELDS})
         write(tmp_path, "step_defs/draft.json", STEPS["draft"])
+        os.makedirs(tmp_path / "prompts")
+        (tmp_path / "prompts" / "a_step.txt").write_text("a prompt", encoding="utf-8")
         write(tmp_path, "flows/chat.json", FLOWS["chat"])
         write(tmp_path, "model_sets/cheap.json", SETS["cheap"])
         write(tmp_path, "profiles/chat.json", GOOD)

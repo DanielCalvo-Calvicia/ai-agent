@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "name": "project_manager",
+  "about": "Decomposes the goal into actions and says what each one needs; the planner is told which MCP servers and tools it may use.",
+  "kind": "llm",
+  "legacy_id": 2,
+  "group": "special",
+  "prompt": {
+    "file": "prompts/2_project_manager.txt"
+  },
+  "default_models": [
+    "gemini-3.6-flash"
+  ],
+  "intent": {
+    "primary": "decision_support",
+    "secondary": [
+      "information_request"
+    ],
+    "confidence": 0.9
+  },
+  "format_name": "project_manager_phase2_response_format",
+  "answer": {
+    "required": [
+      "actions",
+      "next_step",
+      "task_category_complexity"
+    ],
+    "pieces": [
+      {
+        "name": "actions",
+        "file": "general/actions/actions.schema.json",
+        "key": "actions",
+        "mcp_servers": true
+      },
+      {
+        "name": "next_step",
+        "file": "general/next_steps/next_step.schema.json",
+        "key": "next_step"
+      },
+      {
+        "name": "task_category_complexity",
+        "file": "general/task_category/task_category.complexity.schema.json",
+        "key": "complexity"
+      }
+    ]
+  },
+  "reads": [
+    "user_goal",
+    "task_category",
+    "history",
+    "answers"
+  ],
+  "writes": [
+    "actions",
+    "next_step"
+  ],
+  "write_always": true,
+  "functions": {
+    "input": "planner_input"
+  }
+}

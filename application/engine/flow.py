@@ -24,6 +24,7 @@ class FlowContext:
     mcp_list: list
     mcp_tools: Optional[McpToolsPort] = None
     scope_of: Optional[Callable[[str], ToolScope]] = None     # the tools a step may use (profile, flow and step limits)
+    step_defs: Optional[Dict[str, dict]] = None                # the step declarations of the agent (None: those of the repository)
 
 
 @dataclass(frozen=True)

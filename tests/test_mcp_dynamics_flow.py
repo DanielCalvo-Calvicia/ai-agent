@@ -396,7 +396,7 @@ def test_the_writer_is_told_to_speak_short_and_to_summarise_long_data():
 
 
 def test_the_writer_receives_the_users_own_words():
-    from application.steps.common.draft_writer import DRAFT_WRITER
+    from step_specs import DRAFT_WRITER
     from application.engine.state.flow_state import FlowState
     assert DRAFT_WRITER.build_input(FlowState(message="How many orders does CL-1001 have?"))["user_message"] == "How many orders does CL-1001 have?"
 

@@ -1,26 +1,28 @@
 # ===============================================
 #  BUILD A STEP
-#  The function a flow runs for a step, made from the step's registry entry (steps/registry.py). A step file that needs
-#  more than its constants offers `build_step(runner, mcp_list, mcp_tools)`; an LLM step with one PhaseSpec is run by the
-#  runner; a code step is its `run(state)`. The runner is the engine's PhaseRunner (not imported here: a step never imports the engine).
+#  The function a flow runs for a step. An `llm` step is built from its declaration (step_defs/<name>.json, steps/declared.py); a
+#  `code` step is the function of its Python file (steps/registry.py): its `run(state)`, or `build_step(...)` when it needs more
+#  than the state (the action executor). The runner is the engine's PhaseRunner (not imported here: a step never imports the engine).
 # ===============================================
 
-from typing import Callable, Optional
+from typing import Callable, Dict, Optional
 
 from application.engine.state.flow_state import FlowState
-from application.steps.phase import PhaseSpec
-from application.steps.registry import CODE, step as registered_step
+from application.steps.declared import repository_declarations, step_function
+from application.steps.registry import LLM, step as registered_step
 
 
-def build_step_function(name: str, runner, mcp_list: list, mcp_tools: Optional[object] = None) -> Callable[[FlowState], None]:
-    entry = registered_step(name)
-    module = entry.module
+def build_step_function(name: str, runner, mcp_list: list, mcp_tools: Optional[object] = None,
+                        declarations: Optional[Dict[str, dict]] = None) -> Callable[[FlowState], None]:
+    """`declarations`: the step declarations of the agent (those of the repository when none are given)."""
+    declared = declarations if declarations is not None else repository_declarations()
+    declaration = declared.get(name)
+    if declaration is not None and declaration.get("kind") == LLM:
+        return step_function(declaration, runner, mcp_list, mcp_tools)
+    if declaration is not None and declaration.get("kind") != "code":
+        raise ValueError(f"step {name!r} is run once per action by the action executor: a flow cannot list it")
+
+    module = registered_step(name).module                   # a code step: its Python file
     if hasattr(module, "build_step"):
-        return module.build_step(runner, mcp_list, mcp_tools)
-    if entry.kind == CODE:
-        return module.run
-    specs = [value for value in vars(module).values() if isinstance(value, PhaseSpec)]
-    if len(specs) != 1:
-        raise ValueError(f"step {name!r}: {module.__name__} must hold one PhaseSpec or a build_step(), it holds {len(specs)}")
-    spec = specs[0]
-    return lambda state: spec.apply(state, runner.run_phase(spec, state))
+        return module.build_step(runner, mcp_list, mcp_tools, declared)
+    return module.run

@@ -28,11 +28,11 @@ def fixed_clock(monkeypatch):
 
 @pytest.fixture
 def config(tmp_path):
-    for folder in ("profiles", "flows", "model_sets"):
+    for folder in ("profiles", "flows", "step_defs", "model_sets", "prompts"):
         shutil.copytree(os.path.join(PROJECT_ROOT, folder), tmp_path / folder, ignore=shutil.ignore_patterns("_unverified"))
     os.makedirs(tmp_path / "config")
     shutil.copy(os.path.join(PROJECT_ROOT, "config", "state_fields.json"), tmp_path / "config" / "state_fields.json")
-    os.makedirs(tmp_path / "prompts" / "profiles" / "special")
+    os.makedirs(tmp_path / "prompts" / "profiles" / "special", exist_ok=True)
     (tmp_path / "prompts" / "profiles" / "special" / "draft_writer.txt").write_text(APPENDED, encoding="utf-8")
     return tmp_path
 

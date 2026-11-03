@@ -10,16 +10,16 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.steps.common.draft_writer import DRAFT_WRITER
-from application.steps.common.editor_in_chief import EDITOR_IN_CHIEF
-from application.steps.expression.emotion_reader import EMOTION_READER
-from application.steps.identification.triage import TRIAGE
-from application.steps.movement.motion_planner import MOTION_PLANNER
-from application.steps.special.cognitive_worker import COGNITIVE_WORKER
-from application.steps.special.data_engineer import DATA_ENGINEER
-from application.steps.special.mcp_operator import MCP_OPERATOR
-from application.steps.special.project_manager import make_project_manager
-from application.steps.special.safety_gate import SAFETY_GATE
+from step_specs import DRAFT_WRITER
+from step_specs import EDITOR_IN_CHIEF
+from step_specs import EMOTION_READER
+from step_specs import TRIAGE
+from step_specs import MOTION_PLANNER
+from step_specs import COGNITIVE_WORKER
+from step_specs import DATA_ENGINEER
+from step_specs import MCP_OPERATOR
+from step_specs import make_project_manager
+from step_specs import SAFETY_GATE
 from application.engine.support.schemas import actions_schema, object_schema
 from domain.entities.llm_request.payload import Payload
 from domain.value_objects.llm_request.message import Role, create_message

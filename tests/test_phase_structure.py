@@ -1,5 +1,6 @@
-# The phase files are the one place that says what a phase uses. These tests keep them that way:
-# one phase per file, every constant present, every file they point at really there.
+# What a step uses is said in one place: the Python file of a code step (and of the two prompts the engine runs itself), the JSON
+# declaration of an LLM step (step_defs/, T-05.16). These tests keep it that way: one step per file, every constant or key present,
+# every file they point at really there.
 
 import ast
 import importlib
@@ -10,6 +11,7 @@ import types
 import pytest
 
 from application.steps import registry as step_registry
+from application.steps.declared import repository_declarations
 from application.engine.support.schemas import SCHEMAS_ROOT
 from application.system_prompts.general import CAPABILITIES_FILE, GENERIC_PROMPT_FILE, PROJECT_ROOT
 
@@ -79,6 +81,35 @@ class TestEachPhaseFile:
         assert (entry.kind == step_registry.CODE) == (not getattr(module, "LLM", True))
 
 
+DECLARED = {name: d for name, d in repository_declarations().items() if d["kind"] in (step_registry.LLM, step_registry.LLM_PER_ACTION)}
+
+
+@pytest.mark.parametrize("name", sorted(DECLARED))
+class TestEachDeclaredStep:
+    def test_it_declares_what_it_uses(self, name):
+        declaration = DECLARED[name]
+        for key in ("legacy_id", "group", "prompt", "default_models", "intent", "format_name", "answer", "reads", "writes"):
+            assert key in declaration, f"step_defs/{name}.json has no {key}"
+        assert declaration["name"] == name
+
+    def test_its_prompt_file_exists(self, name):
+        assert os.path.isfile(os.path.join(PROJECT_ROOT, DECLARED[name]["prompt"]["file"]))
+
+    def test_its_schema_files_exist(self, name):
+        answer = DECLARED[name]["answer"]
+        files = [piece["file"] for piece in answer.get("pieces", [])] + ([answer["schema_file"]] if "schema_file" in answer else [])
+        assert files
+        for file in files:
+            assert os.path.isfile(os.path.join(SCHEMAS_ROOT, file)), file
+
+    def test_it_is_in_the_registry_with_its_kind_and_number(self, name):
+        entry = next(e for e in step_registry.all_steps() if e.name == name)
+        assert entry.kind == DECLARED[name]["kind"] and entry.legacy_id == DECLARED[name]["legacy_id"]
+
+    def test_no_python_file_defines_it_any_more(self, name):
+        assert all(n != name for _, n in PHASE_FILES)
+
+
 class TestCatalog:
     ALL = step_registry.all_steps()
 
@@ -88,8 +119,8 @@ class TestCatalog:
         assert len(ids) == len(set(ids))
         assert len(names) == len(set(names))
 
-    def test_the_registry_lists_every_phase_file(self):
-        assert len(self.ALL) == len(PHASE_FILES)
+    def test_the_registry_lists_every_phase_file_and_every_declared_llm_step(self):
+        assert len(self.ALL) == len(PHASE_FILES) + len(DECLARED)
 
     def test_the_order_is_the_text_flows_first_then_movement_then_expression(self):
         assert [e.legacy_id for e in self.ALL] == [1, 2, 3, 4, 5, 6, 7, 8, 9, 40, 99, 20, 21, 30, 31]
@@ -145,6 +176,6 @@ class TestRegisterStep:
             step_registry.register_step(fake("application.steps.special.copy", "another_step", 702), "code")
 
     def test_the_same_file_imported_again_replaces_its_entry(self):
-        entry = step_registry.step("draft_writer")
+        entry = step_registry.step("answer_checker")          # a step defined in Python (the LLM steps are declarations)
         again = step_registry.register_step(entry.module.__name__, entry.kind)
         assert again == entry

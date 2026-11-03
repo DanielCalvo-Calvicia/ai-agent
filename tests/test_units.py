@@ -16,8 +16,8 @@ from application.engine.support.action_tree import (
     subactions_of,
 )
 from application.engine.support.mcp_servers import describe_servers
-from application.steps.special.cognitive_worker import COGNITIVE_WORKER
-from application.steps.special.project_manager import make_project_manager
+from step_specs import COGNITIVE_WORKER
+from step_specs import make_project_manager
 from application.engine.support.schemas import actions_schema, load_schema, object_schema, property_schema
 from application.outbound.ports.mcp_ports import McpToolsPort
 from application.service.user_session import UserSession

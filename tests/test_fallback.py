@@ -8,7 +8,7 @@ import pytest
 
 from application.engine.phase_runner import PhaseRunner
 from application.steps.catalog import PHASES
-from application.steps.identification.triage import TRIAGE
+from step_specs import TRIAGE
 from application.engine.state.flow_state import FlowState
 from application.engine.support import failure as failure_module
 from application.engine.support.failure import (

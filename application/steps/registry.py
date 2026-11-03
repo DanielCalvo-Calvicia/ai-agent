@@ -1,8 +1,9 @@
 # ===============================================
 #  STEP REGISTRY
-#  Every step (one LLM call, one LLM call per action, or plain code) registers itself from its own file, with the
-#  constants at the top of that file. The catalog, the prompt loader, the model selection and the metrics take their
-#  tables from here, so a step is defined in one place only. A new step = its file; nothing else lists it.
+#  Every step is defined in one place only. A code step (and the two prompts the engine runs itself, the answer check and the
+#  clarification) registers itself from its Python file, with the constants at the top. An LLM step is a JSON declaration
+#  (step_defs/<name>.json, T-05.16) and enters here from it. The catalog, the prompt loader, the model selection and the metrics
+#  take their tables from here. A new LLM step = its declaration and its prompt; a new code step = its file.
 # ===============================================
 
 import importlib
@@ -83,7 +84,19 @@ def load_all() -> None:
         for name in sorted(os.listdir(path)):
             if name.endswith(".py") and not name.startswith("__"):
                 importlib.import_module(f"{PACKAGE}.{folder}.{name[:-3]}")
+    _register_declared()
     _loaded = True
+
+
+def _register_declared() -> None:
+    """The LLM steps of step_defs/ of this repository: each one a catalog entry whose constants are its declaration's."""
+    from application.steps.declared import declaration_module, repository_declarations
+    for name, declaration in repository_declarations().items():
+        kind = declaration.get("kind")
+        if kind not in (LLM, LLM_PER_ACTION) or name in _STEPS:
+            continue                                    # a code step is registered by its own file
+        _STEPS[name] = StepEntry(name, kind, declaration["legacy_id"], declaration.get("group", "special"),
+                                 declaration_module(name, declaration))
 
 
 def _order(entry: StepEntry) -> Tuple[int, int]:

@@ -39,7 +39,7 @@ def fingerprint(root):
 
 @pytest.fixture
 def copy_of_the_configuration(tmp_path):
-    for folder in ("profiles", "flows", "model_sets"):
+    for folder in ("profiles", "flows", "step_defs", "model_sets", "prompts"):
         shutil.copytree(os.path.join(PROJECT_ROOT, folder), tmp_path / folder, ignore=shutil.ignore_patterns("_unverified"))
     os.makedirs(tmp_path / "config")
     shutil.copy(os.path.join(PROJECT_ROOT, "config", "state_fields.json"), tmp_path / "config" / "state_fields.json")

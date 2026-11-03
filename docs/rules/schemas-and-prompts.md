@@ -26,7 +26,7 @@ file, never a table somewhere else.
 | `30_emotion_reader.txt` | the emotion reader (the feeling of an exchange, for the arm gesture) |
 
 The system message of a phase is `0_generic_prompt` + `capabilities` + the current date and time + the phase prompt
-(`application/system_prompts/general.py`). Phase 99 (the question for the user) has its prompt inside its phase file.
+(`application/system_prompts/general.py`). Phase 99 (the question for the user) has its prompt inside its Python file; the prompt of every declared step is the `prompt.file` of its declaration.
 
 **Input format:** phase 1 receives the user text (with "Conversation so far:" and "Information the user gave when asked:"
 sections when there are earlier turns or answers). Every other phase receives `str()` of a Python dict whose values are
@@ -78,7 +78,7 @@ schema/response/motion/
 
 ## 3. How a phase gets its schema
 
-A phase file lists the pieces it needs as `SCHEMAS = {name: SchemaRef(file, key)}`. `PhaseRunner` loads them
+A step declaration (`step_defs/<name>.json`, T-05.16) lists the pieces it needs as `answer.pieces = [{name, file, key}]` (before T-05.16: `SCHEMAS = {name: SchemaRef(file, key)}` in the phase file). A step combines **existing** pieces of the schema tree; a new piece needs a developer (`full.schema.json` then `split_schemas.py --write`). `PhaseRunner` loads them
 (`engine/support/schemas.py`, cached, independent of the working directory) and builds the response format with
 `object_schema(required, properties)`. For the actions, `actions_schema(mcp_server_names)` fills `mcp_context.server_id`
 with `""` or the names of the MCP servers of that request. Domain, motion and general pieces mix freely: the motion

@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "name": "safety_quality_gatekeeper",
+  "about": "Validates the actions for safety and decides whether the user must confirm.",
+  "kind": "llm",
+  "legacy_id": 3,
+  "group": "special",
+  "prompt": {
+    "file": "prompts/3_safety_quality_gatekeeper.txt"
+  },
+  "default_models": [
+    "gemini-3.6-flash"
+  ],
+  "intent": {
+    "primary": "decision_support",
+    "secondary": [
+      "information_request"
+    ],
+    "confidence": 0.9
+  },
+  "format_name": "safety_quality_gatekeeper_phase3_response_format",
+  "answer": {
+    "required": [
+      "safety_and_validation",
+      "next_step"
+    ],
+    "pieces": [
+      {
+        "name": "safety_and_validation",
+        "file": "general/safety_and_validation/safety_and_validation.schema.json",
+        "key": "safety_and_validation"
+      },
+      {
+        "name": "next_step",
+        "file": "general/next_steps/next_step.schema.json",
+        "key": "next_step"
+      }
+    ]
+  },
+  "reads": [
+    "actions",
+    "next_step",
+    "answers"
+  ],
+  "writes": [
+    "safety_and_validation",
+    "next_step"
+  ],
+  "write_always": true,
+  "functions": {
+    "input": "safety_input"
+  }
+}

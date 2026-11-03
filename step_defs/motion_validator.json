@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "name": "motion_validator",
+  "about": "Checks the movement sequence (plain code); one bad movement refuses the whole sequence.",
+  "kind": "code",
+  "legacy_id": 21,
+  "group": "movement",
+  "reads": [
+    "motion_requested",
+    "movements"
+  ],
+  "writes": [
+    "movements",
+    "motion_rejection"
+  ],
+  "function": "motion_validator"
+}

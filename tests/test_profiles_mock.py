@@ -32,7 +32,7 @@ def agent():
         if name != "default":
             definition["token_sha256"] = sha256_hex(f"{name}-token")
         profiles[name] = dataclasses.replace(profile, definition=definition)
-    return Agent(profiles, {}, built.flows)
+    return Agent(profiles, {}, built.flows, built.step_defs, built.step_prompts)
 
 
 def run(agent, profile, scenario="full_path_with_mcp"):

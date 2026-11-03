@@ -140,7 +140,7 @@ class FlakyLLM(ScriptedLLM):
 
 
 def _send(llm):
-    from application.steps.identification.triage import TRIAGE
+    from step_specs import TRIAGE
     from application.engine.state.flow_state import FlowState
     runner = PhaseRunner(llm, SessionMetrics())
     return runner.run_phase(TRIAGE, FlowState(message="hi"))
@@ -175,7 +175,7 @@ class TestCallRetries:
     def test_only_successful_calls_are_counted_in_the_metrics(self):
         llm = FlakyLLM(2, APIConnectionError("x"))
         runner = PhaseRunner(llm, SessionMetrics())
-        from application.steps.identification.triage import TRIAGE
+        from step_specs import TRIAGE
         from application.engine.state.flow_state import FlowState
         runner.run_phase(TRIAGE, FlowState(message="hi"))
         assert runner.metrics.totals.requests == 1
