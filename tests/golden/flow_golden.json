@@ -2359,6 +2359,452 @@
     },
     "reply": "Additional information is required to proceed. Please provide more details."
   },
+  "profile_chat": {
+    "calls": [
+      {
+        "format": "draft_writer_phase7_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "claude-haiku-4-5",
+        "reasoning": "None",
+        "schema_sha": "bbe08f1c92d789b4ce521e7fc8786fd56a525623386354344d4ebdfc612eebc9",
+        "seed": null,
+        "system_prompt_len": 5619,
+        "system_prompt_sha": "024088541fa5e77163a818d44c851ef0b0b91d5b18a248a5d9954df165e1a422",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_message': 'hello there', 'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.COMUNICATION: 'communication'>), type=Type(value=<Types.GENERATION: 'generation'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'actions': None, 'constraints': None}"
+      },
+      {
+        "format": "editor_in_chief_phase8_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "claude-haiku-4-5",
+        "reasoning": "None",
+        "schema_sha": "5cb5aad982bc0d9e94c099fa2ec75d6b1d4340a7fa8c7881ad499298b95daccb",
+        "seed": null,
+        "system_prompt_len": 4320,
+        "system_prompt_sha": "44042e332561e9ab3b90cb1094a42e4b0aeec96604891e9489125ac3bc3b3c7e",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_goal': UserGoal(summary=Summary(value='s'), expected_outcome=ExpectedOutcome(value='draft answer')), 'constraints': None, 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=None, blocking_reason=None, requested_user_input=None)}"
+      }
+    ],
+    "metrics": {
+      "by_model": {
+        "claude-haiku-4-5": {
+          "completion": 10,
+          "prompt": 20,
+          "requests": 2,
+          "total": 30
+        }
+      },
+      "by_phase": {
+        "draft_writer": {
+          "claude-haiku-4-5": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "editor_in_chief": {
+          "claude-haiku-4-5": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        }
+      },
+      "request_log": [
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "claude-haiku-4-5",
+          "phase_id": 7,
+          "phase_name": "draft_writer",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "claude-haiku-4-5",
+          "phase_id": 8,
+          "phase_name": "editor_in_chief",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        }
+      ],
+      "tool_calls": [],
+      "total_completion_tokens": 10,
+      "total_prompt_tokens": 20,
+      "total_requests": 2,
+      "total_tokens": 30
+    },
+    "reply": "final answer"
+  },
+  "profile_gesture": {
+    "calls": [
+      {
+        "format": "emotion_reader_phase30_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gemini-3.1-flash-lite",
+        "reasoning": "None",
+        "schema_sha": "f000c4ee1017b3fdcd7651f498d6bd500d6abc45e3d0e88470fb01e9b5d73043",
+        "seed": null,
+        "system_prompt_len": 4232,
+        "system_prompt_sha": "131e5ac9d28ea5458fcea2000b5042be147a055b9009223b1a200971d491be00",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "What the user said:\nhello there\n\nWhat the robot answers:\nHello! How can I help you today?"
+      }
+    ],
+    "metrics": {
+      "by_model": {
+        "gemini-3.1-flash-lite": {
+          "completion": 5,
+          "prompt": 10,
+          "requests": 1,
+          "total": 15
+        }
+      },
+      "by_phase": {
+        "emotion_reader": {
+          "gemini-3.1-flash-lite": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        }
+      },
+      "request_log": [
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gemini-3.1-flash-lite",
+          "phase_id": 30,
+          "phase_name": "emotion_reader",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        }
+      ],
+      "tool_calls": [],
+      "total_completion_tokens": 5,
+      "total_prompt_tokens": 10,
+      "total_requests": 1,
+      "total_tokens": 15
+    },
+    "reply": ""
+  },
+  "profile_identification": {
+    "calls": [
+      {
+        "format": "triage_specialist_phase1_response_format",
+        "intent": "Intent(primary='clarification_request', secondary=('information_request',), confidence=1.0)",
+        "max_tokens": 10000,
+        "model": "gemini-3.1-flash-lite",
+        "reasoning": "None",
+        "schema_sha": "d6b3ecff99bbab3abfc35d5a58ccef96e90a296bab320f00520283454bafb161",
+        "seed": null,
+        "system_prompt_len": 6491,
+        "system_prompt_sha": "d22db688326b2f35b1a560f44347b03e108ccfdb9f970d7605ee2634fc7fc053",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "hello there"
+      }
+    ],
+    "metrics": {
+      "by_model": {
+        "gemini-3.1-flash-lite": {
+          "completion": 5,
+          "prompt": 10,
+          "requests": 1,
+          "total": 15
+        }
+      },
+      "by_phase": {
+        "triage_specialist": {
+          "gemini-3.1-flash-lite": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        }
+      },
+      "request_log": [
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gemini-3.1-flash-lite",
+          "phase_id": 1,
+          "phase_name": "triage_specialist",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        }
+      ],
+      "tool_calls": [],
+      "total_completion_tokens": 5,
+      "total_prompt_tokens": 10,
+      "total_requests": 1,
+      "total_tokens": 15
+    },
+    "reply": ""
+  },
+  "profile_movement": {
+    "calls": [
+      {
+        "format": "motion_planner_phase20_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "gemini-3.1-flash-lite",
+        "reasoning": "None",
+        "schema_sha": "44d4859dcb6742b134af4eabe11eee8ad41252ba90aaf877c9cc15873556b34b",
+        "seed": null,
+        "system_prompt_len": 5676,
+        "system_prompt_sha": "2f646698bd38c2d85e79cc696ad7319dfd76c942b8386503d733d3a98266e062",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "raise your left arm a quarter turn"
+      }
+    ],
+    "metrics": {
+      "by_model": {
+        "gemini-3.1-flash-lite": {
+          "completion": 5,
+          "prompt": 10,
+          "requests": 1,
+          "total": 15
+        }
+      },
+      "by_phase": {
+        "motion_planner": {
+          "gemini-3.1-flash-lite": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        }
+      },
+      "request_log": [
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "gemini-3.1-flash-lite",
+          "phase_id": 20,
+          "phase_name": "motion_planner",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        }
+      ],
+      "tool_calls": [],
+      "total_completion_tokens": 5,
+      "total_prompt_tokens": 10,
+      "total_requests": 1,
+      "total_tokens": 15
+    },
+    "reply": "Turning my left arm 90 degrees."
+  },
+  "profile_special": {
+    "calls": [
+      {
+        "format": "triage_specialist_phase1_response_format",
+        "intent": "Intent(primary='clarification_request', secondary=('information_request',), confidence=1.0)",
+        "max_tokens": 10000,
+        "model": "claude-haiku-4-5",
+        "reasoning": "None",
+        "schema_sha": "d6b3ecff99bbab3abfc35d5a58ccef96e90a296bab320f00520283454bafb161",
+        "seed": null,
+        "system_prompt_len": 6491,
+        "system_prompt_sha": "d22db688326b2f35b1a560f44347b03e108ccfdb9f970d7605ee2634fc7fc053",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "hello"
+      },
+      {
+        "format": "project_manager_phase2_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "claude-sonnet-5-5",
+        "reasoning": "None",
+        "schema_sha": "481c93c6013cdc3882a717292063a81f361bb46c5cd04833a8d1638b9cf407c3",
+        "seed": null,
+        "system_prompt_len": 7366,
+        "system_prompt_sha": "3605ff95f57704bc50c6a5c2de039764756f9f0b234d660273a557f1b566bab9",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.SYSTEM: 'system'>), type=Type(value=<Types.ANALYSIS: 'analysis'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'available_mcp_servers': [{'name': 'aws_microservice', 'tools': []}]}"
+      },
+      {
+        "format": "safety_quality_gatekeeper_phase3_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "claude-haiku-4-5",
+        "reasoning": "None",
+        "schema_sha": "60be9fff021c79ce230339ae0da57527504778cf03aa4285241483b61f01070e",
+        "seed": null,
+        "system_prompt_len": 4578,
+        "system_prompt_sha": "6d2e7ccfe35f999798c9eabf6f784e899ca437582b9f4c53a46d55deefaf9228",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'actions': [], 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=None, blocking_reason=None, requested_user_input=None)}"
+      },
+      {
+        "format": "draft_writer_phase7_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "claude-sonnet-5-5",
+        "reasoning": "None",
+        "schema_sha": "bbe08f1c92d789b4ce521e7fc8786fd56a525623386354344d4ebdfc612eebc9",
+        "seed": null,
+        "system_prompt_len": 5619,
+        "system_prompt_sha": "024088541fa5e77163a818d44c851ef0b0b91d5b18a248a5d9954df165e1a422",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_message': 'hello', 'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.SYSTEM: 'system'>), type=Type(value=<Types.ANALYSIS: 'analysis'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'actions': [], 'constraints': None}"
+      },
+      {
+        "format": "editor_in_chief_phase8_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "claude-sonnet-5-5",
+        "reasoning": "None",
+        "schema_sha": "5cb5aad982bc0d9e94c099fa2ec75d6b1d4340a7fa8c7881ad499298b95daccb",
+        "seed": null,
+        "system_prompt_len": 4320,
+        "system_prompt_sha": "44042e332561e9ab3b90cb1094a42e4b0aeec96604891e9489125ac3bc3b3c7e",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_goal': UserGoal(summary=Summary(value='s'), expected_outcome=ExpectedOutcome(value='draft answer')), 'constraints': None, 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=RecommendedAction(value='run'), blocking_reason=None, requested_user_input=None)}"
+      }
+    ],
+    "metrics": {
+      "by_model": {
+        "claude-haiku-4-5": {
+          "completion": 10,
+          "prompt": 20,
+          "requests": 2,
+          "total": 30
+        },
+        "claude-sonnet-5-5": {
+          "completion": 15,
+          "prompt": 30,
+          "requests": 3,
+          "total": 45
+        }
+      },
+      "by_phase": {
+        "draft_writer": {
+          "claude-sonnet-5-5": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "editor_in_chief": {
+          "claude-sonnet-5-5": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "project_manager": {
+          "claude-sonnet-5-5": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "safety_quality_gatekeeper": {
+          "claude-haiku-4-5": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "triage_specialist": {
+          "claude-haiku-4-5": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        }
+      },
+      "request_log": [
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "claude-haiku-4-5",
+          "phase_id": 1,
+          "phase_name": "triage_specialist",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "claude-sonnet-5-5",
+          "phase_id": 2,
+          "phase_name": "project_manager",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "claude-haiku-4-5",
+          "phase_id": 3,
+          "phase_name": "safety_quality_gatekeeper",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "claude-sonnet-5-5",
+          "phase_id": 7,
+          "phase_name": "draft_writer",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "claude-sonnet-5-5",
+          "phase_id": 8,
+          "phase_name": "editor_in_chief",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        }
+      ],
+      "tool_calls": [],
+      "total_completion_tokens": 25,
+      "total_prompt_tokens": 50,
+      "total_requests": 5,
+      "total_tokens": 75
+    },
+    "reply": "final answer"
+  },
   "unknown_and_circular_dependencies": {
     "calls": [
       {

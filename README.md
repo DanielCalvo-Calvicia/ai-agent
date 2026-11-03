@@ -122,7 +122,8 @@ All run without keys, network or cost (about 880 tests, a few minutes).
 |---|---|
 | `test_router.py`, `test_flows.py`, `test_motion_flow.py` | the client's chain (the old routing, tests/brain_chain.py), the flows, the routes, the movement flow and its validator |
 | `test_resume.py` | pausing to ask the user and resuming (answers, confirmations, stop) |
-| `test_flow_golden.py` | every LLM call of the pipeline (model, prompts, messages, schema, sampling, tools) against `tests/golden/flow_golden.json` |
+| `test_flow_golden.py` | every LLM call of the pipeline (model, prompts, messages, schema, sampling, tools) against `tests/golden/flow_golden.json`: the client's chain (14 scenarios) and one block per profile |
+| `test_profiles_mock.py`, `test_plug_and_play.py` | `default` and `dynamics` (tools, models, token) and "a profile is one file" |
 | `test_flow_objects.py` (with `flow_trace.py`) | the real steps traced to files; which step writes which field |
 | `test_parallel_actions.py`, `test_failures.py` | the action executor and the apologies for each kind of failure |
 | `test_schema_tree.py`, `test_phase_structure.py`, `test_orchestration_layout.py` | the structure: schema tree, one phase per file, one-way dependencies |

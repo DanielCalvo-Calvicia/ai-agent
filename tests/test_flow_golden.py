@@ -9,6 +9,12 @@ recorded sequence and the final reply are compared with tests/golden/flow_golden
 The golden file was first generated from the pre-refactor MessageFlowService and regenerated on purpose
 when the four flows (identification, conversation, special, movement) replaced the two old ones. A refactor of
 the orchestration must keep this test green without regenerating the file.
+
+T-05.10 added one block per PROFILE (`profile_identification`, `profile_chat`, `profile_special`, `profile_movement`,
+`profile_gesture`): the same recording for the profile alone, run the way the service runs it (the real profile, its models,
+its inputs). The other scenarios are the client's chain (tests/brain_chain.py); a test checks that the request of every step
+in a profile block is the request that step had in the chain, only the model being the profile's (`default` and `dynamics`
+have no block: they run the steps of `special`, tested in tests/test_profiles_mock.py).
 Regenerate on purpose with:  UPDATE_GOLDEN=1 python -m pytest tests/test_flow_golden.py
 """
 import hashlib
@@ -367,3 +373,127 @@ def test_flow_matches_golden(name: str):
     assert [c["format"] for c in actual["calls"]] == [c["format"] for c in golden[name]["calls"]]
     assert actual["calls"] == golden[name]["calls"]
     assert actual["metrics"] == golden[name]["metrics"]
+
+
+# ===============================================
+#  ONE BLOCK PER PROFILE (T-05.10)
+# ===============================================
+
+from application.engine.assemble import assemble
+from application.engine.config_snapshot import build_snapshot
+from application.engine.profile_inputs import read_inputs
+from application.engine.state.response_json import response_to_json
+from application.flows.registry import FLOWS
+from application.service.message_flow_service import MessageFlowService as OneProfileService
+from infrastructure.outbound.config.file_source import FileConfigSource
+from infrastructure.outbound.llm.response_mapper import read_response_json
+
+REPLY_TO_GIVE_A_GESTURE = "Hello! How can I help you today?"
+
+
+def _agent():
+    """The real profiles of profiles/, with the models each one names (the golden pins them)."""
+    agent = assemble(build_snapshot(FileConfigSource(PROJECT_ROOT)), known_flows={flow.name for flow in FLOWS})
+    agent.raise_on_errors()
+    return agent
+
+
+def _identification_output(overrides: Dict[str, Any]) -> Dict[str, Any]:
+    """What a client sends as `inputs`: the Response the `identification` profile returned for the message."""
+    service = OneProfileService(outbound_port=ScriptedLLM(overrides=overrides), mcp_list=[], agent=_agent(), profile="identification")
+    service.text(TextRequestDTO(user_id="tester", session_id="s1", content="hello there"))
+    return response_to_json(service.last_response)
+
+
+def _profile_scenarios() -> Dict[str, Dict[str, Any]]:
+    from test_expression import feeling
+
+    communication = SCENARIOS["communication_goes_to_the_conversation_flow"]
+    return {
+        "profile_identification": {"profile": "identification", **communication},
+        "profile_chat": {"profile": "chat", "message": "hello there", "llm": {},
+                         "inputs": lambda: _identification_output(communication["llm"]["overrides"])},
+        "profile_special": {"profile": "special", **SCENARIOS["no_actions"]},
+        "profile_movement": {"profile": "movement", **SCENARIOS["movement_goes_to_the_movement_flow_and_is_announced"]},
+        "profile_gesture": {"profile": "gesture", "message": "hello there", "llm": {"overrides": feeling()},
+                            "inputs": lambda: {"reply": REPLY_TO_GIVE_A_GESTURE}},
+    }
+
+
+PROFILE_SCENARIOS = ["profile_identification", "profile_chat", "profile_special", "profile_movement", "profile_gesture"]
+
+
+def _run_profile(scenario: Dict[str, Any]) -> Dict[str, Any]:
+    agent = _agent()
+    profile = agent.profile(scenario["profile"])
+    inputs = scenario["inputs"]() if "inputs" in scenario else None
+    values = read_inputs(profile, inputs, read_response_json) if inputs is not None else {}
+    llm = ScriptedLLM(**scenario["llm"])
+    service = OneProfileService(outbound_port=llm, mcp_list=MCP_LIST, agent=agent, profile=scenario["profile"], inputs=values)
+    reply = service.text(TextRequestDTO(user_id="tester", session_id="s1", content=scenario["message"],
+                                        speak_movements=scenario.get("speak_movements", True))).content
+    metrics = service.metrics.summary()
+    for record in metrics["request_log"]:
+        record.pop("request_id")
+    return {"reply": reply, "calls": llm.calls, "metrics": metrics}
+
+
+@pytest.mark.parametrize("name", PROFILE_SCENARIOS)
+def test_profile_matches_golden(name: str):
+    actual = json.loads(json.dumps(_run_profile(_profile_scenarios()[name])))
+
+    if os.environ.get("UPDATE_GOLDEN") == "1":
+        golden = _load_golden()
+        golden[name] = actual
+        with open(GOLDEN_PATH, "w", encoding="utf-8") as f:
+            json.dump(golden, f, indent=2, sort_keys=True, ensure_ascii=False)
+        return
+
+    golden = _load_golden()
+    assert name in golden, f"no golden data for {name}; run with UPDATE_GOLDEN=1"
+    assert actual["reply"] == golden[name]["reply"]
+    assert [c["format"] for c in actual["calls"]] == [c["format"] for c in golden[name]["calls"]]
+    assert actual["calls"] == golden[name]["calls"]
+    assert actual["metrics"] == golden[name]["metrics"]
+
+
+# The request of a step must be the request it had before profiles: the same system prompt, user message, schema, sampling and tools.
+# Only the model differs (it is the profile's: pinned by the block itself).
+def _same_request_whatever_the_model(call: Dict[str, Any]) -> Dict[str, Any]:
+    return {key: value for key, value in call.items() if key != "model"}
+
+
+# profile block -> (the scenario of the client's chain that has the same requests, the calls of it that belong to the profile)
+CHAIN_OF_PROFILE = {
+    "profile_identification": ("communication_goes_to_the_conversation_flow", slice(0, 1)),      # the triage
+    "profile_chat": ("communication_goes_to_the_conversation_flow", slice(1, None)),             # then the writer and the editor
+    "profile_special": ("no_actions", slice(0, None)),                                           # the triage, then the special steps
+    "profile_movement": ("movement_goes_to_the_movement_flow_and_is_announced", slice(1, None)),   # the planner
+}
+
+
+@pytest.mark.parametrize("block", list(CHAIN_OF_PROFILE))
+def test_the_requests_of_a_profile_are_the_requests_of_each_step_before_profiles(block: str):
+    golden = _load_golden()
+    chain_name, part = CHAIN_OF_PROFILE[block]
+    before = [_same_request_whatever_the_model(c) for c in golden[chain_name]["calls"][part]]
+    now = [_same_request_whatever_the_model(c) for c in golden[block]["calls"]]
+    assert now == before
+    assert before                                                        # and it is not an empty comparison
+
+
+def test_the_block_of_special_is_the_triage_followed_by_the_special_requests():
+    calls = _load_golden()["profile_special"]["calls"]
+    assert [c["format"].split("_response")[0] for c in calls][:2] == ["triage_specialist_phase1", "project_manager_phase2"]
+    assert calls[-1]["format"].startswith("editor_in_chief")
+
+
+def test_each_profile_block_pins_the_models_of_its_profile():
+    golden = _load_golden()
+    assert {c["model"] for c in golden["profile_identification"]["calls"]} == {"gemini-3.1-flash-lite"}                 # proven
+    assert {c["model"] for c in golden["profile_chat"]["calls"]} == {"claude-haiku-4-5"}                                # claude_haiku
+    by_step = {c["format"].split("_response")[0]: c["model"] for c in golden["profile_special"]["calls"]}              # claude_mixed
+    assert by_step["triage_specialist_phase1"] == "claude-haiku-4-5" and by_step["project_manager_phase2"] == "claude-sonnet-5-5"
+    assert by_step["draft_writer_phase7"] == "claude-sonnet-5-5" and by_step["editor_in_chief_phase8"] == "claude-sonnet-5-5"
+    assert {c["model"] for c in golden["profile_movement"]["calls"]} == {"gemini-3.1-flash-lite"}                       # proven
+    assert {c["model"] for c in golden["profile_gesture"]["calls"]} == {"gemini-3.1-flash-lite"}                        # proven

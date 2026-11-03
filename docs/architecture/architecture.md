@@ -294,7 +294,9 @@ response mapper builds them from the LLM's JSON, one function per section.
 | `test_orchestration_layout.py` | the one-way dependencies of section 3 |
 | `test_phase_structure.py` | one phase per file, every constant, every referenced file exists |
 | `test_schema_tree.py` | the schema tree matches `full.schema.json`, the motion enums match `ARMS` / `DIRECTIONS` |
-| `test_flow_golden.py` | every LLM call (model, prompts, messages, schema, sampling, tools) against `tests/golden/flow_golden.json` |
+| `test_flow_golden.py` | every LLM call (model, prompts, messages, schema, sampling, tools) against `tests/golden/flow_golden.json`; since T-05.10 also one block per profile (`profile_identification`, `profile_chat`, `profile_special`, `profile_movement`, `profile_gesture`), and a test that the request of every step in a block is the request it had in the client's chain, only the model being the profile's |
+| `test_profiles_mock.py` | `default` and `dynamics`, which run the steps of `special` and have no block: their tools, models and token |
+| `test_plug_and_play.py` | a new profile is one file: a copy of the configuration in a temporary folder, one new file, the agent answers, nothing of the repository changed |
 | `test_router.py`, `test_flows.py`, `test_motion_flow.py`, `test_resume.py` | the client's chain (`brain_chain.py`), flows, pausing and resuming |
 | `test_profiles.py` | the seven profiles, one profile per message, the tools and models of each, the resume rule |
 | `contracts/tests/e2e/` (workspace) | a real ai-agent process driven over HTTP and by Brain, with a scripted LLM |
@@ -311,5 +313,5 @@ response mapper builds them from the LLM's JSON, one function per section.
 - **A new provider:** a row in `infrastructure/outbound/llm/provider_models.py`, its key and URL in `VercelAIConfig`, its
   models in `domain/value_objects/llm_request/model_catalog.py`. A provider with limits of its own on the schema (Claude) gets its own copy of it inside the adapter (`anthropic_schema.py`), never a change of the schemas of the phases.
 
-If a change alters a prompt, a schema, a model or a message format, regenerate the golden file on purpose
+If a change alters a prompt, a schema, a model (a model set or a profile too: a profile block pins the models of its profile) or a message format, regenerate the golden file on purpose
 (`UPDATE_GOLDEN=1 python -m pytest tests/test_flow_golden.py`) and read the diff first.
