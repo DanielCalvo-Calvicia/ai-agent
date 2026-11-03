@@ -26,6 +26,7 @@ load_dotenv(os.path.join(PROJECT_ROOT, ".env"), override=False)
 from infrastructure.outbound.config.file_source import FileConfigSource
 from infrastructure.outbound.llm.anthropic_schema import anthropic_schema_problems
 from infrastructure.outbound.llm.config import VercelAIConfig
+from infrastructure.outbound.llm.response_mapper import read_response_json
 from infrastructure.outbound.llm.vercel import VercelAIAdapter
 from infrastructure.outbound.mcp.availability import McpAvailabilityCheck
 from infrastructure.outbound.mcp.client_manager import MCPClientManager, quiet_client_libraries
@@ -107,6 +108,7 @@ def CreateApp() -> FastAPI:
         history_turns=int(os.environ.get("AI_AGENT_HISTORY_TURNS", "6")),
         usage_reporter=usageReporter,
         agent=agent,
+        response_reader=read_response_json,
     )
 
     # Step 3: FastAPI application

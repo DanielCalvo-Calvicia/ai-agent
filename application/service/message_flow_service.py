@@ -36,6 +36,7 @@ class MessageFlowService(MessageInboundPort):
         usage_reporter: Optional[UsageReporterPort] = None,
         agent: Optional[Agent] = None,
         profile: str = DEFAULT_PROFILE,
+        inputs: Optional[dict] = None,
     ):
         self.outbound_port = outbound_port
         self.history = list(history or [])
@@ -44,6 +45,7 @@ class MessageFlowService(MessageInboundPort):
         self.last_response: Optional[Response] = None   # after text(): the Response of the run, None when it had no user_goal
         self.metrics = SessionMetrics(usage_reporter)
         self.mcp_list = mcp_list if mcp_list is not None else []
+        self.inputs = inputs or {}
         self.profile = profile                           # until the API carries it (T-05.9) every message runs `default`
         self.runner = ProfileRunner(outbound_port, self.mcp_list, self.metrics, mcp_tools, agent)
 
@@ -61,7 +63,7 @@ class MessageFlowService(MessageInboundPort):
         )
 
     def main_flow(self, message: str, speak_movements: bool = True):
-        result = self.runner.run(self.profile, message, self.history, self.paused, speak_movements=speak_movements)
+        result = self.runner.run(self.profile, message, self.history, self.paused, speak_movements=speak_movements, inputs=self.inputs)
         self.paused_run = result.paused
         self.last_response = response_of(result)
         return result

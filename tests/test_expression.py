@@ -331,11 +331,11 @@ class TestWhatBrainReceives:
             response="How wonderful!", success=True, flow="conversation", gesture=True,
             movements=[Movement("left", 60.0, "forward", 0.0), Movement("right", 45.0, "reverse", 0.8)])
         data = message_data(answer)
-        assert data.gesture is True
-        assert [(d.arm, d.degrees, d.direction, d.pause_seconds) for d in data.directives] == [
+        assert data["gesture"] is True
+        assert [(d["arm"], d["degrees"], d["direction"], d["pause_seconds"]) for d in data["directives"]] == [
             ("left", 60.0, "forward", 0.0), ("right", 45.0, "reverse", 0.8)]
 
     def test_what_the_user_asked_for_is_not_flagged_as_a_gesture(self):
         data = message_data(MessageReceivedResponseDTO(
             response="Turning.", success=True, flow="movement", movements=[Movement("left", 90.0)]))
-        assert data.gesture is False and data.directives[0].pause_seconds == 0.0
+        assert data["gesture"] is False and data["directives"][0]["pause_seconds"] == 0.0

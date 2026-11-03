@@ -208,7 +208,9 @@ class TestProductionProfiles:
     def test_the_session_of_a_gesture_profile_stays_empty(self, agent):
         service = SessionService(outbound_port=ScriptedLLM(overrides=feeling()), mcp_list=[], agent=agent, profile="gesture")
         sid = started(service)
-        assert message(service, sid, "hello").success
+        answer = service.message_received(MessageReceivedRequestDTO(user_id="tester", session_id=sid, message="hello",
+                                                                    inputs={"reply": "Hello there!"}))
+        assert answer.success
         assert service.sessions[sid].entries == [] and service.sessions[sid].history == []
 
 

@@ -18,7 +18,7 @@ POST /session/message
    -> SessionService            application/service/session_service.py  (sessions, history, the run waiting for the user)
    -> MessageFlowService        application/service/message_flow_service.py   (one per message; owns the metrics)
    -> ProfileRunner.run()       application/flows/profiles.py   (ONE profile: its flow, its models, its MCP servers)
-        the profile of the request (T-05.9; until then `default`) names one flow:
+        the profile of the request (`default` when it names none) names one flow:
            identification -> triage                                                      chat -> draft writer, editor
            special, dynamics, default -> triage, project manager, safety gate, action executor, draft writer, editor
            movement -> motion planner, motion validator                                  gesture -> emotion reader, gesture builder
@@ -111,7 +111,7 @@ domain = task_category.domain
 reply -> gesture(reply, message)             (not after movement: the user asked for movements, the robot does those)
 ```
 
-- Before T-05.9 the `inputs` of a profile are a state the caller builds (`ProfileRunner.run(..., state=...)`); the request carries none yet, and every message runs `default`.
+- `SessionService` resolves a request (T-05.9): the profile and its token (`engine/profile_access.py`: SHA-256 compared in constant time; one refusal for an unknown profile and a wrong token), the question it answers (`pause_id`), the `inputs` (`engine/profile_inputs.py`: only the fields the profile takes, read with the LLM-answer mapper) and `return`; then `ProfileRunner.run(..., inputs=...)`. A request with no profile runs `default`.
 - `special` and `dynamics` start with their own triage: a client that asks `identification` and then `special` classifies twice, and the service does not report it.
 - A run that stopped to ask the user is resumed by the next message **of the same profile** (`PausedRun.flow`); another profile gets `ProfileMismatch` (T-05.9 turns it into `PROFILE_MISMATCH`).
 - The domain comes from triage (`task_category.domain`, an enum of nine values, defined in the schema and in

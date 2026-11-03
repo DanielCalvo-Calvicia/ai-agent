@@ -33,9 +33,9 @@
 
 Only `special` (every configured MCP server) and `dynamics` (only the Dynamics server) have tools; `default`, the profile a request with no profile gets, and every other profile have none, so a client that sends nothing cannot read customers' orders (Q09-5). The files hold placeholder token hashes until the maintainer writes the real ones; nothing checks a token yet (T-05.9), so until then every client runs `default`.
 
-## Profile tokens (planned, T-05.6 to T-05.9)
+## Profile tokens (T-05.9)
 
-A profile (except `default`) carries `token_sha256`, the SHA-256 of its token in hex; a profile without a well-formed one is disabled at start (`assemble()`), and no message repeats the value. The token is a check against a mistake, not access control (Q08-8). Nothing checks a token on a request yet: that is T-05.9.
+A profile (except `default`) carries `token_sha256`, the SHA-256 of its token in hex; a profile without a well-formed one is disabled at start (`assemble()`), and no message repeats the value. The token is a check against a mistake, not access control (Q08-8). Since T-05.9 a request that names a profile must carry its token (`engine/profile_access.py`): the plain token is hashed and compared in constant time; an unknown profile, a disabled one and a wrong token get the **same** answer (`INVALID_PROFILE`, a generic message that names neither the profile nor the token) and the same work (an unknown profile is compared with a dummy hash); the reason (`unknown_or_disabled_profile`, `no_token`, `wrong_token`) is only in the log, with the profile name when it looks like a name. The token is never logged and not shown in the `repr` of the request. The files hold a **placeholder** (64 zeros, which no token has) until the maintainer writes the real hashes, so until then only `default` can be asked. `inputs` is data from the client: only the fields a profile takes, read with the code that reads an LLM answer; a content never reaches a log and an error names the field, never its content.
 
 ## Dependencies
 

@@ -18,6 +18,9 @@ class UserSession:
     entries: List[HistoryEntry] = field(default_factory=list)
     # The run that stopped to ask the user something. The next message is checked as its answer.
     paused: Optional[PausedRun] = None
+    # The id of that question and the profile that asked it: the answer must carry the id and name the same profile.
+    pause_id: Optional[str] = None
+    paused_profile: Optional[str] = None
 
     @property
     def history(self) -> List[Message]:

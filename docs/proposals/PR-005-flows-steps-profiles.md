@@ -177,6 +177,8 @@ A request with none of the new fields gets exactly today's answer.
 
 One paused run per session; lost on restart (ADR-009). `inputs` is ignored on a resume; the token is still checked.
 
+*(Dated note 2026-11-03, T-05.9, three differences from this text. (1) A request with **no `profile` and no `pause_id`** (a legacy client) still answers the waiting question, so Brain keeps working until it is updated: the "no `pause_id` discards" row applies when the request names a profile. (2) The refusals are an error status with `data.error_code`, the transport status 200 like every other error of the route, not 401/403. (3) `INVALID_INPUT` was added for an input the profile does not take or one that is not valid; and the request fields live in ai-agent's own request DTO, since the vendored contract only holds the answer.)*
+
 **Which profile next** is the client's rule, written in `docs/api/api.md` so it does not live only in Brain: `task_category.domain` of the `identification` output: `communication` -> `chat`, `movement` -> `movement`. Any other domain: `special` (or `dynamics`). These two have their own triage, so after `identification` they classify again; the service allows it and says nothing, and a client that wants to avoid the extra call asks them directly. The table is the client's choice, not a rule of the service. `gesture` is asked with the reply and the user's message, never with the identification result.
 
 ## 7. Sessions and history

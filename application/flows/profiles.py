@@ -13,9 +13,11 @@ from typing import Iterable, List, Optional
 from application.engine.assemble import Agent, AssembledProfile
 from application.engine.flow import Flow
 from application.engine.pipeline import Pipeline
+from application.engine.state.expression_state import ExpressionFlowState
 from application.engine.state.flow_state import FlowState
 from application.engine.state.motion_state import MotionFlowState
 from application.engine.state.paused_run import FlowResult, PausedRun
+from application.engine.support.expression_settings import speech_seconds
 from application.engine.support.metrics import SessionMetrics
 from application.flows.registry import FLOWS
 from application.outbound.ports.llm_ports import LLMOutboundPort
@@ -52,11 +54,13 @@ class ProfileRunner:
         paused: Optional[PausedRun] = None,
         state: Optional[FlowState] = None,
         speak_movements: bool = True,
+        inputs: Optional[dict] = None,
     ) -> FlowResult:
         """
         The result of the last step of the profile's flow (`result.flow` says which flow ran). `state` is a state made by the
         caller (what a client sends as `inputs`: T-05.9); without it the flow starts a fresh one. `speak_movements` is Brain's
-        setting: whether a movement that goes ahead is announced.
+        setting: whether a movement that goes ahead is announced. `inputs` are the values of state fields the client sent (read already);
+        a gesture gets the length of its speech from the reply when none was sent.
         """
         if self.agent is None:
             raise ValueError("the service has no agent: the profiles were not assembled")
@@ -70,6 +74,7 @@ class ProfileRunner:
                 paused.state.speak_movements = speak_movements     # Brain's setting of this message, not of the one that paused
         else:
             state = state if state is not None else flow.new_state(message, list(history or []))
+            self._apply_inputs(state, inputs)
             if isinstance(state, MotionFlowState):
                 state.speak_movements = speak_movements
 
@@ -77,6 +82,13 @@ class ProfileRunner:
         return pipeline.run(message, list(history or []), paused, state=state)
 
     # -----------------------------------------------
+
+    @staticmethod
+    def _apply_inputs(state: FlowState, inputs: Optional[dict]) -> None:
+        for name, value in (inputs or {}).items():
+            setattr(state, name, value)
+        if isinstance(state, ExpressionFlowState) and inputs and "reply" in inputs and "speech_seconds" not in inputs:
+            state.speech_seconds = speech_seconds(state.reply)
 
     def _flow_of(self, profile: AssembledProfile) -> Flow:
         if profile.flow_name is None:

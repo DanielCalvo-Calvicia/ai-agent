@@ -1,3 +1,4 @@
+from dataclasses import asdict
 from typing import Callable, Optional
 
 import anyio.to_thread
@@ -50,8 +51,24 @@ def _openapi_responses(action: str, outcome: str, message, data: dict) -> dict:
     }
 
 
-def message_data(result) -> AIAgentMessageResponse:
-    """The answer of /session/message: the reply, the movements to run (the ones asked for, or the gesture of the reply) and which flow answered."""
+def message_data(result) -> dict:
+    """
+    The answer of /session/message: the reply, the movements to run (the ones asked for, or the gesture of the reply) and which flow answered,
+    as the contract has it, plus the fields of a profile request (T-05.9) only when they apply: `profile` when the request named one, `output`
+    when the whole Response was asked for, `pause_id` when a question waits, `discarded_pause` when one was dropped. A request that uses none of
+    them gets exactly the answer it always got. (The vendored contract has none of these fields yet; the contract is the maintainer's, later.)
+    """
+    answer = asdict(_contract_answer(result))
+    for key in ("profile", "output", "pause_id"):
+        value = getattr(result, key, None)
+        if value:
+            answer[key] = value
+    if getattr(result, "discarded_pause", False):
+        answer["discarded_pause"] = True
+    return answer
+
+
+def _contract_answer(result) -> AIAgentMessageResponse:
     return AIAgentMessageResponse(
         success=result.success, response=result.response,
         message=result.message, error_code=result.error_code,
@@ -147,10 +164,11 @@ class SessionFastAPI:
             tags=["Session"],
             summary="Send a message to an active session",
             description="Sends a user message to the AI agent within an active session. "
-                        "The message is identified first and then answered by one flow (data.flow): "
-                        "conversation, special or movement. data.directives are the arm movements to run, "
-                        "in order. When it could not be processed, status is "
-                        "'error', data.response is an apology and data.message tells why.",
+                        "The message runs ONE profile (the `profile` field, with its `token`; none: `default`) and its flow "
+                        "answers (data.flow). data.directives are the arm movements to run, in order. `inputs` carry what an earlier "
+                        "profile returned, `return` asks for the whole Response (data.output), `pause_id` answers a question "
+                        "(data.pause_id). When it could not be processed, status is "
+                        "'error', data.response is an apology, data.message tells why and data.error_code says which.",
             responses=_openapi_responses(
                 "message_received", "Message processed (check data.success for outcome)", None,
                 {"response": "The answer to your question is..."}),
