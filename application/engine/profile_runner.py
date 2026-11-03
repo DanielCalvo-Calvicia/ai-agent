@@ -83,7 +83,7 @@ class ProfileRunner:
 
     def _pipeline(self, profile: AssembledProfile, flow: Flow) -> Pipeline:
         definition = profile.definition
-        return Pipeline(self.outbound_port, self.mcp_list, self.metrics, self.mcp_tools, flow=flow, models=profile.resolver,
+        return Pipeline(self.outbound_port, self.mcp_list, self.metrics, self.mcp_tools, flow=flow, models=profile.resolver, prompts=profile.prompts,
                         tool_levels=(definition.get("tools"), ((definition.get("flows") or {}).get(flow.name) or {}).get("tools")),
                         tool_overrides={step: entry["tools"] for step, entry in (definition.get("overrides") or {}).items()
                                         if isinstance(entry, dict) and isinstance(entry.get("tools"), dict)})

@@ -8,7 +8,7 @@
 #  the hooks for a question to the user (`on_pause`, `on_resume`) come from the Flow it is given.
 # ===============================================
 
-from typing import Dict, List, Optional, Sequence
+from typing import Dict, List, Mapping, Optional, Sequence
 
 from application.engine.answer_check import ANSWERED, CONFIRMED, DECLINED, STOP, AnswerChecker
 from application.engine.clarification import Clarifier
@@ -18,6 +18,7 @@ from application.engine.state.flow_state import FlowState
 from application.engine.support.mcp_servers import server_names
 from application.engine.support.metrics import SessionMetrics
 from application.engine.support.model_selection import ModelResolver
+from application.engine.support.prompt_overrides import PromptOverride
 from application.engine.state.paused_run import CONFIRMATION, INPUT, FlowResult, PausedRun
 from application.steps.hooks import ANSWER_CHECKER, USER_CLARIFICATION
 from application.steps.phase import Step
@@ -45,6 +46,7 @@ class Pipeline:
         models: Optional[ModelResolver] = None,
         tool_levels: Sequence[Optional[dict]] = (),
         tool_overrides: Optional[Dict[str, dict]] = None,
+        prompts: Optional[Mapping[str, PromptOverride]] = None,
     ) -> None:
         """
         `tool_levels`: the `tools` of the profile (and of its entry for this flow), None where a level sets nothing. The tools a
@@ -59,7 +61,7 @@ class Pipeline:
 
         self.scope_of = scope_of
         flow_servers, flow_tools = scoped(mcp_list, mcp_tools, scope_of(None))
-        runner = PhaseRunner(outbound_port, metrics, server_names(flow_servers, flow_tools), models=models, flow_name=flow.name)
+        runner = PhaseRunner(outbound_port, metrics, server_names(flow_servers, flow_tools), models=models, flow_name=flow.name, prompts=prompts)
         self.flow = flow
         self.steps = flow.build_steps(FlowContext(runner, mcp_list, mcp_tools, scope_of))
         self.clarifier = Clarifier(runner)

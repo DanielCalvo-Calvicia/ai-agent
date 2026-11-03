@@ -7,7 +7,7 @@
 import dataclasses
 import json
 import time
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
 
 from application.engine.support.failure import (
     AgentFailure, capacity_problem, classify, daily_quota_used_up, max_attempts, wait_before_retry, worth_retrying,
@@ -18,6 +18,7 @@ from application.steps.phase import ActionPhaseSpec, PhaseSpec
 from application.engine.support.schemas import actions_schema, object_schema
 from application.outbound.ports.llm_ports import LLMOutboundPort
 from application.engine.support.model_selection import ModelResolver
+from application.engine.support.prompt_overrides import PromptOverride
 from application.system_prompts.general import build_system_prompt_from_file
 
 from domain.entities.llm_response.action import Action
@@ -45,12 +46,14 @@ class PhaseRunner:
         mcp_server_names: Sequence[str] = (),
         models: Optional[ModelResolver] = None,
         flow_name: str = "",
+        prompts: Optional[Mapping[str, PromptOverride]] = None,
     ) -> None:
         self.outbound_port = outbound_port
         self.metrics = metrics
         self.mcp_server_names = list(mcp_server_names)
         self.models = models if models is not None else ModelResolver()       # no profile: every step uses its own default model
         self.flow_name = flow_name
+        self.prompts = dict(prompts or {})                  # step name -> what the profile does to its prompt (T-05.14)
 
     def models_for(self, step_name: str, default: GoogleModels) -> List[SelectedModel]:
         """The ordered models of a step in this flow: the first answers, the others are the fallback (ADR-014)."""
@@ -67,6 +70,7 @@ class PhaseRunner:
 
         payload = _build_payload(
             prompt_file=spec.prompt_file,
+            override=self.prompts.get(spec.step_name),
             model=model,
             intent=spec.intent,
             user_message=_as_message_text(spec.build_input(state)),
@@ -100,6 +104,7 @@ class PhaseRunner:
 
         payload = _build_payload(
             prompt_file=spec.prompt_file,
+            override=self.prompts.get(spec.step_name),
             model=model,
             intent=spec.intent,
             user_message={"action": action, **user_message_extra}.__str__(),
@@ -234,6 +239,7 @@ def _build_payload(
     user_message: str,
     response_format: ResponseFormat,
     tools: list,
+    override: Optional[PromptOverride] = None,
 ) -> Payload:
     """The request every phase sends: same system prompt scheme and sampling, different content."""
     primary, secondary, confidence = intent
@@ -241,7 +247,7 @@ def _build_payload(
     return Payload(
         intent=create_intent(primary=primary, secondary=list(secondary), confidence=confidence),
         model=model,
-        system_prompt=build_system_prompt_from_file(prompt_file),
+        system_prompt=build_system_prompt_from_file(prompt_file, override=override),
         message=create_message(Role.USER, user_message),
         reasoning=None,
         temperature=create_temperature(DEFAULT_TEMPERATURE),

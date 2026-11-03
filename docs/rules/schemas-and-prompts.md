@@ -9,6 +9,8 @@ silently, because the model follows the prompt and the schema, and the mapper re
 Flat folder, one file per phase: `<id>_<name>.txt`. Which phase uses which file is the `PROMPT_FILE` constant of the phase
 file, never a table somewhere else.
 
+**A profile may change the prompt of a step (T-05.14).** `overrides.<step>.prompt_append` adds text after the step's prompt and `prompt_replace` takes its place; each is `{"file": "prompts/..."}` (for one profile: `prompts/profiles/<profile>/<step>.txt`) or `{"text": "..."}`. The generic rules (`0_generic_prompt.txt`), the capabilities and the date stay in front. The answer schema is the step's and a profile cannot change it, so a replacement never changes the format the answer is read in (and the prompt still has to ask for that format). The step must have a prompt and be a step of the profile's flow (or one the action executor runs). The text is read once at assembly and is repository data: a request cannot carry one. The golden file is of the repository's profiles, which have no override yet.
+
 | File | Phase / use |
 |---|---|
 | `0_generic_prompt.txt` | the rules of every phase (machine-to-machine, exactly one JSON object, follow the schema, `next_step` is the control flow) |

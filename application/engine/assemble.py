@@ -17,12 +17,13 @@ from application.engine.config_snapshot import ConfigSnapshot
 from application.engine.flow import Flow
 from application.engine.flow_file import flow_from_file
 from application.engine.support.model_selection import ModelResolver, check_model_set
+from application.engine.support.prompt_overrides import SOURCE_KEYS, PromptOverride
 from application.engine.support.schemas import load_schema_file
 from application.outbound.ports.config_ports import ConfigError
 from application.steps.catalog import PHASES
 from application.steps.conditions import CONDITIONS
 from application.steps.hooks import HOOKS
-from application.steps.registry import CODE, KINDS, all_steps
+from application.steps.registry import CODE, KINDS, LLM_PER_ACTION, all_steps
 from domain.value_objects.llm_request.model import GoogleModels
 
 DEFAULT_PROFILE = "default"                       # the profile of a request with no profile: it needs no token
@@ -53,6 +54,7 @@ class AssembledProfile:
     default_return: str
     requires: List[str] = field(default_factory=list)       # inputs the request must carry
     accepts: List[str] = field(default_factory=list)
+    prompts: Dict[str, PromptOverride] = field(default_factory=dict)     # step -> what the profile does to its prompt (T-05.14)
 
 
 @dataclass
@@ -286,7 +288,58 @@ class _Assembly:
         if declared:
             self._check_data_flow(key, flow_name, step_names, requires, initial)
             self._check_models(key, flow_name or "", step_names, resolver)
-        return AssembledProfile(name, data, flow_name, step_names, resolver, returned, requires, accepts)
+        prompts = self._prompt_overrides(key, data.get("overrides") or {}, step_names if declared else None)
+        return AssembledProfile(name, data, flow_name, step_names, resolver, returned, requires, accepts, prompts)
+
+    # -----------------------------------------------
+    #  PROMPT OVERRIDES (T-05.14)
+    # -----------------------------------------------
+
+    def _prompt_overrides(self, key: str, overrides: dict, flow_steps: Optional[List[str]]) -> Dict[str, PromptOverride]:
+        """
+        `overrides.<step>.prompt_replace` and `prompt_append`: a file under prompts/ or an inline text. The step must have a prompt (it is
+        not plain code), be a step of the flow (or one the action executor runs) and not be the clarification, whose prompt is part of its code.
+        A profile never changes an answer schema, so a replacement cannot change the format the answer is read in.
+        """
+        found: Dict[str, PromptOverride] = {}
+        for step, entry in overrides.items():
+            parts = {kind: (entry or {}).get(kind) for kind in ("prompt_replace", "prompt_append") if (entry or {}).get(kind) is not None}
+            if not parts:
+                continue
+            where = f"overrides.{step}"
+            kind = self._kind(step)
+            if kind is None:
+                self._problem(key, f"{where}: unknown step {step!r}")
+                continue
+            if kind == CODE or step == "user_clarification":
+                self._problem(key, f"{where}: the step {step!r} has no prompt a profile can change")
+                continue
+            if flow_steps is not None and step not in flow_steps and not (kind == LLM_PER_ACTION and "action_executor" in flow_steps):
+                self._problem(key, f"{where}: {step!r} is not a step of the flow this profile runs")
+                continue
+            texts = {which: self._prompt_text(key, f"{where}.{which}", value) for which, value in parts.items()}
+            if all(text is not None for text in texts.values()):
+                found[step] = PromptOverride(texts.get("prompt_replace"), texts.get("prompt_append"))
+        return found
+
+    def _prompt_text(self, key: str, where: str, value: Any) -> Optional[str]:
+        if not isinstance(value, dict) or set(value) - set(SOURCE_KEYS) or len(value) != 1:
+            self._problem(key, f"{where} must be {{\"file\": \"prompts/...\"}} or {{\"text\": \"...\"}}")
+            return None
+        source, content = next(iter(value.items()))
+        if not isinstance(content, str) or not content.strip():
+            self._problem(key, f"{where}.{source} must be a non-empty text")
+            return None
+        if source == "text":
+            return content
+        if not content.replace("\\", "/").startswith("prompts/") or ".." in content.replace("\\", "/").split("/"):
+            self._problem(key, f"{where}.file must be a file under prompts/ (for example prompts/profiles/<profile>/<step>.txt)")
+            return None
+        try:
+            return self.snapshot.prompt(content)
+        except ConfigError as error:
+            self._problem(key, f"{where}.file: {error}")
+            return None
 
     def _check_inputs(self, key: str, inputs: dict):
         self._unknown_keys(key, inputs, INPUT_KEYS, "inputs: ")

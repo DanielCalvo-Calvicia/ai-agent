@@ -271,6 +271,7 @@ Documents to update, per stage and in the same change (`CLAUDE.md`): `architectu
 ## 13. Not in this proposal
 
 - **Note 2026-11-03 (T-05.13, built):** the tool levels of section 5 are the profile, `flows.<flow>` of the profile, the flow file, a step of the flow file and `overrides.<step>`; a step's scope is the intersection of those that are set, and the server descriptors carry it to the adapter and the executor. The tools of the action executor are those of its step `action_executor`.
+- **Note 2026-11-03 (T-05.14, built):** `overrides.<step>.prompt_replace` and `prompt_append` (a file under `prompts/` or an inline text) change the step's part of the system prompt of one profile; the generic rules stay in front. A profile cannot change an answer schema, so "only when the schema is unchanged" holds by construction in T-05 (steps declared as data, T-05.16, may carry their own schema). The clarification takes no override.
 - The data policy itself (Q07-16: later; the fields are reserved).
 - A limit of cost at run time, hot reload of any file, a `GET /profiles` list (refused, Q06-20), profile inheritance (`extends`, Q06-8 B).
 - Changing any prompt, schema or message in T-05 (that is T-06).

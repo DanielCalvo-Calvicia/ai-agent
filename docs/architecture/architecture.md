@@ -147,6 +147,10 @@ A `tools` object (`{"servers": [...], "tools": [...]}`) can be set at five level
 
 `Pipeline` builds each step with the servers and the tools port of its own scope (`application/outbound/ports/mcp_ports.py`: `ToolScope`, `ScopedTools`, `scoped`), so the planner and the MCP operator are **shown only** the allowed tools (and a server with none left is not shown). Each server descriptor of a limited scope carries the scope: the LLM adapter (`infrastructure/outbound/llm/tools.py`) exposes only the allowed tools to the model and runs them through `MCPToolExecutor.execute(..., scope=)`, which **refuses** any other and calls no server (outcome `not_found`, no try). The tools of the action executor are those of the step `action_executor` (its MCP operator runs inside it). `ProfileRunner.servers_of(profile, step)` says which servers a profile or a step may use. No log, metric or span holds an argument or an answer, as before.
 
+### 4.3 The prompt of a step in a profile (T-05.14)
+
+`overrides.<step>.prompt_append` and `prompt_replace` of a profile (a file under `prompts/` or an inline text) change the step's part of the system prompt; the generic rules, the capabilities and the date stay in front. The text is read at assembly (`AssembledProfile.prompts`: step -> `PromptOverride`, `engine/support/prompt_overrides.py`); `Pipeline` hands it to `PhaseRunner`, the only place a payload is built, which applies it in `run_phase` and `run_action` (so a step run once per action gets it too). A profile cannot change an answer schema, so a replacement keeps the format; the step must have a prompt and be one of the profile's flow. The clarification (phase 99) has a prompt that is part of its code and takes no override.
+
 ## 5. Phases
 
 One phase per file under `application/steps/<folder>/`. Every file declares what it uses as constants at the
