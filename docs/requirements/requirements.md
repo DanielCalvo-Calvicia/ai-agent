@@ -28,7 +28,7 @@ Status as of 2026-11-04, taken from `CLAUDE.md`, `README.md` and the code after 
 | FR-21 | The tools a step may use are those every level that is set allows (profile, flow, step); a tool outside is neither shown to the model nor callable | Done (T-05.13) | architecture 4.2 |
 | FR-22 | A profile may replace or append to the prompt of a step (a file under `prompts/` or inline text) | Done (T-05.14); no profile uses it yet | architecture 4.3 |
 | FR-23 | One record per LLM call with `profile`, `flow`, `step`, `model`, `client`, tokens, cost and the hash of the assembled profile, in the log and in Langfuse | Done (T-05.15) | [monitoring](../operations/monitoring.md) |
-| FR-24 | `scripts/check_agent.py [--explain <profile>]`, `scripts/model_tables.py` and `scripts/run_profile.py <profile>` (the fixed messages on the real models: asks first) | Done (T-05.17); `run_profile.py` run on a scripted model only | `docs/models/profiles.md` |
+| FR-24 | `scripts/check_agent.py [--explain <profile>]`, `scripts/model_tables.py` and `scripts/run_profile.py <profile>` (the fixed messages on the real models: asks first) | Done (T-05.17); T-06.2 (2026-11-04): 13 messages with tickable `points`, a `then` answer for the paused-run path and `--label` for before and after; `run_profile.py` run on a scripted model only | `docs/models/profiles.md` |
 | FR-16 | Keep the LLM adapter behind `LLMOutboundPort` so providers stay swappable; add a provider with one row | Done | ADR-010 |
 
 ## Non-functional

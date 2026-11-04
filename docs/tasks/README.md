@@ -144,10 +144,10 @@ Verified on 2026-10-27 against both projects.
 | [T-05.16](T-05_profiles-flows-steps/T-05.16_steps-as-json.md) | Steps as JSON declarations | code | done (2026-11-04) |
 | [T-05.17](T-05_profiles-flows-steps/T-05.17_commands-and-tables.md) | Commands and generated tables | code | done (2026-11-04) |
 | [T-05.18](T-05_profiles-flows-steps/T-05.18_documentation.md) | Documentation and ADR-015 | docs | done (2026-11-04) |
-| [T-06](T-06_redesign/T-06_redesign.md) | **Redesign: the new flows, steps, prompts and profiles** (epic) | epic | todo (waits for T-05 and for T-06.1) |
-| [T-06.1](T-06_redesign/T-06.1_specification.md) | Specification of the new flows | decision | awaiting-user (waits for T-05) |
-| [T-06.2](T-06_redesign/T-06.2_message-set.md) | The fixed set of messages | test | todo |
-| [T-06.3](T-06_redesign/T-06.3_new-steps.md) | New steps | code | todo |
+| [T-06](T-06_redesign/T-06_redesign.md) | **Redesign: the new flows, steps, prompts and profiles** (epic) | epic | in-progress |
+| [T-06.1](T-06_redesign/T-06.1_specification.md) | Specification of the new flows | decision | done (2026-11-04) |
+| [T-06.2](T-06_redesign/T-06.2_message-set.md) | The fixed set of messages | test | done (2026-11-04) |
+| [T-06.3](T-06_redesign/T-06.3_new-steps.md) | New steps | code | done, no change |
 | [T-06.4](T-06_redesign/T-06.4_refine-prompts.md) | Refine the prompts, one step at a time | code | todo |
 | [T-06.5](T-06_redesign/T-06.5_new-flows-and-profiles.md) | The new flows and profiles | code | todo |
 | [T-06.6](T-06_redesign/T-06.6_real-run-and-comparison.md) | Real run and comparison | manual | todo |

@@ -94,7 +94,7 @@ prompts/            one prompt per phase (<id>_<name>.txt), the generic rules an
 schema/response/    JSON Schemas of the answers: general/ (text flows) and motion/ (movement flow)
 config/             models per step, prices, budget
 mcps/               MCP server configs
-scripts/            split_schemas.py (builds the schema tree), check_agent.py (assembles everything; `--explain <profile>`), model_tables.py (the model tables and `docs/models/profiles.md`), run_profile.py (the fixed messages on a profile; asks first)
+scripts/            split_schemas.py (builds the schema tree), check_agent.py (assembles everything; `--explain <profile>`), model_tables.py (the model tables and `docs/models/profiles.md`), run_profile.py (the fixed messages on a profile, `tests/manual/README.md`; asks first)
 docs/               documentation (index: docs/README.md)
 tests/              pytest (all mock-based); tests/manual has scripts that call real services and cost money
 ```

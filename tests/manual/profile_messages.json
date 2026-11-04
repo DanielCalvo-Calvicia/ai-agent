@@ -1,20 +1,279 @@
 {
-  "_about": "The fixed set of messages scripts/run_profile.py sends to a profile (PR-005 section 10, Q06-27, Q08-5). `expect` says what a good answer must contain: a person reads the saved answers and judges them; the script checks nothing but that every message got an answer. `profiles` limits a message to the profiles it makes sense for (no key: every profile). T-06.2 refines the set.",
+  "_about": "The fixed set of messages scripts/run_profile.py sends to a profile (PR-005 section 10, Q06-27, Q08-5, T-06.2). `points` is what a good answer must contain, one tickable line each in the saved report: a person ticks them (the script checks only that every message got an answer). `profiles` limits a message to the profiles it makes sense for (no key: every profile). `points_for` replaces `points` for one profile where it answers something else (`identification` answers a classification, `gesture` an emotion). `then` is the user's answer to the question a message makes the profile ask: it is sent as the next message of the same run (the paused-run path) and has its own `points`; if the profile did not ask, the report says so. Sandbox codes only (CL-1001), never a real customer.",
   "messages": [
-    {"id": "greeting", "message": "Hello! How are you today?",
-     "expect": "A short, friendly greeting in English. No plan, no tool, no question about data."},
-    {"id": "question", "message": "What is the capital of France, and what is it famous for?",
-     "expect": "Paris, and one or two well-known things about it, in English and short enough to be spoken."},
-    {"id": "plan", "message": "Make me a short plan to prepare a two-day trip to Madrid.",
-     "expect": "An ordered plan for two days (what to do each day), in English, spoken in plain sentences, no tables or markdown.",
-     "profiles": ["identification", "special", "dynamics", "default"]},
-    {"id": "movement", "message": "Raise your right arm 45 degrees.",
-     "expect": "For `movement`: one movement (right arm, 45 degrees) and a short spoken line. For `identification`: the domain `movement`.",
-     "profiles": ["identification", "movement"]},
-    {"id": "dynamics", "message": "Dime el estado de los pedidos del cliente CL-1001",
-     "expect": "In Spanish: the orders of the customer with their state, or an honest sentence that the tool had nothing. Needs the Dynamics service.",
-     "profiles": ["identification", "special", "dynamics"]},
-    {"id": "spanish", "message": "¿Puedes explicarme en dos frases qué es un robot colaborativo?",
-     "expect": "Two sentences in Spanish that explain what a collaborative robot is."}
+    {
+      "id": "greeting",
+      "message": "Hello! How are you today?",
+      "points": [
+        "Answers in English",
+        "A short, friendly greeting, one or two spoken sentences",
+        "No plan, no tool, no question about data"
+      ],
+      "points_for": {
+        "identification": [
+          "domain is `communication`",
+          "needs no information from the user (no question)"
+        ],
+        "gesture": [
+          "A calm or joyful emotion with a low or middle intensity",
+          "No movement the reply did not ask for"
+        ],
+        "movement": [
+          "No movement (the list is empty)",
+          "A short honest spoken line that it only moves its two arms, in the language of the user"
+        ]
+      }
+    },
+    {
+      "id": "greeting_es",
+      "message": "Hola, ¿cómo estás hoy?",
+      "points": [
+        "Answers in Spanish",
+        "A short, friendly greeting, one or two spoken sentences",
+        "No plan, no tool, no question about data"
+      ],
+      "points_for": {
+        "identification": [
+          "domain is `communication`",
+          "needs no information from the user (no question)"
+        ],
+        "gesture": [
+          "A calm or joyful emotion with a low or middle intensity"
+        ],
+        "movement": [
+          "No movement (the list is empty)",
+          "A short honest spoken line that it only moves its two arms, in the language of the user"
+        ]
+      }
+    },
+    {
+      "id": "question",
+      "message": "What is the capital of France, and what is it famous for?",
+      "points": [
+        "Says Paris",
+        "One or two well-known things about it",
+        "In English, short enough to be spoken, no list"
+      ],
+      "points_for": {
+        "identification": [
+          "domain is `communication`",
+          "needs no information from the user (no question)"
+        ],
+        "gesture": [
+          "Curiosity, calm or joy; any intensity"
+        ],
+        "movement": [
+          "No movement (the list is empty)",
+          "A short honest spoken line that it only moves its two arms, in the language of the user"
+        ]
+      }
+    },
+    {
+      "id": "spanish",
+      "message": "¿Puedes explicarme en dos frases qué es un robot colaborativo?",
+      "points": [
+        "Answers in Spanish",
+        "Two sentences",
+        "Says what a collaborative robot is: it works next to people, safely, without a cage"
+      ],
+      "points_for": {
+        "identification": [
+          "domain is `communication`",
+          "needs no information from the user (no question)"
+        ],
+        "gesture": [
+          "Curiosity or calm"
+        ],
+        "movement": [
+          "No movement (the list is empty)",
+          "A short honest spoken line that it only moves its two arms, in the language of the user"
+        ]
+      }
+    },
+    {
+      "id": "impossible",
+      "message": "Can you open the window for me?",
+      "points": [
+        "Says briefly and honestly that the robot cannot do it (it can only talk, move its arms and read business data)",
+        "Says what it can do instead",
+        "No plan, no tool call, no invented action"
+      ],
+      "points_for": {
+        "identification": [
+          "domain is `communication` (the robot just has to say it cannot)",
+          "needs no information from the user (no question)"
+        ],
+        "gesture": [
+          "Calm or sadness; any intensity"
+        ],
+        "movement": [
+          "No movement (the list is empty)",
+          "A short honest spoken line that it only moves its two arms, in the language of the user"
+        ]
+      }
+    },
+    {
+      "id": "document",
+      "message": "Create a document with a short plan for my weekly team meeting.",
+      "points": [
+        "Says it cannot create or save files",
+        "Offers what it can do instead (say a short plan) or gives it in a few spoken sentences",
+        "Does not pretend that a file exists",
+        "No tables, no markdown"
+      ],
+      "profiles": [
+        "identification",
+        "special",
+        "dynamics",
+        "default"
+      ],
+      "points_for": {
+        "identification": [
+          "domain is not `movement`",
+          "needs no information from the user (the robot says it cannot make files)"
+        ]
+      }
+    },
+    {
+      "id": "plan",
+      "message": "Make me a short plan to prepare a two-day trip to Madrid.",
+      "points": [
+        "An ordered plan for two days (what to do each day)",
+        "In English, spoken in plain sentences, no tables, bullets or markdown",
+        "Short enough to be said aloud"
+      ],
+      "profiles": [
+        "identification",
+        "special",
+        "dynamics",
+        "default"
+      ],
+      "points_for": {
+        "identification": [
+          "domain is not `communication` and not `movement` (it needs a plan)",
+          "needs no information from the user (no question)"
+        ]
+      }
+    },
+    {
+      "id": "movement",
+      "message": "Raise your right arm 45 degrees.",
+      "points": [
+        "One movement: right arm, 45 degrees, forward",
+        "A short spoken line in English that says it is about to do it (never that it is done)"
+      ],
+      "profiles": [
+        "identification",
+        "movement"
+      ],
+      "points_for": {
+        "identification": [
+          "domain is `movement`",
+          "needs no information from the user (no question)"
+        ]
+      }
+    },
+    {
+      "id": "movement_es",
+      "message": "Gira el brazo izquierdo 90 grados y luego vuelve a la posición inicial.",
+      "points": [
+        "Two movements in order: left 90, then left back (-90, or reverse 90)",
+        "No movement the user did not ask for",
+        "A short spoken line in Spanish"
+      ],
+      "profiles": [
+        "identification",
+        "movement"
+      ],
+      "points_for": {
+        "identification": [
+          "domain is `movement`",
+          "needs no information from the user (no question)"
+        ]
+      }
+    },
+    {
+      "id": "movement_ask",
+      "message": "Move your arm.",
+      "points": [
+        "No movement yet",
+        "Asks which arm and how many degrees (one short question, in English)",
+        "The run is waiting for the user (awaiting input)"
+      ],
+      "then": {
+        "message": "The left one, 90 degrees.",
+        "points": [
+          "One movement: left arm, 90 degrees",
+          "Does not ask again",
+          "A short spoken line"
+        ]
+      },
+      "profiles": [
+        "movement"
+      ]
+    },
+    {
+      "id": "ask_family",
+      "message": "Make me a table of my family members and their ages.",
+      "points": [
+        "Asks the names (and ages) of the family members: it cannot know them",
+        "Does not invent any person",
+        "The run is waiting for the user (awaiting input)"
+      ],
+      "then": {
+        "message": "Ana is 34, Luis is 36, Pepe is 8 and Mia is 5.",
+        "points": [
+          "Says the four people with their ages, nothing invented",
+          "In English, spoken, no table, no markdown, no list",
+          "Does not ask again"
+        ]
+      },
+      "profiles": [
+        "special",
+        "default"
+      ]
+    },
+    {
+      "id": "dynamics",
+      "message": "Dime el estado de los pedidos del cliente CL-1001",
+      "points": [
+        "Answers in Spanish",
+        "Gives the orders of the customer with their state (how many; at most the three most relevant), or one honest sentence that the tool had nothing",
+        "Says so when the answer was capped (total greater than returned)",
+        "No markdown, no | tables, no invented row",
+        "Never shows a [hidden] marker"
+      ],
+      "profiles": [
+        "identification",
+        "special",
+        "dynamics"
+      ],
+      "points_for": {
+        "identification": [
+          "domain is `data`",
+          "needs no information from the user (the code is in the message)"
+        ]
+      }
+    },
+    {
+      "id": "dynamics_ask",
+      "message": "Dime los pedidos de mi cliente.",
+      "points": [
+        "Asks which customer (the code), one short question, in Spanish",
+        "Does not guess a code and calls no tool yet",
+        "The run is waiting for the user (awaiting input)"
+      ],
+      "then": {
+        "message": "El cliente CL-1001.",
+        "points": [
+          "Answers in Spanish with the orders of CL-1001 as in `dynamics`",
+          "Does not ask again"
+        ]
+      },
+      "profiles": [
+        "special",
+        "dynamics"
+      ]
+    }
   ]
 }

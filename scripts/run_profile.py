@@ -7,10 +7,12 @@ tests/output/ and writes `tested: <date>` in the profile (PR-005 section 10, Q06
     python scripts/run_profile.py <profile> --mock              a scripted model, no cost, no keys: for the tests of this script
     python scripts/run_profile.py <profile> --root <dir>        another folder with the same layout (profiles/, flows/, ...)
     python scripts/run_profile.py <profile> --messages <file>   another set of messages
+    python scripts/run_profile.py <profile> --label before      the report is named ..._<date>_before.md, so a change is run before and after (T-06)
 
 It sends each message to the profile the way the service does. A profile that needs inputs (`chat` needs the classification) first
 gets them from the `identification` profile, and a profile that needs a `reply` (`gesture`) gets the message as the reply. It
-checks that every message got an answer; whether the answers are GOOD is for a person to read in the saved file (`expect` of each message).
+checks that every message got an answer; whether the answers are GOOD is for a person to read in the saved file, which lists the `points` of
+each message as boxes to tick. A message with a `then` makes the profile ask the user and sends the answer as the next message of the same run.
 The note `tested: <date>` is written only when every message got an answer, and it is not part of the profile hash.
 Keys come from .env (never printed); the Dynamics message needs the Dynamics service running.
 """
@@ -54,8 +56,15 @@ def messages_for(profile: str, path: str = DEFAULT_MESSAGES) -> List[Dict[str, A
     return [m for m in messages if not m.get("profiles") or profile in m["profiles"]]
 
 
-def run_message(agent: Agent, adapter, mcp_list: list, mcp_tools, cost_of, profile_name: str, message: str) -> Dict[str, Any]:
-    """One message through one profile: what it answered, how many calls, tokens and USD it took (the `identification` it needs included)."""
+def points_for(item: Dict[str, Any], profile: str) -> List[str]:
+    """What a good answer of this profile to this message must contain (`points_for` replaces `points` for a profile that answers something else)."""
+    return list(item.get("points_for", {}).get(profile) or item.get("points") or [])
+
+
+def run_message(agent: Agent, adapter, mcp_list: list, mcp_tools, cost_of, profile_name: str, message: str,
+                then: Optional[str] = None) -> Dict[str, Any]:
+    """One message through one profile: what it answered, how many calls, tokens and USD it took (the `identification` it needs included).
+    With `then` (the user's answer to a question) the run that paused is resumed with it, as the next message of the same session."""
     profile = agent.profile(profile_name)
     services, started = [], time.time()
 
@@ -78,8 +87,16 @@ def run_message(agent: Agent, adapter, mcp_list: list, mcp_tools, cost_of, profi
             values = read_inputs(profile, response_to_json(identification.last_response), read_response_json)
     answering = service(profile_name, values)
     result = text(answering)
+    follow = None
+    if then is not None and answering.paused_run is not None:
+        resumed = MessageFlowService(outbound_port=adapter, mcp_list=mcp_list, mcp_tools=mcp_tools, agent=agent, profile=profile_name,
+                                     paused=answering.paused_run, client="run_profile", cost_of=cost_of)
+        services.append(resumed)
+        follow = resumed.text(TextRequestDTO(user_id="run_profile", session_id="run_profile", content=then))
     costs = [s.metrics.message_cost() for s in services if s.metrics.message_cost() is not None]
     return {"answer": result.content, "movements": len(result.movements), "gesture": result.gesture, "awaiting": result.awaiting_user_input,
+            "then_ran": follow is not None, "then_answer": follow.content if follow else "",
+            "then_movements": len(follow.movements) if follow else 0, "then_awaiting": follow.awaiting_user_input if follow else False,
             "calls": sum(s.metrics.totals.requests for s in services), "tokens": sum(s.metrics.totals.total for s in services),
             "cost_usd": sum(costs) if costs else None, "seconds": round(time.time() - started, 1), "error": ""}
 
@@ -88,33 +105,46 @@ def run_all(agent: Agent, adapter, mcp_list: list, mcp_tools, cost_of, profile_n
     results = []
     for item in messages:
         try:
-            outcome = run_message(agent, adapter, mcp_list, mcp_tools, cost_of, profile_name, item["message"])
+            then = (item.get("then") or {}).get("message")
+            outcome = (run_message(agent, adapter, mcp_list, mcp_tools, cost_of, profile_name, item["message"], then=then) if then
+                       else run_message(agent, adapter, mcp_list, mcp_tools, cost_of, profile_name, item["message"]))
         except Exception as error:                         # a failed message is reported, the others still run
             outcome = {"answer": "", "movements": 0, "gesture": False, "awaiting": False, "calls": 0, "tokens": 0, "cost_usd": None,
-                       "seconds": 0, "error": f"{type(error).__name__}: {error}"[:300]}
-        results.append({**item, **outcome})
+                       "then_ran": False, "then_answer": "", "then_movements": 0, "then_awaiting": False, "seconds": 0, "error": f"{type(error).__name__}: {error}"[:300]}
+        results.append({**item, "profile": profile_name, **outcome})
         print(f"  {item['id']:<10} {'ERROR ' + outcome['error'] if outcome['error'] else 'answered'}  "
               f"{outcome['calls']} calls, {outcome['tokens']} tokens, {outcome['seconds']} s")
     return results
 
 
-def report_path(root: str, profile_name: str, date: str) -> str:
-    return os.path.join(root, "tests", "output", f"profile_run_{profile_name}_{date}.md")
+def report_path(root: str, profile_name: str, date: str, label: str = "") -> str:
+    return os.path.join(root, "tests", "output", f"profile_run_{profile_name}_{date}" + (f"_{label}" if label else "") + ".md")
 
 
-def write_report(root: str, profile_name: str, date: str, results: List[Dict[str, Any]], models: Any, mock: bool) -> str:
-    path = report_path(root, profile_name, date)
+def write_report(root: str, profile_name: str, date: str, results: List[Dict[str, Any]], models: Any, mock: bool, label: str = "") -> str:
+    path = report_path(root, profile_name, date, label)
     os.makedirs(os.path.dirname(path), exist_ok=True)
     total_cost = sum(r["cost_usd"] for r in results if r["cost_usd"] is not None)
     lines = [f"# Profile `{profile_name}`: run of {date}" + (" (a scripted model: not a real run)" if mock else ""), "",
              f"- Models: `{models}`. Messages: {len(results)}. Calls: {sum(r['calls'] for r in results)}. "
              f"Tokens: {sum(r['tokens'] for r in results):,}. Cost: ${total_cost:.4f}.",
-             "- Read each answer against what it must contain: that judgement is a person's, the script only checks that an answer came back.", ""]
+             "- Read each answer against what it must contain and tick the boxes (`[x]`): that judgement is a person's, the script only checks that an answer came back.",
+             "- Compare a run with the one before it message by message: better, the same or worse; a change that is worse is reverted (T-06).", ""]
     for r in results:
-        lines += [f"## {r['id']}", "", f"**Message:** {r['message']}", "", f"**Must contain:** {r['expect']}", "",
-                  f"**Answer:** {r['answer'] or '(none)'}" + (f"  \nMovements: {r['movements']}" if r["movements"] else "")
-                  + ("  \nA gesture." if r["gesture"] else "") + ("  \nAsked the user a question." if r["awaiting"] else ""), "",
-                  f"{r['calls']} calls, {r['tokens']:,} tokens, {r['seconds']} s" + (f", ERROR: {r['error']}" if r["error"] else ""), ""]
+        lines += [f"## {r['id']}", "", f"**Message:** {r['message']}", "", "**Must contain:**", ""]
+        lines += [f"- [ ] {point}" for point in points_for(r, r["profile"])] + [""]
+        lines += [f"**Answer:** {r['answer'] or '(none)'}" + (f"  \nMovements: {r['movements']}" if r["movements"] else "")
+                  + ("  \nA gesture." if r["gesture"] else "") + ("  \nAsked the user a question." if r["awaiting"] else ""), ""]
+        then = r.get("then")
+        if then:
+            lines += [f"**The user answers:** {then['message']}", ""]
+            if r["then_ran"]:
+                lines += ["**Must contain:**", ""] + [f"- [ ] {point}" for point in then.get("points", [])] + [""]
+                lines += [f"**Answer:** {r['then_answer'] or '(none)'}" + (f"  \nMovements: {r['then_movements']}" if r["then_movements"] else "")
+                          + ("  \nAsked the user a question again." if r["then_awaiting"] else ""), ""]
+            else:
+                lines += ["**The profile did not ask the user a question, so the answer was not sent** (the first answer is judged on its own).", ""]
+        lines += [f"{r['calls']} calls, {r['tokens']:,} tokens, {r['seconds']} s" + (f", ERROR: {r['error']}" if r["error"] else ""), ""]
     with open(path, "w", encoding="utf-8", newline="\n") as f:
         f.write("\n".join(lines))
     return path
@@ -160,7 +190,7 @@ def real_services(root: str):
 
 
 def main(argv: List[str]) -> int:
-    names = [a for i, a in enumerate(argv) if not a.startswith("--") and (i == 0 or argv[i - 1] not in ("--root", "--messages", "--date"))]
+    names = [a for i, a in enumerate(argv) if not a.startswith("--") and (i == 0 or argv[i - 1] not in ("--root", "--messages", "--date", "--label"))]
     if len(names) != 1:
         print(__doc__)
         return 2
@@ -193,7 +223,7 @@ def main(argv: List[str]) -> int:
         prices = load_prices(os.path.join(root, "config"))
 
     results = run_all(agent, adapter, mcp_list, executor, lambda m, p, c, t: cost_usd(prices, m, p, c, t), profile_name, messages)
-    path = write_report(root, profile_name, date, results, agent.profile(profile_name).definition.get("models"), mock)
+    path = write_report(root, profile_name, date, results, agent.profile(profile_name).definition.get("models"), mock, option("--label", "") or "")
     print(f"answers saved: {path}")
     if any(r["error"] for r in results):
         print("some messages failed: the profile was NOT marked as tested")

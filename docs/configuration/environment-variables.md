@@ -89,7 +89,7 @@ See what every step of every profile uses and what it costs (nothing is sent to 
 & windows\Scripts\python.exe scripts\model_tables.py --step=project_manager            # every model for a step, cost per call and rating, and which profiles use it
 & windows\Scripts\python.exe scripts\model_tables.py --profiles                        # docs/models/profiles.md: one table per profile
 & windows\Scripts\python.exe scripts\model_tables.py --write                           # docs/models/gemini_models_per_step.md
-& windows\Scripts\python.exe scripts\run_profile.py special                            # the fixed set of messages on the REAL models (asks first; costs money)
+& windows\Scripts\python.exe scripts\run_profile.py special --label before             # the fixed set of messages (13, `tests/manual/README.md`) on the REAL models (asks first; costs money); --label names the report, to run a change before and after
 ```
 
 `config/gemini_models.json`, `other_models.json` (prices and ratings), `budget.json` (the monthly budget) and

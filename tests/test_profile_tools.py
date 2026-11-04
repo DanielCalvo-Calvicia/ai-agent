@@ -130,18 +130,82 @@ def root(tmp_path):
 
 
 class TestRunProfile:
-    def test_the_fixed_set_has_the_six_messages_each_with_what_a_good_answer_contains(self):
+    def test_the_fixed_set_has_its_messages_each_with_what_a_good_answer_contains(self):
         run = script("run_profile")
         with open(run.DEFAULT_MESSAGES, encoding="utf-8") as f:
             messages = json.load(f)["messages"]
-        assert [m["id"] for m in messages] == ["greeting", "question", "plan", "movement", "dynamics", "spanish"]
-        assert all(m["message"] and m["expect"] for m in messages)
+        assert [m["id"] for m in messages] == ["greeting", "greeting_es", "question", "spanish", "impossible", "document", "plan", "movement",
+                                               "movement_es", "movement_ask", "ask_family", "dynamics", "dynamics_ask"]
+        assert len({m["id"] for m in messages}) == len(messages)
+        assert all(m["message"] and m["points"] for m in messages)
+        assert all(m["then"]["message"] and m["then"]["points"] for m in messages if "then" in m)           # every question has its answer
+        assert not [m for m in messages if "CL-" in m["message"] and "CL-1001" not in m["message"]]       # sandbox codes only
+
+    def test_every_profile_has_what_a_good_answer_contains_for_every_message_it_gets(self):
+        run = script("run_profile")
+        for name in NAMES:
+            for item in run.messages_for(name):
+                assert run.points_for(item, name), (name, item["id"])
+
+    def test_the_points_of_a_profile_that_answers_something_else_replace_the_generic_ones(self):
+        run = script("run_profile")
+        greeting = run.messages_for("identification")[0]
+        assert run.points_for(greeting, "identification") != run.points_for(greeting, "chat")
+        assert run.points_for(greeting, "chat") == greeting["points"]
+        assert "domain is `communication`" in run.points_for(greeting, "identification")
 
     def test_each_profile_gets_the_messages_that_make_sense_for_it(self):
         run = script("run_profile")
-        assert [m["id"] for m in run.messages_for("movement")] == ["greeting", "question", "movement", "spanish"]
-        assert [m["id"] for m in run.messages_for("dynamics")] == ["greeting", "question", "plan", "dynamics", "spanish"]
-        assert [m["id"] for m in run.messages_for("gesture")] == ["greeting", "question", "spanish"]
+        ids = lambda name: [m["id"] for m in run.messages_for(name)]
+        text = ["greeting", "greeting_es", "question", "spanish", "impossible"]
+        assert ids("movement") == text + ["movement", "movement_es", "movement_ask"]
+        assert ids("dynamics") == text + ["document", "plan", "dynamics", "dynamics_ask"]
+        assert ids("special") == text + ["document", "plan", "ask_family", "dynamics", "dynamics_ask"]
+        assert ids("default") == text + ["document", "plan", "ask_family"]
+        assert ids("chat") == ids("gesture") == text
+
+    def test_a_question_the_profile_asks_is_answered_with_the_next_message_of_the_same_run(self, root):
+        from test_flow_golden import ScriptedLLM
+        run = script("run_profile")
+        asking = {"ready_to_execute": False, "status": "awaiting_user_input", "recommended_action": "ask_user_for_missing_information",
+                  "blocking_reason": "the degrees are missing", "requested_user_input": ["How many degrees?"]}
+        done = {"ready_to_execute": True, "status": "complete", "recommended_action": "", "blocking_reason": "", "requested_user_input": []}
+        asked = []
+
+        def planner(payload):
+            asked.append(payload.message.content)
+            answer = {"is_motion_request": True, "movements": [], "spoken_reply": "", "next_step": asking}
+            if len(asked) > 1:
+                answer = {"is_motion_request": True, "movements": [{"arm": "left", "degrees": 90, "direction": "forward"}],
+                          "spoken_reply": "Turning my left arm 90 degrees.", "next_step": done}
+            return answer
+
+        agent = run.load_agent(str(root))
+        adapter = ScriptedLLM(overrides={"motion_planner_phase20_response_format": planner})
+        outcome = run.run_message(agent, adapter, [], None, lambda *a: None, "movement", "Move your arm.", then="The left one, 90 degrees.")
+        assert outcome["awaiting"] is True and outcome["then_ran"] is True and outcome["then_awaiting"] is False
+        assert outcome["then_movements"] == 1 and outcome["then_answer"] == "Turning my left arm 90 degrees."
+        assert "Information the user gave when asked" in asked[1]                         # the step that asked ran again with the answer
+        assert any("The left one, 90 degrees." in c["user_message"] for c in adapter.calls if c["format"].startswith("answer_checker"))
+
+    def test_a_profile_that_did_not_ask_is_not_sent_the_answer(self, root):
+        from test_flow_golden import ScriptedLLM
+        run = script("run_profile")
+        outcome = run.run_message(run.load_agent(str(root)), ScriptedLLM(), [], None, lambda *a: None, "movement", "Hello", then="The left one.")
+        assert outcome["awaiting"] is False and outcome["then_ran"] is False
+
+    def test_the_report_has_boxes_to_tick_and_says_when_the_answer_was_not_sent(self, root):
+        run = script("run_profile")
+        assert run.main(["movement", "--mock", "--root", str(root), "--date", "2026-11-04"]) == 0
+        report = (root / "tests" / "output" / "profile_run_movement_2026-11-04.md").read_text(encoding="utf-8")
+        assert "- [ ] No movement (the list is empty)" in report and "**The user answers:** The left one, 90 degrees." in report
+        assert "did not ask the user a question, so the answer was not sent" in report
+
+    def test_a_label_names_the_report_so_a_change_is_run_before_and_after(self, root):
+        run = script("run_profile")
+        for label in ("before", "after"):
+            assert run.main(["chat", "--mock", "--root", str(root), "--date", "2026-11-04", "--label", label]) == 0
+            assert (root / "tests" / "output" / f"profile_run_chat_2026-11-04_{label}.md").is_file()
 
     def test_on_a_mock_adapter_it_writes_the_answers_and_the_note(self, root):
         run = script("run_profile")

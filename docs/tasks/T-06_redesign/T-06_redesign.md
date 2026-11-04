@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | todo (created 2026-11-02; waits for T-05 and for the maintainer's specification, T-06.1) |
+| Status | in-progress (T-06.1 done 2026-11-04; T-06.3 closed with no change; T-06.2 done; next: T-06.4) |
 | Kind | epic |
 | Parent | project |
 | Depends on | T-05 |
@@ -27,9 +27,9 @@ Redo the flows, the steps, the prompts and the profiles on the structure T-05 bu
 
 | Order | Task | Kind | Status |
 |---|---|---|---|
-| 1 | [T-06.1 Specification of the new flows](T-06.1_specification.md) | decision | awaiting-user (waits for T-05) |
-| 2 | [T-06.2 The fixed set of messages](T-06.2_message-set.md) | test | todo |
-| 3 | [T-06.3 New steps](T-06.3_new-steps.md) | code | todo |
+| 1 | [T-06.1 Specification of the new flows](T-06.1_specification.md) | decision | done (2026-11-04) |
+| 2 | [T-06.2 The fixed set of messages](T-06.2_message-set.md) | test | done (2026-11-04, mock only) |
+| 3 | [T-06.3 New steps](T-06.3_new-steps.md) | code | done, no change (T-06.1 asks for no new step) |
 | 4 | [T-06.4 Refine the prompts, one step at a time](T-06.4_refine-prompts.md) | code | todo |
 | 5 | [T-06.5 The new flows and profiles](T-06.5_new-flows-and-profiles.md) | code | todo |
 | 6 | [T-06.6 Real run and comparison](T-06.6_real-run-and-comparison.md) | manual | todo |
