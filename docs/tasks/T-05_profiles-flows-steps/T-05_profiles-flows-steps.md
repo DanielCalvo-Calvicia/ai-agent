@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | in-progress (created 2026-11-02; T-05.1 to T-05.17 done) |
+| Status | done (2026-11-04; created 2026-11-02) |
 | Kind | epic |
 | Parent | project |
 | Depends on | — (T-01 to T-04 are done) |
@@ -47,7 +47,7 @@ A client asks a **profile** on every request; a profile names one flow (or an or
 | 15 | [T-05.15 Metrics, profile hash and reserved data fields](T-05.15_metrics-and-hash.md) | code | done (2026-11-03) |
 | 16 | [T-05.16 Steps as JSON declarations](T-05.16_steps-as-json.md) | code | done (2026-11-04) |
 | 17 | [T-05.17 Commands and generated tables](T-05.17_commands-and-tables.md) | code | done (2026-11-04) |
-| 18 | [T-05.18 Documentation and ADR-015 accepted](T-05.18_documentation.md) | docs | todo |
+| 18 | [T-05.18 Documentation and ADR-015 accepted](T-05.18_documentation.md) | docs | done (2026-11-04) |
 
 The stages of PR-005 section 11 map to tasks: S1 = T-05.2 and T-05.3; S2 = T-05.4 to T-05.11; S3 = T-05.12; S4 = T-05.13; S5 = T-05.14; S6 = T-05.15; S7 = T-05.16 and T-05.17.
 

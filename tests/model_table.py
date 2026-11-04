@@ -195,6 +195,30 @@ def default_resolver():
     return ModelResolver({"models": DEFAULT_MODEL_SET}, read_model_sets())
 
 
+MANUAL_PROFILE = "special"      # the profile the manual scripts run (triage, plan, tools, write, edit); change it here or pass RUN_PROFILE
+
+
+def manual_service():
+    """
+    What the manual scripts that call a real model give `SessionService` to run a profile: the real assembled agent and the profile.
+    Since T-05.7 a service runs profiles, not a model set; the profile is `RUN_PROFILE` of the environment (default `special`).
+    Only the service-level profile is set, so no token is needed.
+    """
+    from application.engine.assemble import assemble
+    from application.engine.config_snapshot import build_snapshot
+    from infrastructure.outbound.config.file_source import FileConfigSource
+
+    agent = assemble(build_snapshot(FileConfigSource(PROJECT_ROOT)))
+    agent.raise_on_errors()
+    return {"agent": agent, "profile": os.environ.get("RUN_PROFILE", MANUAL_PROFILE)}
+
+
+def manual_resolver():
+    """The ModelResolver of the profile the manual scripts run."""
+    service = manual_service()
+    return service["agent"].profile(service["profile"]).resolver
+
+
 def read_config(path: str = MODEL_SETS_DIR) -> Dict[str, Any]:
     """
     The model sets in the shape the tables use: `profile` is the set the service runs on and `profiles` has, for each set,

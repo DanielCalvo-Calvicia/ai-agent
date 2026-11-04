@@ -1,6 +1,6 @@
 # Profiles, flows and steps as three separate, pluggable layers
 
-Status: **ACCEPTED 2026-11-02** by the maintainer after review (two corrections made in the review: the triage in `special` and `dynamics`, section 3.3, and no error for a second triage). Not built: it is planned in epics [T-05](../tasks/T-05_profiles-flows-steps/T-05_profiles-flows-steps.md) and [T-06](../tasks/T-06_redesign/T-06_redesign.md); [ADR-015](../decisions/ADR-015-profiles-flows-steps.md) records the decision. Section 12 lists the assumptions the owner did not answer. Written after the answers of [Q05](../setup/questionnaires/Q05_flows-steps-profiles.md) to [Q09](../setup/questionnaires/Q09_profiles-per-message.md); each decision below names the answer it comes from (`Q07-6` = question 6 of Q07).
+Status: **IMPLEMENTED 2026-11-04** (epic T-05; see the as-built note at the end). Accepted 2026-11-02 by the maintainer after review (two corrections made in the review: the triage in `special` and `dynamics`, section 3.3, and no error for a second triage). It was planned in epics [T-05](../tasks/T-05_profiles-flows-steps/T-05_profiles-flows-steps.md) and [T-06](../tasks/T-06_redesign/T-06_redesign.md); [ADR-015](../decisions/ADR-015-profiles-flows-steps.md) records the decision. Section 12 lists the assumptions the owner did not answer. Written after the answers of [Q05](../setup/questionnaires/Q05_flows-steps-profiles.md) to [Q09](../setup/questionnaires/Q09_profiles-per-message.md); each decision below names the answer it comes from (`Q07-6` = question 6 of Q07).
 History: the first draft of 2026-10-30 assumed one active profile, models only and a router inside the service. The answers changed all three; this text replaces it.
 
 Vocabulary (owner, Q06-5): **profile** (also called *agent*) is what a client asks for; **flow** (also *workflow*) is an ordered list of steps; **step** is one job. The word *phase* and the numeric ids stay only as labels (Q07-9).
@@ -277,3 +277,7 @@ Documents to update, per stage and in the same change (`CLAUDE.md`): `architectu
 - A limit of cost at run time, hot reload of any file, a `GET /profiles` list (refused, Q06-20), profile inheritance (`extends`, Q06-8 B).
 - Changing any prompt, schema or message in T-05 (that is T-06).
 - The change of the `contracts` repository and of Brain.
+
+## As built (note of 2026-11-04, T-05.18)
+
+Epic T-05 (T-05.1 to T-05.18) built this proposal; the dated notes above say, per task, where the text and the code differ. In short: the flow files keep the old flow names; ten LLM steps are declarations and the answer check and the clarification stay in Python; the tokens in the files are placeholders; Brain and `contracts` are unchanged (Brain gets `default`); the data policy and other config sources are not built. The redesign of the flows and prompts (Q08-3) is epic T-06, which waits for the maintainer's specification table (T-06.1).

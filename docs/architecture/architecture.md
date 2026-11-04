@@ -55,7 +55,7 @@ Dependencies point inward: `domain` imports nothing of the application; `applica
 
 ## 3. `flows/` (files), `application/steps/` and `application/engine/`
 
-Four folders, each with one job (until 2026-11-02 they were the five folders of `application/orchestration/`, T-05.3; since T-05.12 the flows are JSON files at the root and `application/flows/` is gone). The dependencies go one way and `tests/test_orchestration_layout.py` keeps it so:
+Four folders, each with one job (until 2026-11-02 they were the five folders of one `orchestration` package, T-05.3; since T-05.12 the flows are JSON files at the root and `application/flows/` is gone). The dependencies go one way and `tests/test_orchestration_layout.py` keeps it so:
 
 ```text
 flows/ (root)   WHAT each flow is          one JSON file per flow: its steps in order, its pause and retry rules, its hooks and the step its result comes from
@@ -180,7 +180,7 @@ A phase's answer is one JSON object built from the schema pieces it names in `SC
 
 The code defaults of `DEFAULT_MODEL` are Google models with a free tier: `gemini-3.1-flash-lite` for triage, data engineer, answer
 checker, clarification and emotion reader, `gemini-3.6-flash` for the others ([ADR-012](../decisions/ADR-012-gemini-free-tier-default-no-github-models.md)). The model really used is chosen by
-the model sets of `model_sets/` through `ModelResolver` (`engine/support/model_selection.py`, see `configuration.md`): an ordered list per step, the most specific value wins; the service runs on the set `proven` until profiles exist (T-05.7), which puts `gemini-3.1-flash-lite` on every step ([ADR-012](../decisions/ADR-012-gemini-free-tier-default-no-github-models.md)).
+the model sets of `model_sets/` through `ModelResolver` (`engine/support/model_selection.py`, see [environment-variables](../configuration/environment-variables.md)): an ordered list per step, the most specific value wins; each profile names its set (`proven` puts `gemini-3.1-flash-lite` on every step, [ADR-012](../decisions/ADR-012-gemini-free-tier-default-no-github-models.md)).
 
 ### 5.1 What a step declaration is (T-05.16)
 

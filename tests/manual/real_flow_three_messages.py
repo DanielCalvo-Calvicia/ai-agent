@@ -31,7 +31,7 @@ from application.inbound.dto.session import MessageReceivedRequestDTO, StartSess
 from application.outbound.ports.llm_ports import LLMOutboundPort
 from application.service.session_service import SessionService
 from infrastructure.outbound.llm.config import VercelAIConfig
-from model_table import default_resolver
+from model_table import manual_resolver, manual_service
 from infrastructure.outbound.llm.vercel import VercelAIAdapter
 from infrastructure.outbound.mcp.client_manager import MCPClientManager
 from infrastructure.outbound.mcp.tool_executor import MCPToolExecutor
@@ -122,7 +122,7 @@ def main():
     executor = MCPToolExecutor(MCPClientManager(mcp_list))
 
     recorder = Recorder(VercelAIAdapter(Config=VercelAIConfig.from_env(tool_executor=executor)))
-    service = SessionService(models=default_resolver(), outbound_port=recorder, mcp_list=mcp_list, mcp_tools=executor)
+    service = SessionService(**manual_service(), outbound_port=recorder, mcp_list=mcp_list, mcp_tools=executor)
     session_id = service.start_session(StartSessionRequestDTO(user_id="tester", username="tester")).session_id
 
     for text in (sys.argv[1:] or MESSAGES):

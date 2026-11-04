@@ -154,7 +154,7 @@ Open:
 8. **The Dynamics tools** (read-only Business Central data: orders of a customer, the state of an order, a customer card; [ADR-011](docs/decisions/ADR-011-mcp-streamable-http.md)) were run only with scripted LLMs and a local fake of the Go service. No real model has picked a tool, followed a `running` answer up or worded an error; that is the first real run (T-01.9), done by the maintainer.
 9. **Known limits of those tools:** no authentication in either service (the Go endpoint is open, reached by a public IP and port over plain HTTP), no masking of customer data sent to the model provider and, on purpose in the prototype, to Langfuse, and no row limit in ai-agent. Details: [security](docs/security/security.md).
 
-Decisions worth knowing: Brain makes one call per utterance (it used to ask two flows in order); the fast-path heuristic and
+Decisions worth knowing: the client chooses the profile on every request and chains them (ADR-015; Brain still makes one call per utterance and so gets `default`; before the redesign the service routed inside one call, ADR-003 and ADR-004); the fast-path heuristic and
 `robot_context` were removed; the answer schemas are one file per node, generated from `full.schema.json`;
 `value_objects` and `entities` are grouped by what uses them. History of how it got here: `docs/proposals/PR-001-layered-refactor.md`,
 `docs/proposals/PR-002-flows-split.md` and `docs/proposals/PR-003-orchestrator-review/` (all marked historical).

@@ -29,7 +29,7 @@ load_dotenv(os.path.join(PROJECT_ROOT, ".env"), override=False)
 
 from application.inbound.dto.session import MessageReceivedRequestDTO, StartSessionRequestDTO
 from application.engine.support.model_selection import effective_models
-from model_table import default_resolver
+from model_table import manual_resolver, manual_service
 from application.outbound.ports.usage_ports import UsageReporterPort
 from application.service.session_service import SessionService
 from budget_table import budget_usd_per_message, load_budget
@@ -108,13 +108,13 @@ def main():
     url = start_fake_mail_server()
     mcp_list = [{"name": "pantry", "type": "sse", "config": {"type": "sse", "url": url}}]
     executor = MCPToolExecutor(MCPClientManager(mcp_list))
-    service = SessionService(models=default_resolver(), outbound_port=VercelAIAdapter(Config=VercelAIConfig.from_env(tool_executor=executor)),
+    service = SessionService(**manual_service(), outbound_port=VercelAIAdapter(Config=VercelAIConfig.from_env(tool_executor=executor)),
                              mcp_list=mcp_list, mcp_tools=executor, usage_reporter=collector)
     session_id = service.start_session(StartSessionRequestDTO(user_id="tester", username="tester")).session_id
 
     lines = ["# Budget run", "", "Model set in use: model_sets/ (DEFAULT_MODEL_SET)", "",
              "| Step | Model |", "|---|---|"]
-    lines += [f"| {step} | `{model}` ({source}) |" for step, (model, source) in effective_models(default_resolver()).items()]
+    lines += [f"| {step} | `{model}` ({source}) |" for step, (model, source) in effective_models(manual_resolver()).items()]
 
     for text in (sys.argv[1:] or MESSAGES):
         first = len(collector.calls)

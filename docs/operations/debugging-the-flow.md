@@ -55,7 +55,7 @@ If not, every version is shown side by side. Only load `.pkl` files you saved yo
 ## 3. Other options of `debug_flow.py`
 
 `--print` prints the report on the console, `--print --interactive` waits after each step, `--scenario=NAME` scripts the LLM
-with a scenario of the tests (`--list` shows them; the scenarios of the communication and movement flows are meant for the router,
+with a scenario of the tests (`--list` shows them; the scenarios of the communication and movement flows are meant for the client's chain (`tests/brain_chain.py`),
 not for this tool), `--out=PATH` changes the folder.
 
 ## 4. The same, inside the tests

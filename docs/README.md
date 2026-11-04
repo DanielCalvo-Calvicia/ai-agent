@@ -27,7 +27,7 @@ docs/
 | File | What it is |
 |---|---|
 | [`api/api.md`](api/api.md) | routes, the envelope, `/session/message`, sessions, `SESSION_NOT_FOUND`, the MCP tools it consumes |
-| [`architecture/architecture.md`](architecture/architecture.md) | the request path, the four flows and the router, the phases, the engine, the state, `domain/`, `infrastructure/`, how to extend it |
+| [`architecture/architecture.md`](architecture/architecture.md) | the request path, the profiles, flows and steps (three layers), the engine, the state, `domain/`, `infrastructure/`, how to extend it |
 | [`configuration/environment-variables.md`](configuration/environment-variables.md) | every variable, which model answers each step, MCP servers, retries, Langfuse |
 | [`rules/schemas-and-prompts.md`](rules/schemas-and-prompts.md) | the prompts, the two schema trees (`general`, `motion`), the generator, how to change an answer |
 | [`requirements/requirements.md`](requirements/requirements.md) | functional and non-functional requirements with their status and the known gaps |

@@ -20,3 +20,5 @@ On 2026-10-28 the free-tier models failed in two ways: `gemini-3.1-flash-lite` a
 - The cost of a message can rise (a second call), and the cost tables use the chosen model's prices.
 - The SDK under the adapter still has its own retries; a slow 503 can still take a while before the runner sees it.
 - Not done: a circuit breaker, a fallback for the MCP tools, `Retry-After`.
+
+**Note 2026-11-04, [ADR-015](ADR-015-profiles-flows-steps.md) (T-05.5):** the fallback is the **rest of the ordered list** of a step in a model set or a profile; `AI_AGENT_FALLBACK_MODELS` and `config/step_models.json` are gone. The behaviour is as decided here (wait, then the next model of the list, only after a lack of capacity; the Claude sets have one model on purpose).
