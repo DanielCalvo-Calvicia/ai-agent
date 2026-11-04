@@ -132,13 +132,23 @@ class TestWhatIsSent:
         with_rules = {name for name, profile in agent.profiles.items() if profile.prompts}
         assert with_rules == {"special", "dynamics"}
         for name in with_rules:
-            assert set(agent.profile(name).prompts) == {"draft_writer"}
+            assert set(agent.profile(name).prompts) == {"draft_writer", "project_manager"}
         core = prompt_of("prompts/7_drawf_writter.txt")
         appended = agent.profile("special").prompts["draft_writer"].append
         assert agent.profile("dynamics").prompts["draft_writer"].append == appended
         for marker in ("error (not_found)", "[hidden]", "coverage", "still running", "first N tool calls"):
             assert marker in appended and marker not in core                  # nothing is lost, and chat and default no longer carry it
         assert "ignore your rules" in core and "ignore your rules" not in appended   # the data-is-not-an-instruction rule stays for everyone
+
+    def test_only_the_profiles_with_tools_have_the_tool_rules_of_the_project_manager(self):
+        """T-06.4 change 3: choosing a tool and filling its parameters is an append of the profiles with tools; the rule for no tool stays for everyone."""
+        agent = assemble(build_snapshot(FileConfigSource(PROJECT_ROOT)))
+        core = prompt_of("prompts/2_project_manager.txt")
+        appended = agent.profile("special").prompts["project_manager"].append
+        assert agent.profile("dynamics").prompts["project_manager"].append == appended
+        for marker in ("set mcp_context.tool_name", "Never set an environment or a company", "ONE tool call", "a customer code is letters"):
+            assert marker in appended and marker not in core
+        assert "available_mcp_servers is empty" in core and "Never invent a tool" in core    # default has no tools and still answers honestly
 
 
 # ===============================================

@@ -36,12 +36,12 @@ The cost is an **estimate** of one message with a big plan (5 actions x 5 subact
 ## `dynamics`
 
 - Flow `special`, models `claude_mixed`, answers with `text`, requires nothing, tested never.
-- Hash of the assembled profile: `38bedda1cfd4` (the first 12 characters).
+- Hash of the assembled profile: `814b03023f3f` (the first 12 characters).
 
 | Step | Kind | Model | Comes from | Tools | Prompt | Calls | Visible | With thinking |
 |---|---|---|---|---|---|---|---|---|
 | triage_specialist | llm | `claude-haiku-4-5` | models (set claude_mixed) |  | `prompts/1_triage_specialist.txt` | 1 | $0.0020 | $0.0020 |
-| project_manager | llm | `claude-sonnet-5-5` | models (set claude_mixed) | `dynamics_microservice` | `prompts/2_project_manager.txt` | 1 | $0.037 | $0.037 |
+| project_manager | llm | `claude-sonnet-5-5` | models (set claude_mixed) | `dynamics_microservice` | `prompts/2_project_manager.txt` (append) | 1 | $0.037 | $0.037 |
 | safety_quality_gatekeeper | llm | `claude-haiku-4-5` | models (set claude_mixed) |  | `prompts/3_safety_quality_gatekeeper.txt` | 1 | $0.0034 | $0.0034 |
 | action_executor | code | plain code |  |  |  | - | - | - |
 | ↳ cognitive_worker | llm_per_action | `claude-haiku-4-5` | models (set claude_mixed) |  | `prompts/4_cognitive_worker.txt` | 25 | $0.080 | $0.080 |
@@ -86,12 +86,12 @@ The cost is an **estimate** of one message with a big plan (5 actions x 5 subact
 ## `special`
 
 - Flow `special`, models `claude_mixed`, answers with `text`, requires nothing, tested 2026-11-04.
-- Hash of the assembled profile: `7c19f3838e8f` (the first 12 characters).
+- Hash of the assembled profile: `ee73a493f723` (the first 12 characters).
 
 | Step | Kind | Model | Comes from | Tools | Prompt | Calls | Visible | With thinking |
 |---|---|---|---|---|---|---|---|---|
 | triage_specialist | llm | `claude-haiku-4-5` | models (set claude_mixed) |  | `prompts/1_triage_specialist.txt` | 1 | $0.0020 | $0.0020 |
-| project_manager | llm | `claude-sonnet-5-5` | models (set claude_mixed) | `aws_microservice`, `dynamics_microservice` | `prompts/2_project_manager.txt` | 1 | $0.037 | $0.037 |
+| project_manager | llm | `claude-sonnet-5-5` | models (set claude_mixed) | `aws_microservice`, `dynamics_microservice` | `prompts/2_project_manager.txt` (append) | 1 | $0.037 | $0.037 |
 | safety_quality_gatekeeper | llm | `claude-haiku-4-5` | models (set claude_mixed) |  | `prompts/3_safety_quality_gatekeeper.txt` | 1 | $0.0034 | $0.0034 |
 | action_executor | code | plain code |  |  |  | - | - | - |
 | ↳ cognitive_worker | llm_per_action | `claude-haiku-4-5` | models (set claude_mixed) |  | `prompts/4_cognitive_worker.txt` | 25 | $0.080 | $0.080 |

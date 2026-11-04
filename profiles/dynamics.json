@@ -15,6 +15,11 @@
       "prompt_append": {
         "file": "prompts/profiles/tools/draft_writer.txt"
       }
+    },
+    "project_manager": {
+      "prompt_append": {
+        "file": "prompts/profiles/tools/project_manager.txt"
+      }
     }
   },
   "tested": null

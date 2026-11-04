@@ -551,7 +551,8 @@ def words(phase):
 
 class TestThePrompts:
     def test_the_planner_picks_listed_tools_from_the_users_words_and_asks_for_a_missing_customer(self):
-        text = words(2)
+        with open(os.path.join(PROJECT_ROOT, "prompts", "profiles", "tools", "project_manager.txt"), encoding="utf-8") as f:
+            text = " ".join((words(2) + " " + f.read()).split())       # the planner of `special` and `dynamics`: its prompt plus the tool rules (T-06.4 change 3)
         assert "Never use a tool that is not listed" in text
         assert "Never set an environment or a company parameter" in text
         assert "do not guess one: put the question in required_inputs" in text
