@@ -74,7 +74,7 @@ The cost is an **estimate** of one message with a big plan (5 actions x 5 subact
 
 ## `movement`
 
-- Flow `movement`, models `proven`, answers with `text`, requires nothing, tested never.
+- Flow `movement`, models `proven`, answers with `text`, requires nothing, tested 2026-11-04.
 - Hash of the assembled profile: `b7bafa0e9167` (the first 12 characters).
 
 | Step | Kind | Model | Comes from | Tools | Prompt | Calls | Visible | With thinking |

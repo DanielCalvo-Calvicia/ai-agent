@@ -23,7 +23,7 @@ Set verdict to EXACTLY one of:
 FIELDS:
 - answer: for "answered", restate the information the user gave, clearly and completely,
   for example "The family members are Ana, Luis, Pepe and Mia". Otherwise ""
-- message_to_user: for "not_answered", one short friendly message in English that says ONLY what is still needed
+- message_to_user: for "not_answered", one short friendly message in the language of user_reply that says ONLY what is still needed
   and asks again. Never answer or comment on what the user said instead. Otherwise ""
 
 RULES:
