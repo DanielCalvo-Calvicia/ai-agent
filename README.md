@@ -93,7 +93,7 @@ profiles/ flows/ step_defs/ model_sets/   data folders of PR-005 (each has a REA
 prompts/            one prompt per phase (<id>_<name>.txt), the generic rules and capabilities.txt
 schema/response/    JSON Schemas of the answers: general/ (text flows) and motion/ (movement flow)
 config/             models per step, prices, budget
-mcps/               MCP server configs
+mcps/               MCP server configs (has a README: fields, limits, how a profile reaches a server)
 scripts/            split_schemas.py (builds the schema tree), check_agent.py (assembles everything; `--explain <profile>`), model_tables.py (the model tables and `docs/models/profiles.md`), run_profile.py (the fixed messages on a profile, `tests/manual/README.md`; asks first)
 docs/               documentation (index: docs/README.md)
 tests/              pytest (all mock-based); tests/manual has scripts that call real services and cost money
