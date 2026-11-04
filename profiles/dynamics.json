@@ -10,5 +10,12 @@
       "dynamics_microservice"
     ]
   },
+  "overrides": {
+    "draft_writer": {
+      "prompt_append": {
+        "file": "prompts/profiles/tools/draft_writer.txt"
+      }
+    }
+  },
   "tested": null
 }

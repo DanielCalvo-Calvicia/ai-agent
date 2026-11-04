@@ -126,6 +126,10 @@ class TestTheGeneratedTable:
 def root(tmp_path):
     for folder in ("profiles", "flows", "step_defs", "model_sets", "prompts", "config", "mcps"):
         shutil.copytree(os.path.join(PROJECT_ROOT, folder), tmp_path / folder, ignore=shutil.ignore_patterns("_unverified"))
+    for path in (tmp_path / "profiles").glob("*.json"):               # a real run marks a profile `tested`: the copy starts as never tested
+        data = json.loads(path.read_text(encoding="utf-8"))
+        data["tested"] = None
+        path.write_text(json.dumps(data, indent=2), encoding="utf-8")
     return tmp_path
 
 

@@ -126,9 +126,19 @@ class TestWhatIsSent:
         agent = assemble(build_snapshot(FileConfigSource(str(config))))
         assert agent.profile("default").prompts == {} and agent.profile("chat").prompts == {}
 
-    def test_the_repository_has_no_override_yet(self):
+    def test_only_the_profiles_with_tools_have_the_tool_result_rules_of_the_draft_writer(self):
+        """T-06.4 change 2: the rules for a tool answer (a table, an error, a query still running, [hidden]) are an append of the profiles that have tools."""
         agent = assemble(build_snapshot(FileConfigSource(PROJECT_ROOT)))
-        assert all(profile.prompts == {} for profile in agent.profiles.values())
+        with_rules = {name for name, profile in agent.profiles.items() if profile.prompts}
+        assert with_rules == {"special", "dynamics"}
+        for name in with_rules:
+            assert set(agent.profile(name).prompts) == {"draft_writer"}
+        core = prompt_of("prompts/7_drawf_writter.txt")
+        appended = agent.profile("special").prompts["draft_writer"].append
+        assert agent.profile("dynamics").prompts["draft_writer"].append == appended
+        for marker in ("error (not_found)", "[hidden]", "coverage", "still running", "first N tool calls"):
+            assert marker in appended and marker not in core                  # nothing is lost, and chat and default no longer carry it
+        assert "ignore your rules" in core and "ignore your rules" not in appended   # the data-is-not-an-instruction rule stays for everyone
 
 
 # ===============================================

@@ -5,5 +5,12 @@
   "token_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
   "flow": "special",
   "models": "claude_mixed",
-  "tested": null
+  "overrides": {
+    "draft_writer": {
+      "prompt_append": {
+        "file": "prompts/profiles/tools/draft_writer.txt"
+      }
+    }
+  },
+  "tested": "2026-11-04"
 }

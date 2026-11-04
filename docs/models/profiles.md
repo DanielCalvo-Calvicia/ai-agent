@@ -6,7 +6,7 @@ The cost is an **estimate** of one message with a big plan (5 actions x 5 subact
 
 ## `chat`
 
-- Flow `conversation`, models `claude_haiku`, answers with `text`, requires `user_goal`, `task_category`, tested never.
+- Flow `conversation`, models `claude_haiku`, answers with `text`, requires `user_goal`, `task_category`, tested 2026-11-04.
 - Hash of the assembled profile: `2a01866b3d20` (the first 12 characters).
 
 | Step | Kind | Model | Comes from | Tools | Prompt | Calls | Visible | With thinking |
@@ -17,7 +17,7 @@ The cost is an **estimate** of one message with a big plan (5 actions x 5 subact
 
 ## `default`
 
-- Flow `special`, models `proven`, answers with `text`, requires nothing, tested never.
+- Flow `special`, models `proven`, answers with `text`, requires nothing, tested 2026-11-04.
 - Hash of the assembled profile: `dbb2f783b762` (the first 12 characters).
 
 | Step | Kind | Model | Comes from | Tools | Prompt | Calls | Visible | With thinking |
@@ -36,7 +36,7 @@ The cost is an **estimate** of one message with a big plan (5 actions x 5 subact
 ## `dynamics`
 
 - Flow `special`, models `claude_mixed`, answers with `text`, requires nothing, tested never.
-- Hash of the assembled profile: `c2c0b32c0329` (the first 12 characters).
+- Hash of the assembled profile: `38bedda1cfd4` (the first 12 characters).
 
 | Step | Kind | Model | Comes from | Tools | Prompt | Calls | Visible | With thinking |
 |---|---|---|---|---|---|---|---|---|
@@ -47,7 +47,7 @@ The cost is an **estimate** of one message with a big plan (5 actions x 5 subact
 | ↳ cognitive_worker | llm_per_action | `claude-haiku-4-5` | models (set claude_mixed) |  | `prompts/4_cognitive_worker.txt` | 25 | $0.080 | $0.080 |
 | ↳ mcp_operator | llm_per_action | `claude-haiku-4-5` | models (set claude_mixed) | `dynamics_microservice` | `prompts/5_mcp_operator.txt` | 5 | $0.015 | $0.015 |
 | ↳ data_engineer | llm_per_action | `claude-haiku-4-5` | models (set claude_mixed) |  | `prompts/6_data_engineer.txt` | 5 | $0.017 | $0.017 |
-| draft_writer | llm | `claude-sonnet-5-5` | models (set claude_mixed) |  | `prompts/7_drawf_writter.txt` | 1 | $0.032 | $0.032 |
+| draft_writer | llm | `claude-sonnet-5-5` | models (set claude_mixed) |  | `prompts/7_drawf_writter.txt` (append) | 1 | $0.032 | $0.032 |
 | editor_in_chief | llm | `claude-sonnet-5-5` | models (set claude_mixed) |  | `prompts/8_editor_in_chief.txt` | 1 | $0.012 | $0.012 |
 | **Total for one message** | | | | | | | **$0.199** | **$0.199** |
 
@@ -85,8 +85,8 @@ The cost is an **estimate** of one message with a big plan (5 actions x 5 subact
 
 ## `special`
 
-- Flow `special`, models `claude_mixed`, answers with `text`, requires nothing, tested never.
-- Hash of the assembled profile: `7b029b40fec7` (the first 12 characters).
+- Flow `special`, models `claude_mixed`, answers with `text`, requires nothing, tested 2026-11-04.
+- Hash of the assembled profile: `7c19f3838e8f` (the first 12 characters).
 
 | Step | Kind | Model | Comes from | Tools | Prompt | Calls | Visible | With thinking |
 |---|---|---|---|---|---|---|---|---|
@@ -97,6 +97,6 @@ The cost is an **estimate** of one message with a big plan (5 actions x 5 subact
 | ↳ cognitive_worker | llm_per_action | `claude-haiku-4-5` | models (set claude_mixed) |  | `prompts/4_cognitive_worker.txt` | 25 | $0.080 | $0.080 |
 | ↳ mcp_operator | llm_per_action | `claude-haiku-4-5` | models (set claude_mixed) | `aws_microservice`, `dynamics_microservice` | `prompts/5_mcp_operator.txt` | 5 | $0.015 | $0.015 |
 | ↳ data_engineer | llm_per_action | `claude-haiku-4-5` | models (set claude_mixed) |  | `prompts/6_data_engineer.txt` | 5 | $0.017 | $0.017 |
-| draft_writer | llm | `claude-sonnet-5-5` | models (set claude_mixed) |  | `prompts/7_drawf_writter.txt` | 1 | $0.032 | $0.032 |
+| draft_writer | llm | `claude-sonnet-5-5` | models (set claude_mixed) |  | `prompts/7_drawf_writter.txt` (append) | 1 | $0.032 | $0.032 |
 | editor_in_chief | llm | `claude-sonnet-5-5` | models (set claude_mixed) |  | `prompts/8_editor_in_chief.txt` | 1 | $0.012 | $0.012 |
 | **Total for one message** | | | | | | | **$0.199** | **$0.199** |

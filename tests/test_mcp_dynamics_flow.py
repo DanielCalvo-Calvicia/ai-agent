@@ -380,9 +380,15 @@ def test_the_reply_is_what_the_last_step_wrote_in_the_language_of_the_user_and_n
     assert question in world.input_of("triage")                    # the words of the user, in their language, reach triage
 
 
+def writer_with_tools():
+    """What the draft writer of `special` and `dynamics` is told: its prompt and the rules for a tool answer they append (T-06.4 change 2)."""
+    with open(os.path.join(PROJECT_ROOT, "prompts", "profiles", "tools", "draft_writer.txt"), encoding="utf-8") as f:
+        return " ".join((LoadSystemPrompt(7) + "\n\n" + f.read()).split())
+
+
 def test_the_prompts_ask_for_the_language_of_the_user_and_plain_text():
     capabilities = " ".join(LoadCapabilities().split())
-    writer = " ".join(LoadSystemPrompt(7).split())
+    writer = writer_with_tools()
     assert "in the language the user writes in" in capabilities and "plain text" in capabilities
     assert "in the language of user_message" in writer and "no Markdown" in writer
     assert "Plain text only" in " ".join(LoadSystemPrompt(8).split())
@@ -534,7 +540,7 @@ def test_the_masking_can_be_turned_off(dynamics_url, monkeypatch):
 
 
 def test_the_writer_is_told_what_a_hidden_cell_means():
-    assert "[hidden]" in " ".join(LoadSystemPrompt(7).split())
+    assert "[hidden]" in writer_with_tools()
 
 
 # ---------------------------------------------------------------- what the prompts say
@@ -571,7 +577,7 @@ class TestThePrompts:
         assert "every row of a table" in words(6) and "returned, total, coverage and hint" in words(6)
 
     def test_the_writer_knows_each_kind_of_error_and_what_to_say(self):
-        text = words(7)
+        text = writer_with_tools()
         for kind in ("error (input)", "error (not_found)", "error (retry_later)", "error (source_problem)", "error (internal)"):
             assert kind in text
         assert "never repeat a customer code the user did not give" in text
