@@ -205,6 +205,13 @@ class TestRunProfile:
         assert "- [ ] No movement (the list is empty)" in report and "**The user answers:** The left one, 90 degrees." in report
         assert "did not ask the user a question, so the answer was not sent" in report
 
+    def test_a_profile_with_no_text_shows_what_the_triage_decided(self, root):
+        run = script("run_profile")
+        assert run.main(["identification", "--mock", "--root", str(root), "--date", "2026-11-04"]) == 0
+        report = (root / "tests" / "output" / "profile_run_identification_2026-11-04.md").read_text(encoding="utf-8")
+        assert "**Answer:** (none)" in report and "**Classified as:** domain=system, type=analysis, complexity=low, next_step=proceed" in report
+        assert "goal text" not in report and "Domains." not in report              # the classification fields only, readable
+
     def test_a_label_names_the_report_so_a_change_is_run_before_and_after(self, root):
         run = script("run_profile")
         for label in ("before", "after"):

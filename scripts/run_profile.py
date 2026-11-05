@@ -61,6 +61,21 @@ def points_for(item: Dict[str, Any], profile: str) -> List[str]:
     return list(item.get("points_for", {}).get(profile) or item.get("points") or [])
 
 
+def classified_as(response) -> str:
+    """What the triage decided, in one line (a profile that answers with no text, `identification`, would show nothing otherwise): the domain, the
+    type and complexity, the next step and the questions it asks. Only classification fields, never the user's goal text."""
+    if response is None:
+        return ""
+    data = response_to_json(response)
+    category, step = data.get("task_category") or {}, data.get("next_step") or {}
+    if not category:
+        return ""
+    asks = "; ".join(step.get("requested_user_input") or [])
+    name = lambda value: str(getattr(value, "value", value))        # a str enum prints as `Domains.SYSTEM`: its value is the word
+    return (f"domain={name(category.get('domain'))}, type={name(category.get('type'))}, complexity={name(category.get('complexity'))}, "
+            f"next_step={name(step.get('status'))}" + (f", asks: {asks}" if asks else ""))
+
+
 def run_message(agent: Agent, adapter, mcp_list: list, mcp_tools, cost_of, profile_name: str, message: str,
                 then: Optional[str] = None) -> Dict[str, Any]:
     """One message through one profile: what it answered, how many calls, tokens and USD it took (the `identification` it needs included).
@@ -94,7 +109,7 @@ def run_message(agent: Agent, adapter, mcp_list: list, mcp_tools, cost_of, profi
         services.append(resumed)
         follow = resumed.text(TextRequestDTO(user_id="run_profile", session_id="run_profile", content=then))
     costs = [s.metrics.message_cost() for s in services if s.metrics.message_cost() is not None]
-    return {"answer": result.content, "movements": len(result.movements), "gesture": result.gesture, "awaiting": result.awaiting_user_input,
+    return {"classified": classified_as(answering.last_response), "answer": result.content, "movements": len(result.movements), "gesture": result.gesture, "awaiting": result.awaiting_user_input,
             "then_ran": follow is not None, "then_answer": follow.content if follow else "",
             "then_movements": len(follow.movements) if follow else 0, "then_awaiting": follow.awaiting_user_input if follow else False,
             "calls": sum(s.metrics.totals.requests for s in services), "tokens": sum(s.metrics.totals.total for s in services),
@@ -109,7 +124,7 @@ def run_all(agent: Agent, adapter, mcp_list: list, mcp_tools, cost_of, profile_n
             outcome = (run_message(agent, adapter, mcp_list, mcp_tools, cost_of, profile_name, item["message"], then=then) if then
                        else run_message(agent, adapter, mcp_list, mcp_tools, cost_of, profile_name, item["message"]))
         except Exception as error:                         # a failed message is reported, the others still run
-            outcome = {"answer": "", "movements": 0, "gesture": False, "awaiting": False, "calls": 0, "tokens": 0, "cost_usd": None,
+            outcome = {"classified": "", "answer": "", "movements": 0, "gesture": False, "awaiting": False, "calls": 0, "tokens": 0, "cost_usd": None,
                        "then_ran": False, "then_answer": "", "then_movements": 0, "then_awaiting": False, "seconds": 0, "error": f"{type(error).__name__}: {error}"[:300]}
         results.append({**item, "profile": profile_name, **outcome})
         print(f"  {item['id']:<10} {'ERROR ' + outcome['error'] if outcome['error'] else 'answered'}  "
@@ -135,6 +150,8 @@ def write_report(root: str, profile_name: str, date: str, results: List[Dict[str
         lines += [f"- [ ] {point}" for point in points_for(r, r["profile"])] + [""]
         lines += [f"**Answer:** {r['answer'] or '(none)'}" + (f"  \nMovements: {r['movements']}" if r["movements"] else "")
                   + ("  \nA gesture." if r["gesture"] else "") + ("  \nAsked the user a question." if r["awaiting"] else ""), ""]
+        if r.get("classified"):
+            lines += [f"**Classified as:** {r['classified']}", ""]
         then = r.get("then")
         if then:
             lines += [f"**The user answers:** {then['message']}", ""]

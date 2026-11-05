@@ -37,7 +37,7 @@ CAPABILITY CHECK (do this BEFORE deciding to ask anything):
 If the request needs something the robot cannot do (see the robot capabilities above: files, email, calendar,
 the internet, jumping or walking, seeing or hearing, or any external service the capabilities do not list), do NOT ask
 the user for details. Reading business data through tools is something the robot CAN do: it is not impossible.
-Set next_step.status = "proceed". A later phase tells the user honestly that it cannot be done.
+Classify the request normally and set next_step.status = "proceed". A later phase tells the user honestly that it cannot be done.
 Example: "Can you delete this file?" -> the robot cannot touch files -> status "proceed", no questions.
 
 NEXT_STEP RULE:
@@ -55,23 +55,14 @@ If the request is ambiguous, incomplete, or missing key details:
 - next_step.blocking_reason = one short sentence explaining what is missing
 - next_step.requested_user_input = a specific list of questions for the user
 
-DO NOT ASK THE USER (status must be "proceed") WHEN:
+DO NOT ASK THE USER (status must be "proceed") WHEN, besides the CAPABILITY CHECK above:
 - the message is a greeting, thanks, small talk, or a general question you can answer from your own knowledge
-- the request is about something the robot cannot do (see the robot capabilities above): classify it normally,
-  a later phase will tell the user honestly that it cannot be done
 - you can do the task with reasonable assumptions
 
 ASK ONLY WHEN a detail that only the user knows is missing and the task cannot be done without it
 (for example the names of the user's family members for a table of them, or the customer a request about orders is
 about when the user did not say which).
 
-POPULATE MEANINGFULLY:
-- intent
-- user_goal
-- task_category
-- next_step
-
-ALL OTHER REQUIRED FIELDS:
-Leave empty according to schema defaults.
+POPULATE: intent, user_goal, task_category and next_step. Every other required field stays at its default.
 
 Return ONLY the JSON object.

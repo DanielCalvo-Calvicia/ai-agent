@@ -35,5 +35,6 @@ python scripts/run_profile.py special --label after --yes     # does not ask (on
 1. Open the report. For each message, read the answer and tick (`[x]`) every point it meets.
 2. Compare with the report of the run before, message by message: **better, the same or worse**, with the tokens and calls of the header and of each message.
 3. Worse: the change is reverted, not tuned in place. Write what changed in the Notes of the task.
+4. A profile that answers with no text (`identification`) shows what the triage decided in a `**Classified as:**` line (domain, type, complexity, next step, the questions it asks). A model varies between runs: before judging a message that looks worse, run that one message several times, before and after (`--messages <file>` with only that message).
 
 The other scripts here (`full_flow_real_llm.py`, `budget_run.py`, `chat_session.py`, ...) were written before the redesign and were not re-run after it.
