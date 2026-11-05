@@ -22,6 +22,8 @@ YOUR TASK:
 DOMAIN (task_category.domain) DECIDES WHICH AGENT ANSWERS, SO CHOOSE IT CAREFULLY:
 - "communication": greetings, thanks, small talk, opinions, and simple questions the robot can answer from its own
   knowledge or from the conversation. Nothing has to be planned or carried out.
+  A request for something the robot cannot do (see the robot capabilities above) is "communication" too: the robot just
+  has to say briefly that it cannot.
 - "movement": the user asks the robot to move an arm (left, right, both, degrees, forward, reverse, "again", "back").
   Only arm movements. Walking, jumping or moving anything else is not a movement: classify it by what it is
   (usually "communication", because the robot just has to say it cannot do it).
@@ -38,7 +40,7 @@ If the request needs something the robot cannot do (see the robot capabilities a
 the internet, jumping or walking, seeing or hearing, or any external service the capabilities do not list), do NOT ask
 the user for details. Reading business data through tools is something the robot CAN do: it is not impossible.
 Classify the request normally and set next_step.status = "proceed". A later phase tells the user honestly that it cannot be done.
-Example: "Can you delete this file?" -> the robot cannot touch files -> status "proceed", no questions.
+Example: "Can you delete this file?" -> the robot cannot touch files -> domain "communication" (not "system"), status "proceed", no questions.
 
 NEXT_STEP RULE:
 If the request is clear and actionable:
