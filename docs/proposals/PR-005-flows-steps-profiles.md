@@ -281,3 +281,5 @@ Documents to update, per stage and in the same change (`CLAUDE.md`): `architectu
 ## As built (note of 2026-11-04, T-05.18)
 
 Epic T-05 (T-05.1 to T-05.18) built this proposal; the dated notes above say, per task, where the text and the code differ. In short: the flow files keep the old flow names; ten LLM steps are declarations and the answer check and the clarification stay in Python; the tokens in the files are placeholders; Brain and `contracts` are unchanged (Brain gets `default`); the data policy and other config sources are not built. The redesign of the flows and prompts (Q08-3) is epic T-06, which waits for the maintainer's specification table (T-06.1).
+
+- **Note 2026-11-09 (T-06):** the redesign added no flow, step or profile (T-06.1: the seven profiles stay, the tool caller is `mcp_operator`). Seven prompt changes were made one at a time with a before and after run on the real models (`docs/tasks/T-06_redesign/T-06.4_refine-prompts.md`); the first real use of `prompt_append` is `special` and `dynamics` (ADR-015, note of this date).
