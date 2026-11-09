@@ -108,7 +108,7 @@ Starts only after T-05 is done and the maintainer has written the specification 
 | 57 | [T-06.1](T-06_redesign/T-06.1_specification.md) | Specification of the new flows | decision | Done | table accepted 2026-11-04 | T-05 | 2026-11-02 |
 | 58 | [T-06.2](T-06_redesign/T-06.2_message-set.md) | The fixed set of messages | test | Done | mock only; no real run yet | T-05.17 | 2026-11-02 |
 | 59 | [T-06.3](T-06_redesign/T-06.3_new-steps.md) | New steps | code | Done | no new step needed | T-06.1, T-05.16 | 2026-11-02 |
-| 60 | [T-06.4](T-06_redesign/T-06.4_refine-prompts.md) | Refine the prompts, one step at a time | code | Todo | | T-06.1, T-06.2, T-05.14 | 2026-11-02 |
+| 60 | [T-06.4](T-06_redesign/T-06.4_refine-prompts.md) | Refine the prompts, one step at a time | code | In progress | 6 changes made; the maintainer reads the prompts | T-06.1, T-06.2, T-05.14 | 2026-11-02 |
 | 61 | [T-06.5](T-06_redesign/T-06.5_new-flows-and-profiles.md) | The new flows and profiles | code | Todo | | T-06.1, T-06.3, T-06.4 | 2026-11-02 |
 | 62 | [T-06.6](T-06_redesign/T-06.6_real-run-and-comparison.md) | Real run and comparison | manual | Todo | | T-06.5 | 2026-11-02 |
 | 63 | [T-06.7](T-06_redesign/T-06.7_documentation.md) | Documentation | docs | Todo | | T-06.6 | 2026-11-02 |

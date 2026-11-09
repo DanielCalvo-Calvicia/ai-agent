@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | in-progress (T-06.1 done 2026-11-04; T-06.3 closed with no change; T-06.2 done; next: T-06.4) |
+| Status | in-progress (T-06.1 done 2026-11-04; T-06.3 closed with no change; T-06.2 done; T-06.4 has six changes made, waiting for the maintainer to read them) |
 | Kind | epic |
 | Parent | project |
 | Depends on | T-05 |
@@ -30,7 +30,7 @@ Redo the flows, the steps, the prompts and the profiles on the structure T-05 bu
 | 1 | [T-06.1 Specification of the new flows](T-06.1_specification.md) | decision | done (2026-11-04) |
 | 2 | [T-06.2 The fixed set of messages](T-06.2_message-set.md) | test | done (2026-11-04, mock only) |
 | 3 | [T-06.3 New steps](T-06.3_new-steps.md) | code | done, no change (T-06.1 asks for no new step) |
-| 4 | [T-06.4 Refine the prompts, one step at a time](T-06.4_refine-prompts.md) | code | todo |
+| 4 | [T-06.4 Refine the prompts, one step at a time](T-06.4_refine-prompts.md) | code | in-progress (6 changes done 2026-11-09) |
 | 5 | [T-06.5 The new flows and profiles](T-06.5_new-flows-and-profiles.md) | code | todo |
 | 6 | [T-06.6 Real run and comparison](T-06.6_real-run-and-comparison.md) | manual | todo |
 | 7 | [T-06.7 Documentation](T-06.7_documentation.md) | docs | todo |
