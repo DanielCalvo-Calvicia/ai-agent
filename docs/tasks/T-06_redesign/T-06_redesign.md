@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | in-progress (T-06.1 done 2026-11-04; T-06.3 closed with no change; T-06.2 done; T-06.4 has six changes made, waiting for the maintainer to read them) |
+| Status | awaiting-user (2026-11-09: all tasks done or closed; the epic closes when the maintainer reads the seven changed prompts and ticks the points of T-06.6) |
 | Kind | epic |
 | Parent | project |
 | Depends on | T-05 |
@@ -33,7 +33,7 @@ Redo the flows, the steps, the prompts and the profiles on the structure T-05 bu
 | 4 | [T-06.4 Refine the prompts, one step at a time](T-06.4_refine-prompts.md) | code | in-progress (6 changes done 2026-11-09) |
 | 5 | [T-06.5 The new flows and profiles](T-06.5_new-flows-and-profiles.md) | code | done, no change |
 | 6 | [T-06.6 Real run and comparison](T-06.6_real-run-and-comparison.md) | manual | awaiting-user (runs done 2026-11-09) |
-| 7 | [T-06.7 Documentation](T-06.7_documentation.md) | docs | todo |
+| 7 | [T-06.7 Documentation](T-06.7_documentation.md) | docs | done (2026-11-09) |
 
 ## Exit criteria
 

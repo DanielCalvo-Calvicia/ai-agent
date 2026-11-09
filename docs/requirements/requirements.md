@@ -65,6 +65,13 @@ Status as of 2026-11-04, taken from `CLAUDE.md`, `README.md` and the code after 
 
 15. A model out of capacity (429, 5xx, timeout, no connection) is waited for and then replaced by the next model of the ordered list of its step (the sets `proven` and `google_free`: `gemini-3.5-flash-lite`, `gemini-3-flash-preview`; ADR-014, T-05.5). Tested with scripted errors only; no real 503 was provoked. The Claude model sets have no fallback on purpose. Not done: a circuit breaker, `Retry-After`, and a fallback for the MCP tools.
 
+16. Found by the real runs of T-06 (2026-11-09; `docs/tasks/T-06_redesign/T-06.4_refine-prompts.md` and `T-06.6_real-run-and-comparison.md`), not fixed:
+    - **The question the service asks the user** (the clarification step, phase 99, a prompt inside `application/steps/common/user_clarification.py`) can start with a markdown heading and be in English for a message in Spanish ("# Order Information Request").
+    - **`document`** ("create a document with a plan") is classified `writing` and the triage sometimes asks the user for details; the robot cannot make files and no profile says so.
+    - **`default`, after the user answers a question** (the family table): about 1 run in 5 invents the values or asks again, before and after the T-06 changes (model `proven`).
+    - The triage varies between runs (a message can be `movement` once and `communication` the next); a change to its prompt is judged with several runs of the same message.
+    - **`special` and `dynamics` after the editor change** (it now reads `user_message`) ran once, in the T-06.6 pass; the language fix was measured on `chat` only (24 answers).
+
 ## Known limits of the Dynamics tools (accepted for the prototype, ADR-011)
 
 1. **No authentication in either service.** The Go endpoint is open and reached by a public IP and port over plain HTTP. Who may see which customer is decided above ai-agent; a Cognito identity service is planned.
