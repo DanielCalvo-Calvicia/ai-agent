@@ -38,6 +38,9 @@
     ]
   },
   "reads": [
+    {
+      "user_message": "message"
+    },
     "user_goal",
     "constraints?",
     "next_step?"

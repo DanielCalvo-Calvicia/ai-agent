@@ -397,7 +397,7 @@ def test_the_prompts_ask_for_the_language_of_the_user_and_plain_text():
 def test_the_writer_is_told_to_speak_short_and_to_summarise_long_data():
     writer = " ".join(LoadSystemPrompt(7).split())
     editor = " ".join(LoadSystemPrompt(8).split())
-    assert "said aloud by a robot" in editor and "Keep the language of the draft" in editor
+    assert "said aloud by a robot" in editor and "in the language of user_message" in editor and "never translate it" in editor
     assert "SPOKEN aloud by a robot" in writer and "No lists" in writer and "Never read out every item" in writer
 
 

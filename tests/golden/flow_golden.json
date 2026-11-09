@@ -129,12 +129,12 @@
         "reasoning": "None",
         "schema_sha": "5cb5aad982bc0d9e94c099fa2ec75d6b1d4340a7fa8c7881ad499298b95daccb",
         "seed": null,
-        "system_prompt_len": 4232,
-        "system_prompt_sha": "d85582c136d37c95058eb743dec42e4b7b33021ae9803b806c84c4e01bebb15a",
+        "system_prompt_len": 4399,
+        "system_prompt_sha": "c05e2ace5fb064e173fccd841438bdb6210aa22e20b0b0b87103c1f1630a2e59",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
-        "user_message": "{'user_goal': UserGoal(summary=Summary(value='s'), expected_outcome=ExpectedOutcome(value='draft answer')), 'constraints': None, 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=RecommendedAction(value='run'), blocking_reason=None, requested_user_input=None)}"
+        "user_message": "{'user_message': 'plan my day', 'user_goal': UserGoal(summary=Summary(value='s'), expected_outcome=ExpectedOutcome(value='draft answer')), 'constraints': None, 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=RecommendedAction(value='run'), blocking_reason=None, requested_user_input=None)}"
       }
     ],
     "metrics": {
@@ -333,12 +333,12 @@
         "reasoning": "None",
         "schema_sha": "5cb5aad982bc0d9e94c099fa2ec75d6b1d4340a7fa8c7881ad499298b95daccb",
         "seed": null,
-        "system_prompt_len": 4232,
-        "system_prompt_sha": "d85582c136d37c95058eb743dec42e4b7b33021ae9803b806c84c4e01bebb15a",
+        "system_prompt_len": 4399,
+        "system_prompt_sha": "c05e2ace5fb064e173fccd841438bdb6210aa22e20b0b0b87103c1f1630a2e59",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
-        "user_message": "{'user_goal': UserGoal(summary=Summary(value='s'), expected_outcome=ExpectedOutcome(value='draft answer')), 'constraints': None, 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=None, blocking_reason=None, requested_user_input=None)}"
+        "user_message": "{'user_message': 'hello there', 'user_goal': UserGoal(summary=Summary(value='s'), expected_outcome=ExpectedOutcome(value='draft answer')), 'constraints': None, 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=None, blocking_reason=None, requested_user_input=None)}"
       }
     ],
     "metrics": {
@@ -534,12 +534,12 @@
         "reasoning": "None",
         "schema_sha": "5cb5aad982bc0d9e94c099fa2ec75d6b1d4340a7fa8c7881ad499298b95daccb",
         "seed": null,
-        "system_prompt_len": 4232,
-        "system_prompt_sha": "d85582c136d37c95058eb743dec42e4b7b33021ae9803b806c84c4e01bebb15a",
+        "system_prompt_len": 4399,
+        "system_prompt_sha": "c05e2ace5fb064e173fccd841438bdb6210aa22e20b0b0b87103c1f1630a2e59",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
-        "user_message": "{'user_goal': UserGoal(summary=Summary(value='s'), expected_outcome=ExpectedOutcome(value='draft answer')), 'constraints': None, 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=RecommendedAction(value='run'), blocking_reason=None, requested_user_input=None)}"
+        "user_message": "{'user_message': 'what is the weather', 'user_goal': UserGoal(summary=Summary(value='s'), expected_outcome=ExpectedOutcome(value='draft answer')), 'constraints': None, 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=RecommendedAction(value='run'), blocking_reason=None, requested_user_input=None)}"
       }
     ],
     "metrics": {
@@ -790,12 +790,12 @@
         "reasoning": "None",
         "schema_sha": "5cb5aad982bc0d9e94c099fa2ec75d6b1d4340a7fa8c7881ad499298b95daccb",
         "seed": null,
-        "system_prompt_len": 4232,
-        "system_prompt_sha": "d85582c136d37c95058eb743dec42e4b7b33021ae9803b806c84c4e01bebb15a",
+        "system_prompt_len": 4399,
+        "system_prompt_sha": "c05e2ace5fb064e173fccd841438bdb6210aa22e20b0b0b87103c1f1630a2e59",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
-        "user_message": "{'user_goal': UserGoal(summary=Summary(value='s'), expected_outcome=ExpectedOutcome(value='draft answer')), 'constraints': None, 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=None, blocking_reason=None, requested_user_input=None)}"
+        "user_message": "{'user_message': 'read my files', 'user_goal': UserGoal(summary=Summary(value='s'), expected_outcome=ExpectedOutcome(value='draft answer')), 'constraints': None, 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=None, blocking_reason=None, requested_user_input=None)}"
       }
     ],
     "metrics": {
@@ -1042,12 +1042,12 @@
         "reasoning": "None",
         "schema_sha": "5cb5aad982bc0d9e94c099fa2ec75d6b1d4340a7fa8c7881ad499298b95daccb",
         "seed": null,
-        "system_prompt_len": 4232,
-        "system_prompt_sha": "d85582c136d37c95058eb743dec42e4b7b33021ae9803b806c84c4e01bebb15a",
+        "system_prompt_len": 4399,
+        "system_prompt_sha": "c05e2ace5fb064e173fccd841438bdb6210aa22e20b0b0b87103c1f1630a2e59",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
-        "user_message": "{'user_goal': UserGoal(summary=Summary(value='s'), expected_outcome=ExpectedOutcome(value='draft answer')), 'constraints': None, 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=RecommendedAction(value='run'), blocking_reason=None, requested_user_input=None)}"
+        "user_message": "{'user_message': 'tell me if I need an umbrella', 'user_goal': UserGoal(summary=Summary(value='s'), expected_outcome=ExpectedOutcome(value='draft answer')), 'constraints': None, 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=RecommendedAction(value='run'), blocking_reason=None, requested_user_input=None)}"
       }
     ],
     "metrics": {
@@ -1343,12 +1343,12 @@
         "reasoning": "None",
         "schema_sha": "5cb5aad982bc0d9e94c099fa2ec75d6b1d4340a7fa8c7881ad499298b95daccb",
         "seed": null,
-        "system_prompt_len": 4232,
-        "system_prompt_sha": "d85582c136d37c95058eb743dec42e4b7b33021ae9803b806c84c4e01bebb15a",
+        "system_prompt_len": 4399,
+        "system_prompt_sha": "c05e2ace5fb064e173fccd841438bdb6210aa22e20b0b0b87103c1f1630a2e59",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
-        "user_message": "{'user_goal': UserGoal(summary=Summary(value='s'), expected_outcome=ExpectedOutcome(value='draft answer')), 'constraints': None, 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=RecommendedAction(value='run'), blocking_reason=None, requested_user_input=None)}"
+        "user_message": "{'user_message': 'tell me if I need an umbrella', 'user_goal': UserGoal(summary=Summary(value='s'), expected_outcome=ExpectedOutcome(value='draft answer')), 'constraints': None, 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=RecommendedAction(value='run'), blocking_reason=None, requested_user_input=None)}"
       }
     ],
     "metrics": {
@@ -1773,12 +1773,12 @@
         "reasoning": "None",
         "schema_sha": "5cb5aad982bc0d9e94c099fa2ec75d6b1d4340a7fa8c7881ad499298b95daccb",
         "seed": null,
-        "system_prompt_len": 4232,
-        "system_prompt_sha": "d85582c136d37c95058eb743dec42e4b7b33021ae9803b806c84c4e01bebb15a",
+        "system_prompt_len": 4399,
+        "system_prompt_sha": "c05e2ace5fb064e173fccd841438bdb6210aa22e20b0b0b87103c1f1630a2e59",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
-        "user_message": "{'user_goal': UserGoal(summary=Summary(value='s'), expected_outcome=ExpectedOutcome(value='draft answer')), 'constraints': None, 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=RecommendedAction(value='run'), blocking_reason=None, requested_user_input=None)}"
+        "user_message": "{'user_message': 'hello', 'user_goal': UserGoal(summary=Summary(value='s'), expected_outcome=ExpectedOutcome(value='draft answer')), 'constraints': None, 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=RecommendedAction(value='run'), blocking_reason=None, requested_user_input=None)}"
       }
     ],
     "metrics": {
@@ -2384,12 +2384,12 @@
         "reasoning": "None",
         "schema_sha": "5cb5aad982bc0d9e94c099fa2ec75d6b1d4340a7fa8c7881ad499298b95daccb",
         "seed": null,
-        "system_prompt_len": 4232,
-        "system_prompt_sha": "d85582c136d37c95058eb743dec42e4b7b33021ae9803b806c84c4e01bebb15a",
+        "system_prompt_len": 4399,
+        "system_prompt_sha": "c05e2ace5fb064e173fccd841438bdb6210aa22e20b0b0b87103c1f1630a2e59",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
-        "user_message": "{'user_goal': UserGoal(summary=Summary(value='s'), expected_outcome=ExpectedOutcome(value='draft answer')), 'constraints': None, 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=None, blocking_reason=None, requested_user_input=None)}"
+        "user_message": "{'user_message': 'hello there', 'user_goal': UserGoal(summary=Summary(value='s'), expected_outcome=ExpectedOutcome(value='draft answer')), 'constraints': None, 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=None, blocking_reason=None, requested_user_input=None)}"
       }
     ],
     "metrics": {
@@ -2685,12 +2685,12 @@
         "reasoning": "None",
         "schema_sha": "5cb5aad982bc0d9e94c099fa2ec75d6b1d4340a7fa8c7881ad499298b95daccb",
         "seed": null,
-        "system_prompt_len": 4232,
-        "system_prompt_sha": "d85582c136d37c95058eb743dec42e4b7b33021ae9803b806c84c4e01bebb15a",
+        "system_prompt_len": 4399,
+        "system_prompt_sha": "c05e2ace5fb064e173fccd841438bdb6210aa22e20b0b0b87103c1f1630a2e59",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
-        "user_message": "{'user_goal': UserGoal(summary=Summary(value='s'), expected_outcome=ExpectedOutcome(value='draft answer')), 'constraints': None, 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=RecommendedAction(value='run'), blocking_reason=None, requested_user_input=None)}"
+        "user_message": "{'user_message': 'hello', 'user_goal': UserGoal(summary=Summary(value='s'), expected_outcome=ExpectedOutcome(value='draft answer')), 'constraints': None, 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=RecommendedAction(value='run'), blocking_reason=None, requested_user_input=None)}"
       }
     ],
     "metrics": {
@@ -2890,12 +2890,12 @@
         "reasoning": "None",
         "schema_sha": "5cb5aad982bc0d9e94c099fa2ec75d6b1d4340a7fa8c7881ad499298b95daccb",
         "seed": null,
-        "system_prompt_len": 4232,
-        "system_prompt_sha": "d85582c136d37c95058eb743dec42e4b7b33021ae9803b806c84c4e01bebb15a",
+        "system_prompt_len": 4399,
+        "system_prompt_sha": "c05e2ace5fb064e173fccd841438bdb6210aa22e20b0b0b87103c1f1630a2e59",
         "temperature": 1.0,
         "tools": "[]",
         "top_p": null,
-        "user_message": "{'user_goal': UserGoal(summary=Summary(value='s'), expected_outcome=ExpectedOutcome(value='draft answer')), 'constraints': None, 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=RecommendedAction(value='run'), blocking_reason=None, requested_user_input=None)}"
+        "user_message": "{'user_message': 'do it', 'user_goal': UserGoal(summary=Summary(value='s'), expected_outcome=ExpectedOutcome(value='draft answer')), 'constraints': None, 'next_step': NextStep(status=Status(value=<Statuses.PROCEED: 'proceed'>), ready_to_execute=ReadyToExecute(value=True), recommended_action=RecommendedAction(value='run'), blocking_reason=None, requested_user_input=None)}"
       }
     ],
     "metrics": {
