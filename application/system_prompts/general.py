@@ -1,8 +1,9 @@
 import os
 from typing import Callable, Optional
 
-from application.orchestration.support.clock import now_text
-from application.orchestration.phases.catalog import PHASES
+from application.engine.support.clock import now_text
+from application.engine.support.prompt_overrides import PromptOverride
+from application.steps.catalog import PHASES
 from domain.value_objects.llm_request.message import Message, Role, create_message
 
 # Resolved from this file, so it does not depend on the current working directory.
@@ -41,16 +42,19 @@ def LoadCapabilities() -> str:
     return _read(CAPABILITIES_FILE)
 
 
-def build_system_prompt_from_file(prompt_file: Optional[str], clock: Optional[Callable[[], str]] = None) -> Message:
+def build_system_prompt_from_file(prompt_file: Optional[str], clock: Optional[Callable[[], str]] = None,
+                                  override: Optional[PromptOverride] = None, step_text: Optional[str] = None) -> Message:
     """
     The SYSTEM message of a phase: the generic invariants (phase 0), then what the robot can do
-    and the current date and time, then the prompt file of the phase.
+    and the current date and time, then the prompt file of the phase (replaced or added to by the profile's `override`, T-05.14). `step_text` is that prompt already read through the configuration
+    source (the Agent holds it, T-05.16); without it the file is read from the repository.
     """
+    step_part = step_text if step_text is not None else (_read(prompt_file) if prompt_file else None)
     parts = [
         _read(GENERIC_PROMPT_FILE),
         LoadCapabilities(),
         f"CURRENT DATE AND TIME: {(clock or now_text)()}",
-        _read(prompt_file) if prompt_file else None,
+        override.apply(step_part) if override else step_part,
     ]
 
     return create_message(Role.SYSTEM, "\n\n".join(part for part in parts if part))

@@ -38,6 +38,7 @@ from application.inbound.dto.session import MessageReceivedRequestDTO, StartSess
 from application.outbound.ports.llm_ports import LLMOutboundPort
 from application.service.session_service import SessionService
 from budget_run import Collector, usd
+from model_table import manual_resolver, manual_service
 from budget_table import budget_usd_per_message, load_budget
 from infrastructure.outbound.llm.config import VercelAIConfig
 from infrastructure.outbound.llm.response_mapper import build_response
@@ -143,7 +144,7 @@ def main():
     collector = Collector(LangfuseUsageReporter.from_env())
     executor = MCPToolExecutor(MCPClientManager([]))
     llm = ScriptedPlanner(VercelAIAdapter(Config=VercelAIConfig.from_env(tool_executor=executor)), failing)
-    service = SessionService(outbound_port=llm, mcp_list=[], mcp_tools=executor, usage_reporter=collector)
+    service = SessionService(**manual_service(), outbound_port=llm, mcp_list=[], mcp_tools=executor, usage_reporter=collector)
     session_id = service.start_session(StartSessionRequestDTO(user_id="tester", username="tester")).session_id
 
     started = time.time()

@@ -27,10 +27,10 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from application.inbound.dto.session import MessageReceivedRequestDTO, StartSessionRequestDTO
-from application.orchestration.flows.router import AgentRouter
-from application.orchestration.support.mcp_servers import describe_servers, server_names
-from application.orchestration.support.metrics import SessionMetrics
-from application.service.session_service import SessionService
+from brain_chain import AgentRouter
+from application.engine.support.mcp_servers import describe_servers, server_names
+from application.engine.support.metrics import SessionMetrics
+from brain_chain import ChainedSessionService as SessionService
 from application.system_prompts.general import LoadCapabilities, LoadSystemPrompt
 from infrastructure.outbound.mcp.client_manager import MCPClientManager
 from infrastructure.outbound.mcp.config import load_supported_mcp_configs
@@ -380,9 +380,15 @@ def test_the_reply_is_what_the_last_step_wrote_in_the_language_of_the_user_and_n
     assert question in world.input_of("triage")                    # the words of the user, in their language, reach triage
 
 
+def writer_with_tools():
+    """What the draft writer of `special` and `dynamics` is told: its prompt and the rules for a tool answer they append (T-06.4 change 2)."""
+    with open(os.path.join(PROJECT_ROOT, "prompts", "profiles", "tools", "draft_writer.txt"), encoding="utf-8") as f:
+        return " ".join((LoadSystemPrompt(7) + "\n\n" + f.read()).split())
+
+
 def test_the_prompts_ask_for_the_language_of_the_user_and_plain_text():
     capabilities = " ".join(LoadCapabilities().split())
-    writer = " ".join(LoadSystemPrompt(7).split())
+    writer = writer_with_tools()
     assert "in the language the user writes in" in capabilities and "plain text" in capabilities
     assert "in the language of user_message" in writer and "no Markdown" in writer
     assert "Plain text only" in " ".join(LoadSystemPrompt(8).split())
@@ -391,13 +397,13 @@ def test_the_prompts_ask_for_the_language_of_the_user_and_plain_text():
 def test_the_writer_is_told_to_speak_short_and_to_summarise_long_data():
     writer = " ".join(LoadSystemPrompt(7).split())
     editor = " ".join(LoadSystemPrompt(8).split())
-    assert "said aloud by a robot" in editor and "Keep the language of the draft" in editor
+    assert "said aloud by a robot" in editor and "in the language of user_message" in editor and "never translate it" in editor
     assert "SPOKEN aloud by a robot" in writer and "No lists" in writer and "Never read out every item" in writer
 
 
 def test_the_writer_receives_the_users_own_words():
-    from application.orchestration.phases.common.draft_writer import DRAFT_WRITER
-    from application.orchestration.state.flow_state import FlowState
+    from step_specs import DRAFT_WRITER
+    from application.engine.state.flow_state import FlowState
     assert DRAFT_WRITER.build_input(FlowState(message="How many orders does CL-1001 have?"))["user_message"] == "How many orders does CL-1001 have?"
 
 
@@ -534,7 +540,7 @@ def test_the_masking_can_be_turned_off(dynamics_url, monkeypatch):
 
 
 def test_the_writer_is_told_what_a_hidden_cell_means():
-    assert "[hidden]" in " ".join(LoadSystemPrompt(7).split())
+    assert "[hidden]" in writer_with_tools()
 
 
 # ---------------------------------------------------------------- what the prompts say
@@ -545,7 +551,8 @@ def words(phase):
 
 class TestThePrompts:
     def test_the_planner_picks_listed_tools_from_the_users_words_and_asks_for_a_missing_customer(self):
-        text = words(2)
+        with open(os.path.join(PROJECT_ROOT, "prompts", "profiles", "tools", "project_manager.txt"), encoding="utf-8") as f:
+            text = " ".join((words(2) + " " + f.read()).split())       # the planner of `special` and `dynamics`: its prompt plus the tool rules (T-06.4 change 3)
         assert "Never use a tool that is not listed" in text
         assert "Never set an environment or a company parameter" in text
         assert "do not guess one: put the question in required_inputs" in text
@@ -571,7 +578,7 @@ class TestThePrompts:
         assert "every row of a table" in words(6) and "returned, total, coverage and hint" in words(6)
 
     def test_the_writer_knows_each_kind_of_error_and_what_to_say(self):
-        text = words(7)
+        text = writer_with_tools()
         for kind in ("error (input)", "error (not_found)", "error (retry_later)", "error (source_problem)", "error (internal)"):
             assert kind in text
         assert "never repeat a customer code the user did not give" in text

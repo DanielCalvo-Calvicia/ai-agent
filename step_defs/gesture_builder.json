@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "name": "gesture_builder",
+  "about": "Builds the arm gesture from the emotion (plain code, random, shaped by the emotion).",
+  "kind": "code",
+  "legacy_id": 31,
+  "group": "expression",
+  "reads": [
+    "emotion",
+    "intensity",
+    "improvised",
+    "speech_seconds?"
+  ],
+  "writes": [
+    "movements"
+  ],
+  "function": "gesture_builder"
+}

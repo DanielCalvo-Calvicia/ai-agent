@@ -27,7 +27,7 @@ docs/
 | File | What it is |
 |---|---|
 | [`api/api.md`](api/api.md) | routes, the envelope, `/session/message`, sessions, `SESSION_NOT_FOUND`, the MCP tools it consumes |
-| [`architecture/architecture.md`](architecture/architecture.md) | the request path, the four flows and the router, the phases, the engine, the state, `domain/`, `infrastructure/`, how to extend it |
+| [`architecture/architecture.md`](architecture/architecture.md) | the request path, the profiles, flows and steps (three layers), the engine, the state, `domain/`, `infrastructure/`, how to extend it |
 | [`configuration/environment-variables.md`](configuration/environment-variables.md) | every variable, which model answers each step, MCP servers, retries, Langfuse |
 | [`rules/schemas-and-prompts.md`](rules/schemas-and-prompts.md) | the prompts, the two schema trees (`general`, `motion`), the generator, how to change an answer |
 | [`requirements/requirements.md`](requirements/requirements.md) | functional and non-functional requirements with their status and the known gaps |
@@ -35,7 +35,7 @@ docs/
 | [`deployment/deployment.md`](deployment/deployment.md) | run it, what it needs, state; the delivery lives outside this repository |
 | [`operations/monitoring.md`](operations/monitoring.md) | probes, logging, metrics, Langfuse, failures |
 | [`operations/debugging-the-flow.md`](operations/debugging-the-flow.md) | tracing and debugging a message step by step (`tests/manual/debug_flow.py`, `debug_break.py`) |
-| [`decisions/`](decisions/) | ADR-001 to ADR-014 |
+| [`decisions/`](decisions/) | ADR-001 to ADR-015 (ADR-015, profiles, flows and steps, is accepted and not built yet: epics T-05 and T-06) |
 | [`setup/questionnaires/`](setup/questionnaires/00_README.md) | the questions to answer before building (Q01: the `dynamics_microservice` MCP tools) |
 | [`tasks/README.md`](tasks/README.md), [`tasks/ORDER.md`](tasks/ORDER.md) | the task plan, the protocol, the board and the order; epic [T-01](tasks/T-01_dynamics-mcp/T-01_dynamics-mcp.md) uses the `dynamics_microservice` MCP tools (T-01.1 to T-01.9: T-01.2 to T-01.8 are built on the branch `feature_dynamics_mcp` and none is closed yet; T-01.9, the first real run, is the maintainer's) |
 
@@ -45,8 +45,9 @@ They stay in `docs/models/` because the tests and the scripts of `tests/manual/`
 
 | File | Written by |
 |---|---|
-| [`gemini_models_per_step.md`](models/gemini_models_per_step.md) | `tests/manual/show_models.py --write`, from `config/gemini_models.json` |
-| [`models_per_step_budget.md`](models/models_per_step_budget.md) | `tests/manual/show_models.py --budget`, from `config/*.json` and the budget |
+| [`gemini_models_per_step.md`](models/gemini_models_per_step.md) | `scripts/model_tables.py --write`, from `config/gemini_models.json` |
+| [`models_per_step_budget.md`](models/models_per_step_budget.md) | `scripts/model_tables.py --budget`, from `config/*.json` and the budget |
+| [`profiles.md`](models/profiles.md) | `scripts/model_tables.py --profiles`, from the assembled profiles (T-05.17) |
 | [`cost_of_a_full_plan.md`](models/cost_of_a_full_plan.md) | `tests/manual/estimate_cost.py --write` |
 
 ## `reference/`: notes

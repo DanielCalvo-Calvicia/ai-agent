@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "name": "budget50_groq",
+  "_about": "Cheaper than budget50: the planner, the gate, the worker, the draft and the editor use openai/gpt-oss-120b on Groq (strong reasoning at 0.15 in and 0.60 out per 1M tokens, tested end to end). Triage, tools, cleaning, the checker and the question use gemini-3.1-flash-lite. Needs GROQ_API_KEY and GROQ_URL. Untested as a combination.",
+  "default": [
+    "gemini-3.1-flash-lite"
+  ],
+  "project_manager": [
+    "openai/gpt-oss-120b"
+  ],
+  "safety_quality_gatekeeper": [
+    "openai/gpt-oss-120b"
+  ],
+  "cognitive_worker": [
+    "openai/gpt-oss-120b"
+  ],
+  "draft_writer": [
+    "openai/gpt-oss-120b"
+  ],
+  "editor_in_chief": [
+    "openai/gpt-oss-120b"
+  ]
+}

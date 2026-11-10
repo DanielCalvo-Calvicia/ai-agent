@@ -10,7 +10,7 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.orchestration.support.metrics import SessionMetrics
+from application.engine.support.metrics import SessionMetrics
 from application.outbound.ports.usage_ports import CallDetails, UsageReporterPort
 from infrastructure.outbound.usage.langfuse import LangfuseUsageReporter
 from infrastructure.outbound.usage.prices import billed_output_tokens, cost_usd, load_prices
@@ -191,7 +191,7 @@ class TestTheChatName:
             self.seen.append((session_id, details.message if details else None))
 
     def service(self, recorder):
-        from application.service.session_service import SessionService
+        from brain_chain import ChainedSessionService as SessionService
         from test_flow_golden import ScriptedLLM
         return SessionService(outbound_port=ScriptedLLM(), usage_reporter=recorder)
 
@@ -222,7 +222,7 @@ class TestTheChatName:
 
 # ---------------------------------------------------------------- MCP tool calls
 
-from application.orchestration.engine.pipeline import Pipeline
+from application.engine.pipeline import Pipeline
 from application.outbound.ports.mcp_ports import ToolCallRecord, report_tool_call
 from flow_trace import FULL_FLOW
 from test_flow_golden import PM, ScriptedLLM, _action, _plan

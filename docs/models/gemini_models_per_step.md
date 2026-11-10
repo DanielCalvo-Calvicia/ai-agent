@@ -1,6 +1,6 @@
 # Gemini models for each step
 
-_Generated from `config/gemini_models.json` by `tests/manual/show_models.py --write`. Edit that file, not this one._
+_Generated from `config/gemini_models.json` by `scripts/model_tables.py --write`. Edit that file, not this one._
 
 - Prices and status: Google's pages ai.google.dev/gemini-api/docs/pricing, /models and /thinking, read on 2026-09-21; the prices and the list of models were checked again on 2026-10-27 (T-02.6). Prices are USD per 1M tokens, text, standard paid tier, and the output price includes thinking tokens. Check the page before you rely on a number.
 - 'api_check' is the result of one tiny test call per model id through the OpenAI-compatible endpoint (GOOGLE_URL) with the key of this project, on 2026-09-21. It proves the id works with this key, not that the model is good at a step. Re-checked on 2026-10-28 (T-02.3, only the ids that have a free tier): gemini-3.1-flash-lite, gemini-3.5-flash-lite and gemini-3.6-flash answered; gemini-3.8-flash got a 503 "high demand" (a temporary capacity problem, so it keeps its answer of 2026-09-21); gemini-3.1-pro-preview was not called (no free tier). gemini-2.5-flash and gemini-2.5-flash-lite answered 404 "no longer available to new users" and were removed. Later the same day gemini-3-flash-preview answered a test call (1.6 s) and was added. gemini-4-argon was added without a call: it has no free tier, so calling it would cost money; its api_check says "not called" and the tables mark it as untested.
@@ -25,7 +25,7 @@ For each step: what it uses now, and the options. Costs are per call of that ste
 | answer_checker | `gemini-3.1-flash-lite` | 1,200 | `gemini-3.1-flash-lite` $0.0007 | `gemini-3.1-flash-lite` $0.0007 | `gemini-3.5-flash-lite` $0.0010 |
 | user_clarification | `gemini-3.1-flash-lite` | 130 | `gemini-3.1-flash-lite` $0.0001 | `gemini-3.1-flash-lite` $0.0001 | `gemini-3.5-flash-lite` $0.0001 |
 
-To use a model for a step, put its id in `steps` of `config/step_models.json`, or run `windows\Scripts\python.exe tests\manual\show_models.py --set=<step>=<model id>`. The exact line for every model is in the table of its step (section 3).
+To use a model for a step, write it in the model set the profile uses (`model_sets/<name>.json`): an ordered list, the first model answers and the next ones are tried when it is out of capacity. The exact line for every model is in the table of its step (section 3).
 
 ## 2. The models and their cost
 
@@ -69,13 +69,13 @@ Classifies the request into a small JSON. Runs first, so latency matters. Little
 
 | Model | Model id | Input $/1M | Output $/1M | $ per call | $ per 1,000 calls | Rating | Why | Use it |
 |---|---|---|---|---|---|---|---|---|
-| Gemini 3.1 Flash-Lite | `gemini-3.1-flash-lite` | 0.25 | 1.50 | $0.0009 | $0.93 | **best** | Cheap and capable classifier. | `"triage_specialist": "gemini-3.1-flash-lite"` |
-| Gemini 3.5 Flash-Lite | `gemini-3.5-flash-lite` | 0.30 | 2.50 | $0.0014 | $1.40 | **best** | Minimal thinking by default: fast. | `"triage_specialist": "gemini-3.5-flash-lite"` |
-| Gemini 3 Flash (preview) | `gemini-3-flash-preview` | 0.50 | 3.00 | $0.0019 | $1.86 | **ok** | Overkill for a classifier; a preview. | `"triage_specialist": "gemini-3-flash-preview"` |
-| Gemini 3.6 Flash | `gemini-3.6-flash` | 0.75 | 3.75* | $0.0025 | $2.48 | **ok** | Overkill, unless the thinking level is set to minimal. | `"triage_specialist": "gemini-3.6-flash"` |
-| Gemini 3.8 Flash | `gemini-3.8-flash` | 0.75 | 3.75* | $0.0025 | $2.48 | **ok** | Overkill. | `"triage_specialist": "gemini-3.8-flash"` |
-| Gemini 4 Argon | `gemini-4-argon` | 2.00 | 10.00* | $0.0066 | $6.60 | **avoid** | Wasteful: paid only. | `"triage_specialist": "gemini-4-argon"` |
-| Gemini 3.1 Pro (preview) | `gemini-3.1-pro-preview` | 2.00 | 12.00* | $0.0074 | $7.42 | **avoid** | Wasteful. | `"triage_specialist": "gemini-3.1-pro-preview"` |
+| Gemini 3.1 Flash-Lite | `gemini-3.1-flash-lite` | 0.25 | 1.50 | $0.0009 | $0.93 | **best** | Cheap and capable classifier. | `"triage_specialist": ["gemini-3.1-flash-lite"]` |
+| Gemini 3.5 Flash-Lite | `gemini-3.5-flash-lite` | 0.30 | 2.50 | $0.0014 | $1.40 | **best** | Minimal thinking by default: fast. | `"triage_specialist": ["gemini-3.5-flash-lite"]` |
+| Gemini 3 Flash (preview) | `gemini-3-flash-preview` | 0.50 | 3.00 | $0.0019 | $1.86 | **ok** | Overkill for a classifier; a preview. | `"triage_specialist": ["gemini-3-flash-preview"]` |
+| Gemini 3.6 Flash | `gemini-3.6-flash` | 0.75 | 3.75* | $0.0025 | $2.48 | **ok** | Overkill, unless the thinking level is set to minimal. | `"triage_specialist": ["gemini-3.6-flash"]` |
+| Gemini 3.8 Flash | `gemini-3.8-flash` | 0.75 | 3.75* | $0.0025 | $2.48 | **ok** | Overkill. | `"triage_specialist": ["gemini-3.8-flash"]` |
+| Gemini 4 Argon | `gemini-4-argon` | 2.00 | 10.00* | $0.0066 | $6.60 | **avoid** | Wasteful: paid only. | `"triage_specialist": ["gemini-4-argon"]` |
+| Gemini 3.1 Pro (preview) | `gemini-3.1-pro-preview` | 2.00 | 12.00* | $0.0074 | $7.42 | **avoid** | Wasteful. | `"triage_specialist": ["gemini-3.1-pro-preview"]` |
 
 ### project_manager
 
@@ -86,13 +86,13 @@ The hardest step. Builds the plan: a recursive action tree with dependencies, ty
 
 | Model | Model id | Input $/1M | Output $/1M | $ per call | $ per 1,000 calls | Rating | Why | Use it |
 |---|---|---|---|---|---|---|---|---|
-| Gemini 3.1 Flash-Lite | `gemini-3.1-flash-lite` | 0.25 | 1.50 | $0.0012 | $1.21 | **ok** | May plan simple requests well. Test before trusting it. | `"project_manager": "gemini-3.1-flash-lite"` |
-| Gemini 3.5 Flash-Lite | `gemini-3.5-flash-lite` | 0.30 | 2.50 | $0.0018 | $1.83 | **ok** | Better than 3.1 Flash-Lite is likely, still a lite model. | `"project_manager": "gemini-3.5-flash-lite"` |
-| Gemini 3 Flash (preview) | `gemini-3-flash-preview` | 0.50 | 3.00 | $0.0024 | $2.42 | **ok** | May plan well; a preview and unmeasured. Test before trusting it. | `"project_manager": "gemini-3-flash-preview"` |
-| Gemini 3.6 Flash | `gemini-3.6-flash` | 0.75 | 3.75* | $0.0032 | $3.23 | **good** | Solid planner. | `"project_manager": "gemini-3.6-flash"` |
-| Gemini 3.8 Flash | `gemini-3.8-flash` | 0.75 | 3.75* | $0.0032 | $3.23 | **best** | The best Flash for planning. | `"project_manager": "gemini-3.8-flash"` |
-| Gemini 4 Argon | `gemini-4-argon` | 2.00 | 10.00* | $0.0086 | $8.60 | **best** | The newest top model; an estimate from its tier, never run here. | `"project_manager": "gemini-4-argon"` |
-| Gemini 3.1 Pro (preview) | `gemini-3.1-pro-preview` | 2.00 | 12.00* | $0.0097 | $9.67 | **best** | The strongest planner, if the plan quality is the problem. | `"project_manager": "gemini-3.1-pro-preview"` |
+| Gemini 3.1 Flash-Lite | `gemini-3.1-flash-lite` | 0.25 | 1.50 | $0.0012 | $1.21 | **ok** | May plan simple requests well. Test before trusting it. | `"project_manager": ["gemini-3.1-flash-lite"]` |
+| Gemini 3.5 Flash-Lite | `gemini-3.5-flash-lite` | 0.30 | 2.50 | $0.0018 | $1.83 | **ok** | Better than 3.1 Flash-Lite is likely, still a lite model. | `"project_manager": ["gemini-3.5-flash-lite"]` |
+| Gemini 3 Flash (preview) | `gemini-3-flash-preview` | 0.50 | 3.00 | $0.0024 | $2.42 | **ok** | May plan well; a preview and unmeasured. Test before trusting it. | `"project_manager": ["gemini-3-flash-preview"]` |
+| Gemini 3.6 Flash | `gemini-3.6-flash` | 0.75 | 3.75* | $0.0032 | $3.23 | **good** | Solid planner. | `"project_manager": ["gemini-3.6-flash"]` |
+| Gemini 3.8 Flash | `gemini-3.8-flash` | 0.75 | 3.75* | $0.0032 | $3.23 | **best** | The best Flash for planning. | `"project_manager": ["gemini-3.8-flash"]` |
+| Gemini 4 Argon | `gemini-4-argon` | 2.00 | 10.00* | $0.0086 | $8.60 | **best** | The newest top model; an estimate from its tier, never run here. | `"project_manager": ["gemini-4-argon"]` |
+| Gemini 3.1 Pro (preview) | `gemini-3.1-pro-preview` | 2.00 | 12.00* | $0.0097 | $9.67 | **best** | The strongest planner, if the plan quality is the problem. | `"project_manager": ["gemini-3.1-pro-preview"]` |
 
 ### safety_quality_gatekeeper
 
@@ -103,13 +103,13 @@ Judges the plan for risk and decides if the user must confirm. Small JSON, judge
 
 | Model | Model id | Input $/1M | Output $/1M | $ per call | $ per 1,000 calls | Rating | Why | Use it |
 |---|---|---|---|---|---|---|---|---|
-| Gemini 3.1 Flash-Lite | `gemini-3.1-flash-lite` | 0.25 | 1.50 | $0.0008 | $0.84 | **good** | Enough judgement for a yes or no on risk. | `"safety_quality_gatekeeper": "gemini-3.1-flash-lite"` |
-| Gemini 3.5 Flash-Lite | `gemini-3.5-flash-lite` | 0.30 | 2.50 | $0.0013 | $1.28 | **good** | Good judgement, fast. | `"safety_quality_gatekeeper": "gemini-3.5-flash-lite"` |
-| Gemini 3 Flash (preview) | `gemini-3-flash-preview` | 0.50 | 3.00 | $0.0017 | $1.69 | **good** | Enough judgement for a yes or no on risk. | `"safety_quality_gatekeeper": "gemini-3-flash-preview"` |
-| Gemini 3.6 Flash | `gemini-3.6-flash` | 0.75 | 3.75* | $0.0022 | $2.25 | **good** | Solid judgement. | `"safety_quality_gatekeeper": "gemini-3.6-flash"` |
-| Gemini 3.8 Flash | `gemini-3.8-flash` | 0.75 | 3.75* | $0.0022 | $2.25 | **good** | Solid judgement. | `"safety_quality_gatekeeper": "gemini-3.8-flash"` |
-| Gemini 4 Argon | `gemini-4-argon` | 2.00 | 10.00* | $0.0060 | $6.00 | **good** | Very careful on risk, more than needed. | `"safety_quality_gatekeeper": "gemini-4-argon"` |
-| Gemini 3.1 Pro (preview) | `gemini-3.1-pro-preview` | 2.00 | 12.00* | $0.0067 | $6.75 | **good** | Very careful on risk, more than needed. | `"safety_quality_gatekeeper": "gemini-3.1-pro-preview"` |
+| Gemini 3.1 Flash-Lite | `gemini-3.1-flash-lite` | 0.25 | 1.50 | $0.0008 | $0.84 | **good** | Enough judgement for a yes or no on risk. | `"safety_quality_gatekeeper": ["gemini-3.1-flash-lite"]` |
+| Gemini 3.5 Flash-Lite | `gemini-3.5-flash-lite` | 0.30 | 2.50 | $0.0013 | $1.28 | **good** | Good judgement, fast. | `"safety_quality_gatekeeper": ["gemini-3.5-flash-lite"]` |
+| Gemini 3 Flash (preview) | `gemini-3-flash-preview` | 0.50 | 3.00 | $0.0017 | $1.69 | **good** | Enough judgement for a yes or no on risk. | `"safety_quality_gatekeeper": ["gemini-3-flash-preview"]` |
+| Gemini 3.6 Flash | `gemini-3.6-flash` | 0.75 | 3.75* | $0.0022 | $2.25 | **good** | Solid judgement. | `"safety_quality_gatekeeper": ["gemini-3.6-flash"]` |
+| Gemini 3.8 Flash | `gemini-3.8-flash` | 0.75 | 3.75* | $0.0022 | $2.25 | **good** | Solid judgement. | `"safety_quality_gatekeeper": ["gemini-3.8-flash"]` |
+| Gemini 4 Argon | `gemini-4-argon` | 2.00 | 10.00* | $0.0060 | $6.00 | **good** | Very careful on risk, more than needed. | `"safety_quality_gatekeeper": ["gemini-4-argon"]` |
+| Gemini 3.1 Pro (preview) | `gemini-3.1-pro-preview` | 2.00 | 12.00* | $0.0067 | $6.75 | **good** | Very careful on risk, more than needed. | `"safety_quality_gatekeeper": ["gemini-3.1-pro-preview"]` |
 
 ### cognitive_worker
 
@@ -120,13 +120,13 @@ One call per action of the plan: answers, analyses, writes a piece. The quality 
 
 | Model | Model id | Input $/1M | Output $/1M | $ per call | $ per 1,000 calls | Rating | Why | Use it |
 |---|---|---|---|---|---|---|---|---|
-| Gemini 3.1 Flash-Lite | `gemini-3.1-flash-lite` | 0.25 | 1.50 | $0.0007 | $0.71 | **good** | Good content at a low price. | `"cognitive_worker": "gemini-3.1-flash-lite"` |
-| Gemini 3.5 Flash-Lite | `gemini-3.5-flash-lite` | 0.30 | 2.50 | $0.0011 | $1.08 | **good** | Good content. | `"cognitive_worker": "gemini-3.5-flash-lite"` |
-| Gemini 3 Flash (preview) | `gemini-3-flash-preview` | 0.50 | 3.00 | $0.0014 | $1.43 | **good** | Good content for the price. | `"cognitive_worker": "gemini-3-flash-preview"` |
-| Gemini 3.6 Flash | `gemini-3.6-flash` | 0.75 | 3.75* | $0.0019 | $1.91 | **best** | Strong content. | `"cognitive_worker": "gemini-3.6-flash"` |
-| Gemini 3.8 Flash | `gemini-3.8-flash` | 0.75 | 3.75* | $0.0019 | $1.91 | **best** | Strong content. | `"cognitive_worker": "gemini-3.8-flash"` |
-| Gemini 4 Argon | `gemini-4-argon` | 2.00 | 10.00* | $0.0051 | $5.08 | **good** | Top content, at a price. | `"cognitive_worker": "gemini-4-argon"` |
-| Gemini 3.1 Pro (preview) | `gemini-3.1-pro-preview` | 2.00 | 12.00* | $0.0057 | $5.71 | **good** | Top content, at a price. | `"cognitive_worker": "gemini-3.1-pro-preview"` |
+| Gemini 3.1 Flash-Lite | `gemini-3.1-flash-lite` | 0.25 | 1.50 | $0.0007 | $0.71 | **good** | Good content at a low price. | `"cognitive_worker": ["gemini-3.1-flash-lite"]` |
+| Gemini 3.5 Flash-Lite | `gemini-3.5-flash-lite` | 0.30 | 2.50 | $0.0011 | $1.08 | **good** | Good content. | `"cognitive_worker": ["gemini-3.5-flash-lite"]` |
+| Gemini 3 Flash (preview) | `gemini-3-flash-preview` | 0.50 | 3.00 | $0.0014 | $1.43 | **good** | Good content for the price. | `"cognitive_worker": ["gemini-3-flash-preview"]` |
+| Gemini 3.6 Flash | `gemini-3.6-flash` | 0.75 | 3.75* | $0.0019 | $1.91 | **best** | Strong content. | `"cognitive_worker": ["gemini-3.6-flash"]` |
+| Gemini 3.8 Flash | `gemini-3.8-flash` | 0.75 | 3.75* | $0.0019 | $1.91 | **best** | Strong content. | `"cognitive_worker": ["gemini-3.8-flash"]` |
+| Gemini 4 Argon | `gemini-4-argon` | 2.00 | 10.00* | $0.0051 | $5.08 | **good** | Top content, at a price. | `"cognitive_worker": ["gemini-4-argon"]` |
+| Gemini 3.1 Pro (preview) | `gemini-3.1-pro-preview` | 2.00 | 12.00* | $0.0057 | $5.71 | **good** | Top content, at a price. | `"cognitive_worker": ["gemini-3.1-pro-preview"]` |
 
 ### mcp_operator
 
@@ -137,13 +137,13 @@ One or more calls per tool action. Needs reliable function calling plus a valid 
 
 | Model | Model id | Input $/1M | Output $/1M | $ per call | $ per 1,000 calls | Rating | Why | Use it |
 |---|---|---|---|---|---|---|---|---|
-| Gemini 3.1 Flash-Lite | `gemini-3.1-flash-lite` | 0.25 | 1.50 | $0.0009 | $0.90 | **good** | Function calling should be fine. Test it. | `"mcp_operator": "gemini-3.1-flash-lite"` |
-| Gemini 3.5 Flash-Lite | `gemini-3.5-flash-lite` | 0.30 | 2.50 | $0.0014 | $1.36 | **good** | Function calling should be fine. Test it. | `"mcp_operator": "gemini-3.5-flash-lite"` |
-| Gemini 3 Flash (preview) | `gemini-3-flash-preview` | 0.50 | 3.00 | $0.0018 | $1.80 | **good** | Function calling should be fine. Test it. | `"mcp_operator": "gemini-3-flash-preview"` |
-| Gemini 3.6 Flash | `gemini-3.6-flash` | 0.75 | 3.75* | $0.0024 | $2.40 | **good** | Good tool use. | `"mcp_operator": "gemini-3.6-flash"` |
-| Gemini 3.8 Flash | `gemini-3.8-flash` | 0.75 | 3.75* | $0.0024 | $2.40 | **best** | Built for agents and tools. | `"mcp_operator": "gemini-3.8-flash"` |
-| Gemini 4 Argon | `gemini-4-argon` | 2.00 | 10.00* | $0.0064 | $6.40 | **good** | Top tool use, at a price. | `"mcp_operator": "gemini-4-argon"` |
-| Gemini 3.1 Pro (preview) | `gemini-3.1-pro-preview` | 2.00 | 12.00* | $0.0072 | $7.20 | **good** | Top tool use, at a price. | `"mcp_operator": "gemini-3.1-pro-preview"` |
+| Gemini 3.1 Flash-Lite | `gemini-3.1-flash-lite` | 0.25 | 1.50 | $0.0009 | $0.90 | **good** | Function calling should be fine. Test it. | `"mcp_operator": ["gemini-3.1-flash-lite"]` |
+| Gemini 3.5 Flash-Lite | `gemini-3.5-flash-lite` | 0.30 | 2.50 | $0.0014 | $1.36 | **good** | Function calling should be fine. Test it. | `"mcp_operator": ["gemini-3.5-flash-lite"]` |
+| Gemini 3 Flash (preview) | `gemini-3-flash-preview` | 0.50 | 3.00 | $0.0018 | $1.80 | **good** | Function calling should be fine. Test it. | `"mcp_operator": ["gemini-3-flash-preview"]` |
+| Gemini 3.6 Flash | `gemini-3.6-flash` | 0.75 | 3.75* | $0.0024 | $2.40 | **good** | Good tool use. | `"mcp_operator": ["gemini-3.6-flash"]` |
+| Gemini 3.8 Flash | `gemini-3.8-flash` | 0.75 | 3.75* | $0.0024 | $2.40 | **best** | Built for agents and tools. | `"mcp_operator": ["gemini-3.8-flash"]` |
+| Gemini 4 Argon | `gemini-4-argon` | 2.00 | 10.00* | $0.0064 | $6.40 | **good** | Top tool use, at a price. | `"mcp_operator": ["gemini-4-argon"]` |
+| Gemini 3.1 Pro (preview) | `gemini-3.1-pro-preview` | 2.00 | 12.00* | $0.0072 | $7.20 | **good** | Top tool use, at a price. | `"mcp_operator": ["gemini-3.1-pro-preview"]` |
 
 ### data_engineer
 
@@ -154,13 +154,13 @@ Cleans the output of a tool. Mechanical: precision, no creativity.
 
 | Model | Model id | Input $/1M | Output $/1M | $ per call | $ per 1,000 calls | Rating | Why | Use it |
 |---|---|---|---|---|---|---|---|---|
-| Gemini 3.1 Flash-Lite | `gemini-3.1-flash-lite` | 0.25 | 1.50 | $0.0006 | $0.62 | **best** | Cheap and precise enough. | `"data_engineer": "gemini-3.1-flash-lite"` |
-| Gemini 3.5 Flash-Lite | `gemini-3.5-flash-lite` | 0.30 | 2.50 | $0.0009 | $0.93 | **good** | More than needed. | `"data_engineer": "gemini-3.5-flash-lite"` |
-| Gemini 3 Flash (preview) | `gemini-3-flash-preview` | 0.50 | 3.00 | $0.0012 | $1.24 | **ok** | Overkill. | `"data_engineer": "gemini-3-flash-preview"` |
-| Gemini 3.6 Flash | `gemini-3.6-flash` | 0.75 | 3.75* | $0.0016 | $1.65 | **ok** | Overkill. | `"data_engineer": "gemini-3.6-flash"` |
-| Gemini 3.8 Flash | `gemini-3.8-flash` | 0.75 | 3.75* | $0.0016 | $1.65 | **ok** | Overkill. | `"data_engineer": "gemini-3.8-flash"` |
-| Gemini 4 Argon | `gemini-4-argon` | 2.00 | 10.00* | $0.0044 | $4.40 | **avoid** | Wasteful. | `"data_engineer": "gemini-4-argon"` |
-| Gemini 3.1 Pro (preview) | `gemini-3.1-pro-preview` | 2.00 | 12.00* | $0.0050 | $4.95 | **avoid** | Wasteful. | `"data_engineer": "gemini-3.1-pro-preview"` |
+| Gemini 3.1 Flash-Lite | `gemini-3.1-flash-lite` | 0.25 | 1.50 | $0.0006 | $0.62 | **best** | Cheap and precise enough. | `"data_engineer": ["gemini-3.1-flash-lite"]` |
+| Gemini 3.5 Flash-Lite | `gemini-3.5-flash-lite` | 0.30 | 2.50 | $0.0009 | $0.93 | **good** | More than needed. | `"data_engineer": ["gemini-3.5-flash-lite"]` |
+| Gemini 3 Flash (preview) | `gemini-3-flash-preview` | 0.50 | 3.00 | $0.0012 | $1.24 | **ok** | Overkill. | `"data_engineer": ["gemini-3-flash-preview"]` |
+| Gemini 3.6 Flash | `gemini-3.6-flash` | 0.75 | 3.75* | $0.0016 | $1.65 | **ok** | Overkill. | `"data_engineer": ["gemini-3.6-flash"]` |
+| Gemini 3.8 Flash | `gemini-3.8-flash` | 0.75 | 3.75* | $0.0016 | $1.65 | **ok** | Overkill. | `"data_engineer": ["gemini-3.8-flash"]` |
+| Gemini 4 Argon | `gemini-4-argon` | 2.00 | 10.00* | $0.0044 | $4.40 | **avoid** | Wasteful. | `"data_engineer": ["gemini-4-argon"]` |
+| Gemini 3.1 Pro (preview) | `gemini-3.1-pro-preview` | 2.00 | 12.00* | $0.0050 | $4.95 | **avoid** | Wasteful. | `"data_engineer": ["gemini-3.1-pro-preview"]` |
 
 ### draft_writer
 
@@ -171,13 +171,13 @@ Writes the first answer for the user from all the outputs. Writing quality and f
 
 | Model | Model id | Input $/1M | Output $/1M | $ per call | $ per 1,000 calls | Rating | Why | Use it |
 |---|---|---|---|---|---|---|---|---|
-| Gemini 3.1 Flash-Lite | `gemini-3.1-flash-lite` | 0.25 | 1.50 | $0.0006 | $0.65 | **good** | Good writing for the price. | `"draft_writer": "gemini-3.1-flash-lite"` |
-| Gemini 3.5 Flash-Lite | `gemini-3.5-flash-lite` | 0.30 | 2.50 | $0.0010 | $0.98 | **good** | Good writing. | `"draft_writer": "gemini-3.5-flash-lite"` |
-| Gemini 3 Flash (preview) | `gemini-3-flash-preview` | 0.50 | 3.00 | $0.0013 | $1.29 | **good** | Good writing for the price. | `"draft_writer": "gemini-3-flash-preview"` |
-| Gemini 3.6 Flash | `gemini-3.6-flash` | 0.75 | 3.75* | $0.0017 | $1.72 | **best** | Strong writing. | `"draft_writer": "gemini-3.6-flash"` |
-| Gemini 3.8 Flash | `gemini-3.8-flash` | 0.75 | 3.75* | $0.0017 | $1.72 | **best** | Strong writing. | `"draft_writer": "gemini-3.8-flash"` |
-| Gemini 4 Argon | `gemini-4-argon` | 2.00 | 10.00* | $0.0046 | $4.60 | **good** | Top writing, at a price. | `"draft_writer": "gemini-4-argon"` |
-| Gemini 3.1 Pro (preview) | `gemini-3.1-pro-preview` | 2.00 | 12.00* | $0.0052 | $5.17 | **good** | Top writing, at a price. | `"draft_writer": "gemini-3.1-pro-preview"` |
+| Gemini 3.1 Flash-Lite | `gemini-3.1-flash-lite` | 0.25 | 1.50 | $0.0006 | $0.65 | **good** | Good writing for the price. | `"draft_writer": ["gemini-3.1-flash-lite"]` |
+| Gemini 3.5 Flash-Lite | `gemini-3.5-flash-lite` | 0.30 | 2.50 | $0.0010 | $0.98 | **good** | Good writing. | `"draft_writer": ["gemini-3.5-flash-lite"]` |
+| Gemini 3 Flash (preview) | `gemini-3-flash-preview` | 0.50 | 3.00 | $0.0013 | $1.29 | **good** | Good writing for the price. | `"draft_writer": ["gemini-3-flash-preview"]` |
+| Gemini 3.6 Flash | `gemini-3.6-flash` | 0.75 | 3.75* | $0.0017 | $1.72 | **best** | Strong writing. | `"draft_writer": ["gemini-3.6-flash"]` |
+| Gemini 3.8 Flash | `gemini-3.8-flash` | 0.75 | 3.75* | $0.0017 | $1.72 | **best** | Strong writing. | `"draft_writer": ["gemini-3.8-flash"]` |
+| Gemini 4 Argon | `gemini-4-argon` | 2.00 | 10.00* | $0.0046 | $4.60 | **good** | Top writing, at a price. | `"draft_writer": ["gemini-4-argon"]` |
+| Gemini 3.1 Pro (preview) | `gemini-3.1-pro-preview` | 2.00 | 12.00* | $0.0052 | $5.17 | **good** | Top writing, at a price. | `"draft_writer": ["gemini-3.1-pro-preview"]` |
 
 ### editor_in_chief
 
@@ -188,13 +188,13 @@ Polishes the draft without adding facts and sets the final status. Faithfulness 
 
 | Model | Model id | Input $/1M | Output $/1M | $ per call | $ per 1,000 calls | Rating | Why | Use it |
 |---|---|---|---|---|---|---|---|---|
-| Gemini 3.1 Flash-Lite | `gemini-3.1-flash-lite` | 0.25 | 1.50 | $0.0008 | $0.79 | **good** | Good polishing. | `"editor_in_chief": "gemini-3.1-flash-lite"` |
-| Gemini 3.5 Flash-Lite | `gemini-3.5-flash-lite` | 0.30 | 2.50 | $0.0012 | $1.19 | **good** | Good polishing. | `"editor_in_chief": "gemini-3.5-flash-lite"` |
-| Gemini 3 Flash (preview) | `gemini-3-flash-preview` | 0.50 | 3.00 | $0.0016 | $1.57 | **good** | Good polishing. | `"editor_in_chief": "gemini-3-flash-preview"` |
-| Gemini 3.6 Flash | `gemini-3.6-flash` | 0.75 | 3.75* | $0.0021 | $2.10 | **good** | Good polishing. | `"editor_in_chief": "gemini-3.6-flash"` |
-| Gemini 3.8 Flash | `gemini-3.8-flash` | 0.75 | 3.75* | $0.0021 | $2.10 | **best** | Faithful, clean polishing. | `"editor_in_chief": "gemini-3.8-flash"` |
-| Gemini 4 Argon | `gemini-4-argon` | 2.00 | 10.00* | $0.0056 | $5.60 | **ok** | Overkill. | `"editor_in_chief": "gemini-4-argon"` |
-| Gemini 3.1 Pro (preview) | `gemini-3.1-pro-preview` | 2.00 | 12.00* | $0.0063 | $6.30 | **ok** | Overkill. | `"editor_in_chief": "gemini-3.1-pro-preview"` |
+| Gemini 3.1 Flash-Lite | `gemini-3.1-flash-lite` | 0.25 | 1.50 | $0.0008 | $0.79 | **good** | Good polishing. | `"editor_in_chief": ["gemini-3.1-flash-lite"]` |
+| Gemini 3.5 Flash-Lite | `gemini-3.5-flash-lite` | 0.30 | 2.50 | $0.0012 | $1.19 | **good** | Good polishing. | `"editor_in_chief": ["gemini-3.5-flash-lite"]` |
+| Gemini 3 Flash (preview) | `gemini-3-flash-preview` | 0.50 | 3.00 | $0.0016 | $1.57 | **good** | Good polishing. | `"editor_in_chief": ["gemini-3-flash-preview"]` |
+| Gemini 3.6 Flash | `gemini-3.6-flash` | 0.75 | 3.75* | $0.0021 | $2.10 | **good** | Good polishing. | `"editor_in_chief": ["gemini-3.6-flash"]` |
+| Gemini 3.8 Flash | `gemini-3.8-flash` | 0.75 | 3.75* | $0.0021 | $2.10 | **best** | Faithful, clean polishing. | `"editor_in_chief": ["gemini-3.8-flash"]` |
+| Gemini 4 Argon | `gemini-4-argon` | 2.00 | 10.00* | $0.0056 | $5.60 | **ok** | Overkill. | `"editor_in_chief": ["gemini-4-argon"]` |
+| Gemini 3.1 Pro (preview) | `gemini-3.1-pro-preview` | 2.00 | 12.00* | $0.0063 | $6.30 | **ok** | Overkill. | `"editor_in_chief": ["gemini-3.1-pro-preview"]` |
 
 ### answer_checker
 
@@ -205,13 +205,13 @@ Reads the user's reply to a question: an answer, a yes or a no, not an answer, o
 
 | Model | Model id | Input $/1M | Output $/1M | $ per call | $ per 1,000 calls | Rating | Why | Use it |
 |---|---|---|---|---|---|---|---|---|
-| Gemini 3.1 Flash-Lite | `gemini-3.1-flash-lite` | 0.25 | 1.50 | $0.0007 | $0.68 | **best** | Short and cheap. | `"answer_checker": "gemini-3.1-flash-lite"` |
-| Gemini 3.5 Flash-Lite | `gemini-3.5-flash-lite` | 0.30 | 2.50 | $0.0010 | $1.02 | **best** | Fast, multilingual. | `"answer_checker": "gemini-3.5-flash-lite"` |
-| Gemini 3 Flash (preview) | `gemini-3-flash-preview` | 0.50 | 3.00 | $0.0014 | $1.35 | **ok** | Overkill. | `"answer_checker": "gemini-3-flash-preview"` |
-| Gemini 3.6 Flash | `gemini-3.6-flash` | 0.75 | 3.75* | $0.0018 | $1.80 | **ok** | Overkill. | `"answer_checker": "gemini-3.6-flash"` |
-| Gemini 3.8 Flash | `gemini-3.8-flash` | 0.75 | 3.75* | $0.0018 | $1.80 | **ok** | Overkill. | `"answer_checker": "gemini-3.8-flash"` |
-| Gemini 4 Argon | `gemini-4-argon` | 2.00 | 10.00* | $0.0048 | $4.80 | **avoid** | Wasteful. | `"answer_checker": "gemini-4-argon"` |
-| Gemini 3.1 Pro (preview) | `gemini-3.1-pro-preview` | 2.00 | 12.00* | $0.0054 | $5.40 | **avoid** | Wasteful. | `"answer_checker": "gemini-3.1-pro-preview"` |
+| Gemini 3.1 Flash-Lite | `gemini-3.1-flash-lite` | 0.25 | 1.50 | $0.0007 | $0.68 | **best** | Short and cheap. | `"answer_checker": ["gemini-3.1-flash-lite"]` |
+| Gemini 3.5 Flash-Lite | `gemini-3.5-flash-lite` | 0.30 | 2.50 | $0.0010 | $1.02 | **best** | Fast, multilingual. | `"answer_checker": ["gemini-3.5-flash-lite"]` |
+| Gemini 3 Flash (preview) | `gemini-3-flash-preview` | 0.50 | 3.00 | $0.0014 | $1.35 | **ok** | Overkill. | `"answer_checker": ["gemini-3-flash-preview"]` |
+| Gemini 3.6 Flash | `gemini-3.6-flash` | 0.75 | 3.75* | $0.0018 | $1.80 | **ok** | Overkill. | `"answer_checker": ["gemini-3.6-flash"]` |
+| Gemini 3.8 Flash | `gemini-3.8-flash` | 0.75 | 3.75* | $0.0018 | $1.80 | **ok** | Overkill. | `"answer_checker": ["gemini-3.8-flash"]` |
+| Gemini 4 Argon | `gemini-4-argon` | 2.00 | 10.00* | $0.0048 | $4.80 | **avoid** | Wasteful. | `"answer_checker": ["gemini-4-argon"]` |
+| Gemini 3.1 Pro (preview) | `gemini-3.1-pro-preview` | 2.00 | 12.00* | $0.0054 | $5.40 | **avoid** | Wasteful. | `"answer_checker": ["gemini-3.1-pro-preview"]` |
 
 ### user_clarification
 
@@ -222,17 +222,17 @@ Writes a short friendly question for the user. Trivial.
 
 | Model | Model id | Input $/1M | Output $/1M | $ per call | $ per 1,000 calls | Rating | Why | Use it |
 |---|---|---|---|---|---|---|---|---|
-| Gemini 3.1 Flash-Lite | `gemini-3.1-flash-lite` | 0.25 | 1.50 | $0.0001 | $0.07 | **best** | Trivial text. | `"user_clarification": "gemini-3.1-flash-lite"` |
-| Gemini 3.5 Flash-Lite | `gemini-3.5-flash-lite` | 0.30 | 2.50 | $0.0001 | $0.11 | **best** | Trivial text. | `"user_clarification": "gemini-3.5-flash-lite"` |
-| Gemini 3 Flash (preview) | `gemini-3-flash-preview` | 0.50 | 3.00 | $0.0001 | $0.15 | **ok** | Overkill. | `"user_clarification": "gemini-3-flash-preview"` |
-| Gemini 3.6 Flash | `gemini-3.6-flash` | 0.75 | 3.75* | $0.0002 | $0.20 | **ok** | Overkill. | `"user_clarification": "gemini-3.6-flash"` |
-| Gemini 3.8 Flash | `gemini-3.8-flash` | 0.75 | 3.75* | $0.0002 | $0.20 | **ok** | Overkill. | `"user_clarification": "gemini-3.8-flash"` |
-| Gemini 4 Argon | `gemini-4-argon` | 2.00 | 10.00* | $0.0005 | $0.52 | **avoid** | Wasteful. | `"user_clarification": "gemini-4-argon"` |
-| Gemini 3.1 Pro (preview) | `gemini-3.1-pro-preview` | 2.00 | 12.00* | $0.0006 | $0.58 | **avoid** | Wasteful. | `"user_clarification": "gemini-3.1-pro-preview"` |
+| Gemini 3.1 Flash-Lite | `gemini-3.1-flash-lite` | 0.25 | 1.50 | $0.0001 | $0.07 | **best** | Trivial text. | `"user_clarification": ["gemini-3.1-flash-lite"]` |
+| Gemini 3.5 Flash-Lite | `gemini-3.5-flash-lite` | 0.30 | 2.50 | $0.0001 | $0.11 | **best** | Trivial text. | `"user_clarification": ["gemini-3.5-flash-lite"]` |
+| Gemini 3 Flash (preview) | `gemini-3-flash-preview` | 0.50 | 3.00 | $0.0001 | $0.15 | **ok** | Overkill. | `"user_clarification": ["gemini-3-flash-preview"]` |
+| Gemini 3.6 Flash | `gemini-3.6-flash` | 0.75 | 3.75* | $0.0002 | $0.20 | **ok** | Overkill. | `"user_clarification": ["gemini-3.6-flash"]` |
+| Gemini 3.8 Flash | `gemini-3.8-flash` | 0.75 | 3.75* | $0.0002 | $0.20 | **ok** | Overkill. | `"user_clarification": ["gemini-3.8-flash"]` |
+| Gemini 4 Argon | `gemini-4-argon` | 2.00 | 10.00* | $0.0005 | $0.52 | **avoid** | Wasteful. | `"user_clarification": ["gemini-4-argon"]` |
+| Gemini 3.1 Pro (preview) | `gemini-3.1-pro-preview` | 2.00 | 12.00* | $0.0006 | $0.58 | **avoid** | Wasteful. | `"user_clarification": ["gemini-3.1-pro-preview"]` |
 
-## 4. Profiles in `config/step_models.json`
+## 4. Model sets in `model_sets/`
 
-Active profile: **proven**. `steps` wins over the profile, and `AI_AGENT_MODEL_PHASE_<n>` wins over both.
+Set in use: **proven** (the service runs on it until the profiles choose theirs, T-05.7). The first model of each entry is shown; the next ones of its list are the fallback.
 
 | Step | proven | budget | balanced | quality | budget50 | claude_sonnet | budget50_groq | google_free | claude_haiku | claude_mixed |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -260,7 +260,7 @@ Active profile: **proven**. `steps` wins over the profile, and `AI_AGENT_MODEL_P
 
 ## 5. How to choose
 
-1. See the options of one step and what it uses now: `windows\Scripts\python.exe tests\manual\show_models.py --step=project_manager`.
-2. Choose: `windows\Scripts\python.exe tests\manual\show_models.py --set=project_manager=gemini-3.8-flash` (or write it in `steps` of `config/step_models.json`). To go back to the profile: `--clear=project_manager`. To change every step at once: `--profile=budget` (or `balanced`, `quality`, `proven`).
-3. For one run only: the variable `AI_AGENT_MODEL_PHASE_<n>` (n: 1 triage, 2 planner, 3 gate, 4 worker, 5 tools, 6 cleaning, 7 draft, 8 editor, 9 answer checker, 99 question).
+1. See the options of one step and what it uses now: `windows\Scripts\python.exe scripts\model_tables.py --step=project_manager`.
+2. Choose: write the model in the entry of that step of a model set (`"project_manager": ["gemini-3.8-flash"]` in `model_sets/<name>.json`), or in the profile that uses it. To change every step at once: name another model set in the profile (`budget`, `balanced`, `quality`, `proven`, ...). A change is a file change and a new start: no environment variable chooses a model.
+3. A list is an order: the first model answers and the next ones are the fallback when it is out of capacity.
 4. Try the model on that step before you trust it: run the flow once with `tests/manual/debug_flow.py --real`, then repeat the step with `--only=<step> --state=<file> --repeat=5`. The problems it finds and `compare.md` show if the model is steady.

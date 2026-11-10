@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Optional
 
-from application.orchestration.support.metrics import RequestRecord
+from application.engine.support.metrics import RequestRecord
 from application.outbound.ports.mcp_ports import ToolCallRecord
 
 
@@ -14,6 +14,10 @@ class CallDetails:
     output_text: Optional[str] = None
     started_ns: Optional[int] = None     # wall clock of the first attempt (time.time_ns)
     ended_ns: Optional[int] = None        # wall clock of the answer that was used
+    profile: str = ""                     # what the message runs (T-05.15): shown in the trace, never a token or an input
+    flow: str = ""
+    client: str = ""
+    profile_hash: str = ""
 
 
 class UsageReporterPort(ABC):

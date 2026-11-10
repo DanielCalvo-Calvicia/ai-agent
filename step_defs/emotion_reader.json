@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "name": "emotion_reader",
+  "about": "Names the emotion of the exchange, how strong it is and, maybe, a few movements of its own.",
+  "kind": "llm",
+  "legacy_id": 30,
+  "group": "expression",
+  "prompt": {
+    "file": "prompts/30_emotion_reader.txt"
+  },
+  "default_models": [
+    "gemini-3.1-flash-lite"
+  ],
+  "intent": {
+    "primary": "decision_support",
+    "secondary": [
+      "information_request"
+    ],
+    "confidence": 0.9
+  },
+  "format_name": "emotion_reader_phase30_response_format",
+  "answer": {
+    "required": [
+      "emotion",
+      "intensity",
+      "improvised"
+    ],
+    "pieces": [
+      {
+        "name": "emotion",
+        "file": "expression/emotion.schema.json",
+        "key": "emotion"
+      },
+      {
+        "name": "intensity",
+        "file": "expression/intensity.schema.json",
+        "key": "intensity"
+      },
+      {
+        "name": "improvised",
+        "file": "expression/improvised/improvised.schema.json",
+        "key": "improvised"
+      }
+    ]
+  },
+  "reads": [
+    "message",
+    "reply"
+  ],
+  "writes": [
+    "emotion",
+    "intensity",
+    "improvised"
+  ],
+  "functions": {
+    "input": "exchange_text",
+    "apply": "emotion_result"
+  }
+}

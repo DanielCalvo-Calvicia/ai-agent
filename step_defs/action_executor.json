@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "name": "action_executor",
+  "about": "Runs the planned actions in dependency order with the worker, the MCP operator and the data engineer.",
+  "kind": "code",
+  "legacy_id": 40,
+  "group": "special",
+  "reads": [
+    "actions",
+    "user_goal",
+    "safety_and_validation",
+    "answers"
+  ],
+  "writes": [
+    "actions"
+  ],
+  "function": "action_executor"
+}

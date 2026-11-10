@@ -16,6 +16,75 @@ class McpToolsPort(ABC):
         raise NotImplementedError
 
 
+# -----------------------------------------------
+#  WHICH TOOLS A STEP MAY USE (PR-005 section 5, T-05.13)
+#  A level (profile, flow, step) names whole servers and/or single tools (`server.tool`, or a bare name when one server has it).
+#  A level that names nothing sets no limit. The tools a step may use are those every level that is set allows.
+# -----------------------------------------------
+
+@dataclass(frozen=True)
+class ToolLimit:
+    """What ONE level allows: whole servers and single tools."""
+    servers: frozenset = frozenset()
+    tools: frozenset = frozenset()
+
+    @staticmethod
+    def of(definition: Dict[str, Any]) -> "ToolLimit":
+        return ToolLimit(frozenset(definition.get("servers") or ()), frozenset(definition.get("tools") or ()))
+
+    def allows(self, server: str, tool: str) -> bool:
+        return server in self.servers or tool in self.tools or f"{server}.{tool}" in self.tools
+
+    def may_use(self, server: str) -> bool:
+        """Whether some tool of the server can be allowed (a bare tool name may belong to any server)."""
+        return server in self.servers or any("." not in name or name.startswith(f"{server}.") for name in self.tools)
+
+
+@dataclass(frozen=True)
+class ToolScope:
+    """The limits that apply to a step, one per level that is set. No limit at all: every tool."""
+    limits: tuple = ()
+
+    @staticmethod
+    def of(*definitions: Optional[Dict[str, Any]]) -> "ToolScope":
+        """`definitions`: the `tools` object of each level, None where a level sets nothing."""
+        return ToolScope(tuple(ToolLimit.of(d) for d in definitions if isinstance(d, dict)))
+
+    @property
+    def unlimited(self) -> bool:
+        return not self.limits
+
+    def allows(self, server: str, tool: str) -> bool:
+        return all(limit.allows(server, tool) for limit in self.limits)
+
+    def may_use(self, server: str) -> bool:
+        return all(limit.may_use(server) for limit in self.limits)
+
+
+class ScopedTools(McpToolsPort):
+    """The tools port a step sees: only the tools its scope allows."""
+
+    def __init__(self, inner: McpToolsPort, scope: ToolScope) -> None:
+        self.inner = inner
+        self.scope = scope
+
+    def list_tools(self, server_name: str) -> List[ToolDefinition]:
+        if not self.scope.may_use(server_name):
+            return []
+        return [tool for tool in self.inner.list_tools(server_name) if self.scope.allows(server_name, tool.name)]
+
+
+def scoped(mcp_list: list, mcp_tools: Optional[McpToolsPort], scope: ToolScope):
+    """
+    The servers and the tools port a step is built with. An unlimited scope gives back what it was given. Each server of a
+    limited scope carries the scope under `scope`, so the adapter exposes and runs only the tools it allows.
+    """
+    if scope.unlimited:
+        return mcp_list, mcp_tools
+    servers = [{**server, "scope": scope} for server in mcp_list if scope.may_use(server["name"])]
+    return servers, (ScopedTools(mcp_tools, scope) if mcp_tools else None)
+
+
 # How a tool call ended. A tool error is read from `error (<kind>): ...`; anything else is `internal`.
 TOOL_OUTCOMES = ("ok", "timeout", "input", "not_found", "retry_later", "source_problem", "internal", "transport")
 

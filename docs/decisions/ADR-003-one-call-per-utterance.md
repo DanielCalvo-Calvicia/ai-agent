@@ -15,3 +15,5 @@ Brain sends each utterance once to `POST /session/message`. ai-agent decides whi
 
 - Positive: one HTTP call, one answer; `flow` says who answered.
 - Negative: ai-agent owns the routing, and its quality depends on triage (see [ADR-004](ADR-004-four-flows-behind-one-router.md)).
+
+**Note 2026-11-04, [ADR-015](ADR-015-profiles-flows-steps.md):** the decision that ai-agent decides which flow answers inside one call is **replaced**. The client now chooses the profile on every request and chains them (`identification`, then the profile of the answer); the service does not route. Brain still sends one call with no profile and gets the `default` profile (no movement, no gesture) until it is changed. The rest stands: `speak_movements` is Brain's setting and arrives with every message.

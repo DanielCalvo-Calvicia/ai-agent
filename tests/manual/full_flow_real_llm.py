@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 if project_root not in sys.path:
     sys.path.append(project_root)
+sys.path.append(os.path.join(project_root, "tests"))
 os.chdir(project_root)
 load_dotenv(os.path.join(project_root, ".env"), override=False)
     
@@ -23,6 +24,7 @@ from domain.entities.llm_request.payload import Payload
 from application.outbound.ports.llm_ports import LLMOutboundPort
 from infrastructure.outbound.llm.config import VercelAIConfig
 from infrastructure.outbound.llm.vercel import VercelAIAdapter
+from model_table import manual_service
 
 def build_vercel_adapter() -> VercelAIAdapter:
     config = VercelAIConfig.from_env()
@@ -31,7 +33,7 @@ def build_vercel_adapter() -> VercelAIAdapter:
 
 def run_message_service_text():
     vercel_adapter = build_vercel_adapter()
-    service = MessageFlowService(vercel_adapter)
+    service = MessageFlowService(vercel_adapter, **manual_service())        # a service runs a profile since T-05.7
 
     request: TextRequestDTO = TextRequestDTO(
         session_id="test-session-001",

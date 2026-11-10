@@ -9,7 +9,7 @@ The service **decides and answers**; it never controls hardware (see [ADR-002](.
 | Method and path | Purpose | State |
 |---|---|---|
 | `POST /session/start` | Create a session (`username`, optional `email`, optional `session_name`) and get a `session_id` | Built |
-| `POST /session/message` | Send `session_id` + `message` (+ `speak_movements`, default `true`) and get the answer | Built |
+| `POST /session/message` | Send `session_id` + `message` (+ `speak_movements`, default `true`; + `profile`, `token`, `inputs`, `return`, `pause_id`, `client`, see below) and get the answer | Built |
 | `POST /session/end` | End the session | Built |
 | `GET /health` | Liveness; calls no LLM | Built |
 | `GET /available` | Whether a provider key or `OLLAMA_URL` is configured; calls no LLM, so it cannot tell if a key is valid. Its answer does not depend on the MCP servers; `AI_AGENT_CHECK_MCP_<NAME>=1` only makes it log (see [monitoring](../operations/monitoring.md)) | Built |
@@ -29,20 +29,62 @@ action / status / status_code / message / data / timestamp
 
 ## `POST /session/message`
 
-Request: `session_id`, `message`, `speak_movements` (Brain's setting, default `true`). The flow runs in a worker thread; one request is one `MessageFlowService`.
-
-Answer (`AIAgentMessageResponse`):
+Request: `session_id`, `message`, `speak_movements` (Brain's setting, default `true`) and, since T-05.9, these **optional** fields (the vendored `contracts` wheel does not have them yet: ai-agent reads them from its own request model, `application/inbound/dto/session.py`, until the maintainer changes the `contracts` repository):
 
 | Field | Meaning |
 |---|---|
-| `success` | `false` when the message could not be processed (unknown session, LLM failure) |
-| `response` | What to say. **Always speakable**: an apology when `success` is `false`. Empty only for a movement that goes ahead with `speak_movements` off; a refusal or a question is always said |
-| `directives` | The movements to run, in order: `[{arm, degrees, direction}]`. `degrees` is signed (left 90 then left -90 returns the arm). Set by the movement flow, and by the expression flow with `gesture: true` |
-| `awaiting_user_input` | `true` when `response` is a question: the next message of the session is its answer |
-| `flow` | Which flow answered: `identification` (only when triage itself asks), `conversation`, `special` or `movement` |
-| `message`, `error_code` | The technical reason of a failure and a code |
+| `profile`, `token` | The profile asked and its token. No `profile`: the `default` profile, which needs no token. The token is the plain text; the service compares its SHA-256 with the one of the profile. Never logged |
+| `inputs` | An object: the fields the profile takes, as the previous profile returned them (`output`), or `reply` for `gesture`. Data, never instructions: each field is read with the code that reads an LLM answer and the domain checks; `tokens_usage` and `raw` are ignored; ignored on the answer to a question |
+| `return` | `"text"` (only `response`, as always) or `"full"` (also `output`). None: the `default_return` of the profile (`identification`: `full`; the rest: `text`) |
+| `pause_id` | The id of the question this message answers |
+| `client` | A name for the metrics (trust-based; used from T-05.15) |
 
-A gesture (`directives` with `gesture: true`, `pause_seconds` between movements) goes with a conversation or special reply when `AI_AGENT_EXPRESSION` is on. It is never required: if the expression flow fails or the validator refuses the gesture, the reply goes out without one. Brain starts it when the robot starts to speak. A movement the user asked for gets no gesture.
+`/session/start` takes **no** profile. A body with none of these fields gets exactly the answer it always got, and runs `default`.
+
+Answer (`AIAgentMessageResponse`, plus the fields of a profile request, which appear only when they apply):
+
+| Field | Meaning |
+|---|---|
+| `success` | `false` when the message could not be processed (unknown session, refused profile, bad input, LLM failure) |
+| `response` | What to say. **Always speakable**: an apology when `success` is `false`. Empty only for a movement that goes ahead with `speak_movements` off, or for a profile with no text (`identification`); a refusal or a question is always said |
+| `directives` | The movements to run, in order: `[{arm, degrees, direction}]`. `degrees` is signed (left 90 then left -90 returns the arm). Set by the `movement` profile, and by the `gesture` profile with `gesture: true` |
+| `awaiting_user_input` | `true` when `response` is a question: the next message of the session is its answer |
+| `flow` | Which flow answered: `identification`, `conversation`, `special`, `movement` or `expression` (the flow of the profile that ran) |
+| `message`, `error_code` | The technical reason of a failure and a code |
+| `profile` | The profile that ran. Only when the request named one |
+| `output` | The `Response` of the run as JSON, in the shape of the sections of an LLM answer (`intent`, `user_goal`, `task_category`, `actions`, ...), **without** `tokens_usage` and `raw`. Only when `return` is `full` (or the profile's default is) and the run has a `user_goal`; send it back as `inputs` |
+| `pause_id` | Only when `awaiting_user_input` is `true` and the request named a profile or a `pause_id`: send it back with the answer |
+| `discarded_pause` | `true` only when a question that was waiting was dropped because this message had a profile and no `pause_id` |
+
+**Errors** (`success: false`, status `error`, the transport status is 200 like every error of this route; read `data.error_code`):
+
+| `error_code` | When | Notes |
+|---|---|---|
+| `INVALID_PROFILE` | the profile does not exist, is disabled, or its token is missing or wrong | **One generic answer for all of these**: the message never says which, so a client cannot find out which profiles exist. The reason is only in the service's log. Profiles are never listed |
+| `MISSING_INPUT` | a required input of the profile is missing | Before any model call. The message names the field |
+| `INVALID_INPUT` | an input the profile does not take, or one that is not valid | Added in T-05.9 (not in PR-005): the message names the field, never its content |
+| `PROFILE_MISMATCH` | the `pause_id` belongs to a question of another profile | The question stays waiting and keeps its `pause_id` |
+| `PAUSE_NOT_FOUND` | the `pause_id` is not the waiting one (unknown, used, or nothing waits) | Treat the message as a new one |
+| `SESSION_NOT_FOUND` | the session does not exist | As before |
+
+**A question the user must answer.** When a run asks the user (`awaiting_user_input: true`) and the request named a profile, the answer carries a `pause_id`. Send the answer with the **same profile** and that `pause_id`: the answer is judged and the step that waited runs again (`inputs` is ignored; the token is checked again; the id is consumed). One question waits per session; it is lost when the service restarts. A message that names a profile and has **no** `pause_id` is a new message: the waiting question is discarded (`discarded_pause: true`), which is also how a user leaves a question. A **legacy** request (no `profile` and no `pause_id`) still answers the waiting question, as before: a client that does not know the new fields keeps working.
+
+**Which profile (the client's rule, not the service's).** The service runs ONE profile per message and never chooses between flows. The steps of each profile (PR-005 section 11, `profiles/README.md`):
+
+| Profile | Steps | Tools | Inputs (required) | Returns by default |
+|---|---|---|---|---|
+| `identification` | triage | none | none | `full` |
+| `chat` | draft writer, editor | none | `user_goal`, `task_category` (accepts the rest of the classification) | `text` |
+| `special` | triage, project manager, safety gate, action executor, draft writer, editor | every configured MCP server | none | `text` |
+| `dynamics` | the same as `special` | only `dynamics_microservice` | none | `text` |
+| `default` | the same as `special` | none | none | `text` |
+| `movement` | motion planner, motion validator | none | none (accepts the classification) | `text` |
+| `gesture` | emotion reader, gesture builder | none | `reply` (accepts `speech_seconds`) | `text` |
+
+A client that wants the old behaviour chains them: ask `identification` with `return: full`; read `output.task_category.domain`; `communication` -> `chat` with `inputs = output`; `movement` -> `movement`; anything else -> `special` or `dynamics` (they classify again: the service allows it and says nothing, so a client that wants to avoid the extra call asks them directly); then `gesture` with `inputs = {reply}` for a spoken reply (not after `movement`). `tests/brain_chain.py` is that chain, in the tests.
+
+The flow runs in a worker thread; one request is one `MessageFlowService`.
+
 
 ## Sessions
 

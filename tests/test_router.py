@@ -14,13 +14,13 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.orchestration.flows.conversation import CONVERSATION_FLOW
-from application.orchestration.flows.movement import MOVEMENT_FLOW
-from application.orchestration.flows.router import AgentRouter, DEFAULT_FLOW, FLOW_BY_DOMAIN, flow_for
-from application.orchestration.flows.special import SPECIAL_FLOW
-from application.orchestration.state.flow_state import FlowState
-from application.orchestration.support.metrics import SessionMetrics
-from application.orchestration.support.schemas import load_schema_file
+from flow_files import CONVERSATION_FLOW
+from flow_files import MOVEMENT_FLOW
+from brain_chain import AgentRouter, DEFAULT_FLOW, FLOW_BY_DOMAIN, flow_for
+from flow_files import SPECIAL_FLOW
+from application.engine.state.flow_state import FlowState
+from application.engine.support.metrics import SessionMetrics
+from application.engine.support.schemas import load_schema_file
 from application.system_prompts.general import LoadCapabilities, LoadSystemPrompt
 from domain.value_objects.llm_response.intent.intent import create_intent
 from domain.value_objects.llm_response.task_category.domain import Domains

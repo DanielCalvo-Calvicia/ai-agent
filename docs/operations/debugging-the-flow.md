@@ -2,8 +2,8 @@
 
 Tools: `tests/manual/debug_flow.py` and `tests/manual/debug_break.py`, both built on `tests/flow_trace.py`. They run the
 **real steps** of the pipeline and only coordinate them and write files; the only thing that can be replaced is the LLM:
-the scripted one of the tests (free, offline) or the real one with `--real` (it costs money; models come from `.env`,
-`config/step_models.json` and `AI_AGENT_MODEL_PHASE_<n>`).
+the scripted one of the tests (free, offline) or the real one with `--real` (it costs money; keys come from `.env`; the models of the tests/manual scripts are
+the model set `proven` of `model_sets/`).
 
 ## What they run (read this first)
 
@@ -11,13 +11,13 @@ The tools run the **text chain as one flow**: `FULL_FLOW` in `tests/flow_trace.p
 by the special flow's steps (triage, project manager, safety gate, action executor, draft writer, editor). That is the
 chain a task goes through, and it lets you trace and re-run each step on its own.
 
-They do **not** go through the router, so they do not show the routing to the conversation or movement flow, and they never
+They run ONE flow (all the text steps as one), so they do not show the chain of profiles the client makes, and they never
 run the movement flow's steps. For those:
 
-- routing, flows and pausing: `tests/test_router.py`, `tests/test_flows.py`, `tests/test_motion_flow.py`, `tests/test_resume.py`;
+- the client's chain, flows and pausing: `tests/test_router.py` (the chain is `tests/brain_chain.py`), `tests/test_profiles.py`, `tests/test_flows.py`, `tests/test_motion_flow.py`, `tests/test_resume.py`;
 - a real process over HTTP with a scripted LLM: `contracts/tests/e2e/test_flow_separation.py` and
   `test_brain_ai_agent_flows.py` (workspace root);
-- the router with a real LLM: `tests/manual/chat_session.py` or `full_flow_real_llm.py` (they send messages through the whole
+- the whole chain with a real LLM: `tests/manual/chat_session.py` or `full_flow_real_llm.py` (they send messages through the whole
   agent; they cost money).
 
 The step names to use with `--only` and `--step`: `triage_specialist`, `project_manager`, `safety_quality_gatekeeper`,
@@ -55,7 +55,7 @@ If not, every version is shown side by side. Only load `.pkl` files you saved yo
 ## 3. Other options of `debug_flow.py`
 
 `--print` prints the report on the console, `--print --interactive` waits after each step, `--scenario=NAME` scripts the LLM
-with a scenario of the tests (`--list` shows them; the scenarios of the communication and movement flows are meant for the router,
+with a scenario of the tests (`--list` shows them; the scenarios of the communication and movement flows are meant for the client's chain (`tests/brain_chain.py`),
 not for this tool), `--out=PATH` changes the folder.
 
 ## 4. The same, inside the tests
@@ -89,13 +89,13 @@ Search for the names, not for line numbers (they move):
 
 | Where | File and function |
 |---|---|
-| a step is about to run | `application/orchestration/engine/pipeline.py`, `Pipeline._run_step` (the `step.run(state)` line) |
-| the router moves a message to a flow | `application/orchestration/flows/router.py`, `AgentRouter._answer` |
-| the answer just became a `Response` (every phase) | `application/orchestration/engine/phase_runner.py`, `PhaseRunner.send`, right after `self.outbound_port.ask(payload)` |
+| a step is about to run | `application/engine/pipeline.py`, `Pipeline._run_step` (the `step.run(state)` line) |
+| a profile starts its flow | `application/engine/profile_runner.py`, `ProfileRunner.run` |
+| the answer just became a `Response` (every phase) | `application/engine/phase_runner.py`, `PhaseRunner.send`, right after `self.outbound_port.ask(payload)` |
 | the `Response` is built from the JSON | `infrastructure/outbound/llm/response_mapper.py`, `build_response` |
 | the response is loaded into the state | the `apply` of the phase (`_apply` in its file; triage uses `FlowState.load_from`), called from the flow's `llm_phase` |
-| an action got its result | `application/orchestration/flows/action_executor.py`: `_succeed`, `_fail`, `_set_output` |
-| a run resumes after a question | `application/orchestration/engine/pipeline.py`, `Pipeline._resume` |
+| an action got its result | `application/steps/special/action_executor.py`: `_succeed`, `_fail`, `_set_output` |
+| a run resumes after a question | `application/engine/pipeline.py`, `Pipeline._resume` |
 
 The two best places for "where the full response is allocated" are `PhaseRunner.send` (the `Response` exists, the state does
 not have it yet) and the `apply` of each phase (the state is completed): the `response` and `loaded` stops of `debug_break.py`.

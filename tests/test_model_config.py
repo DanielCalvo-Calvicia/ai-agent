@@ -1,5 +1,5 @@
 # pyright: reportOptionalSubscript=false
-"""Which LLM each step uses: the config file, the profiles, the variables, and the table of Gemini models."""
+"""Which LLMs answer each step: the resolver (profile, flow, step), the model sets, and the table of Gemini models."""
 import json
 import os
 import sys
@@ -10,43 +10,35 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.orchestration.support.metrics import PHASE_NAMES
-from application.orchestration.support.model_selection import (
-    MODELS_FILE_VARIABLE, STEP_NAMES, choose, effective_models, load_config, model_for_phase, models_file,
+from application.engine.config_snapshot import build_snapshot
+from application.engine.support.metrics import PHASE_NAMES
+from application.engine.support.model_selection import (
+    ALL_STEP_NAMES, DEFAULT_MODEL_SET, STEP_NAMES, ModelResolver, check_model_set, effective_models,
 )
 from domain.value_objects.llm_request.model import GoogleModels, get_selected_model
-from model_table import (CONFIG_PATH, DOC_PATH, LEVELS, MODELS_PATH, best_options, blended, load_models, markdown,
-                         per_call, per_message, read_config, set_profile, set_step)
+from infrastructure.outbound.config.file_source import FileConfigSource
+from model_table import (DOC_PATH, LEVELS, MODEL_SETS_DIR, best_options, blended, load_models, markdown, per_call,
+                         per_message, read_config, read_model_sets)
 
 from test_flow_golden import MCP_LIST, SCENARIOS, ScriptedLLM
 
 DEFAULT = GoogleModels.GEMINI_3_6_FLASH
 TRIAGE, PLANNER, GATE, WORKER, TOOLS, CLEANER, DRAFT, EDITOR, CHECKER, QUESTION = 1, 2, 3, 4, 5, 6, 7, 8, 9, 99
+OLD_TABLE = os.path.join(PROJECT_ROOT, "tests", "golden", "step_models_before_T-05.5.json")     # config/step_models.json as it was on 2026-11-02
+FLOW = "special"
 
 
-@pytest.fixture
-def config(tmp_path, monkeypatch):
-    """Writes a config file and points the agent to it. Returns a function to (re)write it."""
-    path = tmp_path / "step_models.json"
-
-    def write(data):
-        path.write_text(json.dumps(data), encoding="utf-8")
-        monkeypatch.setenv(MODELS_FILE_VARIABLE, str(path))
-        os.utime(path, (os.path.getmtime(path) + counter[0], os.path.getmtime(path) + counter[0]))   # a new mtime
-        counter[0] += 1
-        return path
-
-    counter = [1]
-    return write
+def ids(resolver, step, flow=FLOW, default=DEFAULT):
+    return [m.id for m in resolver.models_for(flow, step, default)]
 
 
 # ===============================================
-#  ORDER OF PRECEDENCE
+#  THE CODE DEFAULTS
 # ===============================================
 
 class TestCodeDefaults:
     def test_every_phase_falls_back_to_a_google_model_with_a_free_tier(self):
-        from application.orchestration.phases.catalog import PHASES
+        from application.steps.catalog import PHASES
         free = {m["id"] for m in load_models()["models"] if m["free_tier"]}
         assert PHASES
         for phase_id, info in PHASES.items():
@@ -55,7 +47,7 @@ class TestCodeDefaults:
                 assert info.default_model.value in free, phase_id
 
     def test_the_small_steps_use_the_lite_model_and_the_others_the_flash_model(self):
-        from application.orchestration.phases.catalog import PHASES
+        from application.steps.catalog import PHASES
         small = {"triage_specialist", "data_engineer", "answer_checker", "user_clarification", "emotion_reader"}
         for info in PHASES.values():
             if info.default_model is not None:
@@ -63,118 +55,140 @@ class TestCodeDefaults:
                 assert info.default_model.value == expected, info.step_name
 
 
-class TestPrecedence:
-    def test_without_a_config_file_the_defaults_of_the_code_are_used(self):
-        assert not os.path.exists(models_file())
-        assert model_for_phase(TRIAGE, GoogleModels.GEMINI_3_1_FLASH_LITE).id == "gemini-3.1-flash-lite"
-        assert model_for_phase(PLANNER, DEFAULT).id == "gemini-3.6-flash"
-        assert choose(PLANNER) == (None, "code default")
+# ===============================================
+#  ORDER OF PRECEDENCE: the most specific value replaces the broader one
+# ===============================================
 
-    def test_a_step_of_the_file_sets_that_step_only(self, config):
-        config({"steps": {"project_manager": "gemini-3.1-pro-preview"}})
-        assert model_for_phase(PLANNER, DEFAULT).id == "gemini-3.1-pro-preview"
-        assert model_for_phase(GATE, DEFAULT).id == "gemini-3.6-flash"
+SETS = {
+    "cheap": {"default": ["gemini-3.1-flash-lite"], "project_manager": ["gemini-3.8-flash"]},
+    "safe": {"default": ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-3-flash-preview"]},
+}
 
-    def test_the_default_of_the_profile_covers_every_step(self, config):
-        config({"profile": "p", "profiles": {"p": {"default": "gemini-3.1-flash-lite"}}})
-        assert [model_for_phase(n, DEFAULT).id for n in (TRIAGE, PLANNER, CHECKER, QUESTION)] == ["gemini-3.1-flash-lite"] * 4
 
-    def test_a_step_of_the_profile_beats_the_default_of_the_profile(self, config):
-        config({"profile": "p", "profiles": {"p": {"default": "gemini-3.1-flash-lite", "project_manager": "gemini-3.8-flash"}}})
-        assert model_for_phase(PLANNER, DEFAULT).id == "gemini-3.8-flash"
-        assert model_for_phase(GATE, DEFAULT).id == "gemini-3.1-flash-lite"
+class TestResolver:
+    def test_without_a_profile_every_step_uses_its_own_default(self):
+        resolver = ModelResolver()
+        assert ids(resolver, "project_manager") == ["gemini-3.6-flash"]
+        assert ids(resolver, "triage_specialist", default=GoogleModels.GEMINI_3_1_FLASH_LITE) == ["gemini-3.1-flash-lite"]
+        assert resolver.source_for(FLOW, "project_manager") == "step default"
 
-    def test_steps_beat_the_profile(self, config):
-        config({"profile": "p", "steps": {"project_manager": "gemini-3.1-pro-preview"},
-                "profiles": {"p": {"default": "gemini-3.1-flash-lite", "project_manager": "gemini-3.8-flash"}}})
-        assert model_for_phase(PLANNER, DEFAULT).id == "gemini-3.1-pro-preview"
+    def test_a_list_of_the_profile_covers_every_step_and_the_rest_of_it_is_the_fallback(self):
+        resolver = ModelResolver({"models": ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite"]})
+        for step in (TRIAGE, PLANNER, CHECKER, QUESTION):
+            assert ids(resolver, PHASE_NAMES[step]) == ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite"]
 
-    def test_the_variable_beats_everything(self, config, monkeypatch):
-        config({"profile": "p", "steps": {"project_manager": "gemini-3.1-pro-preview"},
-                "profiles": {"p": {"default": "gemini-3.1-flash-lite"}}})
-        monkeypatch.setenv("AI_AGENT_MODEL_PHASE_2", "gemini-3.5-flash-lite")
-        assert model_for_phase(PLANNER, DEFAULT).id == "gemini-3.5-flash-lite"
-        assert choose(PLANNER) == ("gemini-3.5-flash-lite", "env AI_AGENT_MODEL_PHASE_2")
+    def test_a_model_set_gives_its_entry_of_the_step_and_its_default_to_the_others(self):
+        resolver = ModelResolver({"models": "cheap"}, SETS)
+        assert ids(resolver, "project_manager") == ["gemini-3.8-flash"]
+        assert ids(resolver, "safety_quality_gatekeeper") == ["gemini-3.1-flash-lite"]
+        assert resolver.source_for(FLOW, "project_manager") == "models (set cheap)"
 
-    def test_null_and_empty_values_are_skipped(self, config):
-        config({"profile": "p", "steps": {"project_manager": None, "triage_specialist": ""},
-                "profiles": {"p": {"default": "gemini-3.6-flash", "project_manager": None}}})
-        assert model_for_phase(PLANNER, DEFAULT).id == "gemini-3.6-flash"
-        assert model_for_phase(TRIAGE, DEFAULT).id == "gemini-3.6-flash"
+    def test_the_models_of_a_flow_beat_the_models_of_the_profile_in_that_flow_only(self):
+        resolver = ModelResolver({"models": ["gemini-3.1-flash-lite"], "flows": {"chat": {"models": ["gemini-3.8-flash"]}}})
+        assert ids(resolver, "draft_writer", flow="chat") == ["gemini-3.8-flash"]
+        assert ids(resolver, "draft_writer", flow="special") == ["gemini-3.1-flash-lite"]
 
-    def test_changing_the_profile_changes_every_step_at_once(self, config):
-        data = {"profile": "cheap", "profiles": {"cheap": {"default": "gemini-3.1-flash-lite"},
-                                                 "strong": {"default": "gemini-3.8-flash"}}}
-        config(data)
-        assert model_for_phase(GATE, DEFAULT).id == "gemini-3.1-flash-lite"
-        config({**data, "profile": "strong"})
-        assert model_for_phase(GATE, DEFAULT).id == "gemini-3.8-flash"
+    def test_the_same_step_can_have_two_models_in_two_flows(self):
+        resolver = ModelResolver({"models": ["gemini-3.1-flash-lite"],
+                                  "flows": {"chat": {"steps": {"draft_writer": {"models": ["gemini-3.5-flash-lite"]}}},
+                                            "special": {"steps": {"draft_writer": {"models": ["gemini-3.8-flash"]}}}}})
+        assert ids(resolver, "draft_writer", flow="chat") == ["gemini-3.5-flash-lite"]
+        assert ids(resolver, "draft_writer", flow="special") == ["gemini-3.8-flash"]
+        assert ids(resolver, "editor_in_chief", flow="special") == ["gemini-3.1-flash-lite"]
 
-    def test_each_name_of_a_step_is_its_phase(self, config):
+    def test_an_override_of_a_step_beats_the_flow_and_the_profile_in_every_flow(self):
+        resolver = ModelResolver({"models": ["gemini-3.1-flash-lite"], "flows": {"chat": {"models": ["gemini-3.8-flash"]}},
+                                  "overrides": {"draft_writer": {"models": ["gemini-3.1-pro-preview"]}}})
+        assert ids(resolver, "draft_writer", flow="chat") == ["gemini-3.1-pro-preview"]
+        assert ids(resolver, "draft_writer", flow="special") == ["gemini-3.1-pro-preview"]
+        assert ids(resolver, "editor_in_chief", flow="chat") == ["gemini-3.8-flash"]
+
+    def test_a_step_of_a_flow_beats_an_override_of_the_step(self):
+        resolver = ModelResolver({"overrides": {"draft_writer": {"models": ["gemini-3.1-pro-preview"]}},
+                                  "flows": {"chat": {"steps": {"draft_writer": {"models": ["gemini-3.5-flash-lite"]}}}}})
+        assert ids(resolver, "draft_writer", flow="chat") == ["gemini-3.5-flash-lite"]
+        assert ids(resolver, "draft_writer", flow="special") == ["gemini-3.1-pro-preview"]
+
+    def test_a_model_set_may_be_named_at_any_level(self):
+        resolver = ModelResolver({"models": ["gemini-3.1-flash-lite"], "flows": {"chat": {"models": "cheap"}},
+                                  "overrides": {"editor_in_chief": {"models": "safe"}}}, SETS)
+        assert ids(resolver, "project_manager", flow="chat") == ["gemini-3.8-flash"]
+        assert ids(resolver, "editor_in_chief", flow="chat") == ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-3-flash-preview"]
+        assert resolver.source_for("chat", "editor_in_chief") == "overrides.editor_in_chief (set safe)"
+
+    def test_the_whole_list_is_replaced_never_added_to(self):
+        resolver = ModelResolver({"models": "safe", "overrides": {"project_manager": {"models": ["gemini-3.8-flash"]}}}, SETS)
+        assert ids(resolver, "project_manager") == ["gemini-3.8-flash"]                   # the fallbacks of the set do not come along
+        assert len(ids(resolver, "draft_writer")) == 3
+
+    def test_a_level_that_says_nothing_about_the_step_lets_the_next_one_decide(self):
+        sets = {"only_planner": {"project_manager": ["gemini-3.8-flash"]}}                # no `default`
+        resolver = ModelResolver({"models": ["gemini-3.1-flash-lite"], "flows": {"chat": {"models": "only_planner"}}}, sets)
+        assert ids(resolver, "draft_writer", flow="chat") == ["gemini-3.1-flash-lite"]
+        assert ids(resolver, "project_manager", flow="chat") == ["gemini-3.8-flash"]
+
+    def test_a_level_set_to_null_is_skipped(self):
+        resolver = ModelResolver({"models": ["gemini-3.6-flash"], "overrides": {"project_manager": {"models": None}}})
+        assert ids(resolver, "project_manager") == ["gemini-3.6-flash"]
+
+    def test_each_name_of_a_step_is_its_phase(self):
         models = ("gemini-3.6-flash", "gemini-3.8-flash", "gemini-3.5-flash-lite")      # three different ids, repeated
         names = {name: models[i % 3] for i, name in enumerate(STEP_NAMES)}
-        config({"steps": names})
+        resolver = ModelResolver({"overrides": {name: {"models": [model]} for name, model in names.items()}})
         for phase, name in PHASE_NAMES.items():
-            assert model_for_phase(phase, DEFAULT).id == names[name], name
+            assert ids(resolver, name) == [names[name]], name
 
-    def test_the_source_of_each_choice_is_reported(self, config, monkeypatch):
-        config({"profile": "p", "steps": {"project_manager": "gemini-3.8-flash"},
-                "profiles": {"p": {"default": "gemini-3.6-flash", "draft_writer": "gemini-3.1-flash-lite"}}})
-        monkeypatch.setenv("AI_AGENT_MODEL_PHASE_9", "gemini-3.1-flash-lite")
-        sources = {name: source for name, (_, source) in effective_models().items()}
-        assert sources["project_manager"] == "config steps"
-        assert sources["draft_writer"] == "profile p"
-        assert sources["triage_specialist"] == "profile p default"
-        assert sources["answer_checker"] == "env AI_AGENT_MODEL_PHASE_9"
+    def test_a_model_of_another_provider_can_be_used(self):
+        model = ModelResolver({"models": ["llama-3.3-70b-versatile"]}).models_for(FLOW, "project_manager", DEFAULT)[0]
+        assert model.id == "llama-3.3-70b-versatile" and model.is_groq()
 
-    def test_a_file_that_changes_is_read_again(self, config):
-        config({"steps": {"project_manager": "gemini-3.8-flash"}})
-        assert model_for_phase(PLANNER, DEFAULT).id == "gemini-3.8-flash"
-        config({"steps": {"project_manager": "gemini-3.6-flash"}})
-        assert model_for_phase(PLANNER, DEFAULT).id == "gemini-3.6-flash"
+    def test_the_source_of_each_choice_is_reported(self):
+        resolver = ModelResolver({"models": "cheap", "overrides": {"draft_writer": {"models": ["gemini-3.1-flash-lite"]}}}, SETS)
+        sources = {name: source for name, (_, source) in effective_models(resolver).items()}
+        assert sources["draft_writer"] == "overrides.draft_writer"
+        assert sources["triage_specialist"] == "models (set cheap)"
+        assert effective_models(ModelResolver())["project_manager"][1] == "step default"
 
-    def test_keys_that_start_with_an_underscore_are_ignored(self, config):
-        config({"_help": "x", "_other": {"a": 1}, "steps": {"_note": "anything", "project_manager": "gemini-3.8-flash"},
-                "profile": "p", "profiles": {"p": {"_about": "text", "default": "gemini-3.6-flash"}}})
-        assert model_for_phase(PLANNER, DEFAULT).id == "gemini-3.8-flash"
-
-
-# ===============================================
-#  MISTAKES ARE REPORTED, NOT IGNORED
-# ===============================================
 
 class TestMistakes:
-    def test_an_unknown_step_lists_the_valid_ones(self, config):
-        config({"steps": {"project_manger": "gemini-3.6-flash"}})            # a typo
+    def test_an_unknown_step_lists_the_valid_ones(self):
         with pytest.raises(ValueError, match="unknown step 'project_manger'.*triage_specialist"):
-            model_for_phase(PLANNER, DEFAULT)
+            ModelResolver({"overrides": {"project_manger": {"models": ["gemini-3.6-flash"]}}})            # a typo
 
-    def test_an_unknown_model_names_the_place_of_the_mistake(self, config):
-        config({"steps": {"project_manager": "gemini-9-ultra"}})
-        with pytest.raises(ValueError, match="steps.project_manager: 'gemini-9-ultra' is not a model of the catalog"):
-            model_for_phase(GATE, DEFAULT)                                      # even for another step: the file is wrong
+    def test_an_unknown_step_of_a_flow(self):
+        with pytest.raises(ValueError, match="flows.chat.steps: unknown step 'writer'"):
+            ModelResolver({"flows": {"chat": {"steps": {"writer": {"models": ["gemini-3.6-flash"]}}}}})
 
-    def test_an_unknown_model_in_a_profile(self, config):
-        config({"profile": "p", "profiles": {"p": {"default": "nope"}}})
-        with pytest.raises(ValueError, match="profiles.p.default: 'nope'"):
-            load_config()
+    def test_an_unknown_model_names_the_place_of_the_mistake(self):
+        with pytest.raises(ValueError, match="profile overrides.project_manager.models: 'gemini-9-ultra' is not a model of the catalog"):
+            ModelResolver({"overrides": {"project_manager": {"models": ["gemini-9-ultra"]}}})
 
-    def test_a_profile_that_does_not_exist(self, config):
-        config({"profile": "missing", "profiles": {"p": {}}})
-        with pytest.raises(ValueError, match="profile 'missing' is not defined. Profiles: p"):
-            load_config()
+    def test_an_unknown_model_set_lists_the_ones_that_exist(self):
+        with pytest.raises(ValueError, match="profile models: unknown model set 'nope'. Model sets: cheap, safe"):
+            ModelResolver({"models": "nope"}, SETS)
 
-    def test_a_file_that_is_not_json(self, config, tmp_path, monkeypatch):
-        path = tmp_path / "bad.json"
-        path.write_text("{not json", encoding="utf-8")
-        monkeypatch.setenv(MODELS_FILE_VARIABLE, str(path))
-        with pytest.raises(ValueError, match="is not valid JSON"):
-            load_config()
+    def test_a_list_must_not_be_empty_and_must_be_a_list(self):
+        with pytest.raises(ValueError, match="must be a list of model ids"):
+            ModelResolver({"models": []})
+        with pytest.raises(ValueError, match="unknown model set 'gemini-3.6-flash'"):
+            ModelResolver({"flows": {"chat": {"models": "gemini-3.6-flash"}}}, {})                        # a string is a set name, and none exists
+        with pytest.raises(ValueError, match="must be a list of model ids"):
+            ModelResolver({"models": {"default": ["gemini-3.6-flash"]}})                                   # a table is not a list
 
-    def test_a_wrong_model_in_the_variable_is_reported(self, monkeypatch):
-        monkeypatch.setenv("AI_AGENT_MODEL_PHASE_1", "not-a-model")
-        with pytest.raises(ValueError, match="AI_AGENT_MODEL_PHASE_1"):
-            model_for_phase(TRIAGE, DEFAULT)
+    def test_a_model_set_with_an_unknown_step_or_model_is_refused(self):
+        with pytest.raises(ValueError, match="model_sets/bad.json: unknown step 'project_manger'"):
+            check_model_set("bad", {"project_manger": ["gemini-3.6-flash"]})
+        with pytest.raises(ValueError, match="model_sets/bad.json: default: 'nope'"):
+            check_model_set("bad", {"default": ["nope"]})
+        with pytest.raises(ValueError, match="needs `default` or at least one step"):
+            check_model_set("bad", {"schema_version": 1, "name": "bad", "_about": "no entries"})
+
+    def test_a_set_that_is_used_is_checked_when_the_resolver_is_built(self):
+        with pytest.raises(ValueError, match="model_sets/bad.json"):
+            ModelResolver({"models": "bad"}, {"bad": {"default": ["nope"]}})
+
+    def test_keys_that_start_with_an_underscore_are_ignored_in_a_set(self):
+        check_model_set("ok", {"schema_version": 1, "name": "ok", "_about": "text", "_note": 3, "default": ["gemini-3.6-flash"]})
 
 
 # ===============================================
@@ -182,16 +196,17 @@ class TestMistakes:
 # ===============================================
 
 class TestReachesTheCalls:
-    def test_every_step_calls_the_model_of_the_file(self, config):
-        config({"steps": {"triage_specialist": "gemini-3.5-flash-lite", "project_manager": "gemini-3.8-flash",
-                          "safety_quality_gatekeeper": "gemini-3.1-flash-lite", "cognitive_worker": "gemini-3.6-flash",
-                          "mcp_operator": "gemini-3-flash-preview", "data_engineer": "gemini-3.1-flash-lite",
-                          "draft_writer": "gemini-3.6-flash", "editor_in_chief": "gemini-3.1-pro-preview"}})
+    def test_every_step_calls_the_model_of_its_profile(self):
+        models = {"triage_specialist": "gemini-3.5-flash-lite", "project_manager": "gemini-3.8-flash",
+                  "safety_quality_gatekeeper": "gemini-3.1-flash-lite", "cognitive_worker": "gemini-3.6-flash",
+                  "mcp_operator": "gemini-3-flash-preview", "data_engineer": "gemini-3.1-flash-lite",
+                  "draft_writer": "gemini-3.6-flash", "editor_in_chief": "gemini-3.1-pro-preview"}
+        resolver = ModelResolver({"overrides": {step: {"models": [model]} for step, model in models.items()}})
         scenario = SCENARIOS["full_path_with_mcp"]
         llm = ScriptedLLM(**scenario["llm"])
-        from application.service.message_flow_service import MessageFlowService
+        from brain_chain import ChainedMessageFlowService as MessageFlowService
         from application.inbound.dto.message import TextRequestDTO
-        MessageFlowService(outbound_port=llm, mcp_list=MCP_LIST).text(
+        MessageFlowService(outbound_port=llm, mcp_list=MCP_LIST, models=resolver).text(
             TextRequestDTO(user_id="tester", session_id="s", content=scenario["message"]))
         assert {c["format"].split("_response")[0]: c["model"] for c in llm.calls} == {
             "triage_specialist_phase1": "gemini-3.5-flash-lite", "project_manager_phase2": "gemini-3.8-flash",
@@ -199,15 +214,29 @@ class TestReachesTheCalls:
             "phase5_single_action": "gemini-3-flash-preview", "phase6_single_action": "gemini-3.1-flash-lite",
             "draft_writer_phase7": "gemini-3.6-flash", "editor_in_chief_phase8": "gemini-3.1-pro-preview"}
 
-    def test_the_answer_checker_and_the_question_use_their_own_models(self, config):
-        config({"steps": {"answer_checker": "gemini-3.1-flash-lite", "user_clarification": "gemini-3.5-flash-lite"}})
+    def test_the_same_step_uses_the_model_of_its_flow(self):
+        resolver = ModelResolver({"models": ["gemini-3.1-flash-lite"], "flows": {"special": {"steps": {
+            "editor_in_chief": {"models": ["gemini-3.8-flash"]}}}}})
+        scenario = SCENARIOS["full_path_with_mcp"]
+        llm = ScriptedLLM(**scenario["llm"])
+        from brain_chain import ChainedMessageFlowService as MessageFlowService
+        from application.inbound.dto.message import TextRequestDTO
+        MessageFlowService(outbound_port=llm, mcp_list=MCP_LIST, models=resolver).text(
+            TextRequestDTO(user_id="tester", session_id="s", content=scenario["message"]))
+        models = {c["format"].split("_response")[0]: c["model"] for c in llm.calls}
+        assert models["editor_in_chief_phase8"] == "gemini-3.8-flash"
+        assert models["draft_writer_phase7"] == "gemini-3.1-flash-lite"
+
+    def test_the_answer_checker_and_the_question_use_their_own_models(self):
+        resolver = ModelResolver({"overrides": {"answer_checker": {"models": ["gemini-3.1-flash-lite"]},
+                                                "user_clarification": {"models": ["gemini-3.5-flash-lite"]}}})
         from application.inbound.dto.session import MessageReceivedRequestDTO, StartSessionRequestDTO
-        from application.service.session_service import SessionService
+        from brain_chain import ChainedSessionService as SessionService
         from test_resume import CHECK, TRIAGE_ASKS, TRIAGE_OK, Script, _verdict
         from test_flow_golden import TRIAGE as TRIAGE_FORMAT
         llm = ScriptedLLM(overrides={TRIAGE_FORMAT: Script(TRIAGE_ASKS, TRIAGE_OK),
                                      CHECK: Script(_verdict("answered", "Ana"))})
-        service = SessionService(outbound_port=llm, mcp_list=[])
+        service = SessionService(outbound_port=llm, mcp_list=[], models=resolver)
         sid = service.start_session(StartSessionRequestDTO(user_id="tester", username="t")).session_id
         for text in ("Make a table", "Ana"):
             service.message_received(MessageReceivedRequestDTO(user_id="tester", session_id=sid, message=text))
@@ -215,84 +244,114 @@ class TestReachesTheCalls:
         assert models["answer_checker_phase9"] == "gemini-3.1-flash-lite"
         assert llm.calls[1]["model"] == "gemini-3.5-flash-lite"                # the question for the user (phase 99)
 
+    def test_without_a_resolver_the_defaults_of_the_code_are_used(self):
+        scenario = SCENARIOS["full_path_with_mcp"]
+        llm = ScriptedLLM(**scenario["llm"])
+        from brain_chain import ChainedMessageFlowService as MessageFlowService
+        from application.inbound.dto.message import TextRequestDTO
+        MessageFlowService(outbound_port=llm, mcp_list=MCP_LIST).text(
+            TextRequestDTO(user_id="tester", session_id="s", content=scenario["message"]))
+        assert {c["model"] for c in llm.calls} <= {"gemini-3.1-flash-lite", "gemini-3.6-flash"}
+
 
 # ===============================================
-#  THE SHIPPED FILES
+#  THE SHIPPED MODEL SETS
 # ===============================================
 
-@pytest.fixture
-def shipped(monkeypatch):
-    monkeypatch.setenv(MODELS_FILE_VARIABLE, CONFIG_PATH)
+@pytest.fixture(scope="module")
+def shipped():
+    return read_model_sets()
 
 
-class TestShippedConfig:
-    def test_it_loads_and_every_id_is_in_the_catalog(self, shipped):
-        config = load_config()
-        assert config["profile"] in config["profiles"]
-        assert set(config["profiles"]) >= {"proven", "budget", "balanced", "quality"}
+def shipped_resolver(name, flow=""):
+    return ModelResolver({"models": name}, read_model_sets())
 
-    def test_the_active_profile_works_out_of_the_box(self, shipped):
-        assert config_profile() in load_config()["profiles"]
-        assert all(model for model, _ in effective_models().values())
 
-    def test_the_active_profile_is_proven_every_step_on_the_free_tier_lite_model(self, shipped):
-        assert config_profile() == "proven"
+class TestShippedModelSets:
+    def test_every_file_loads_and_is_right(self, shipped):
+        snapshot = build_snapshot(FileConfigSource(PROJECT_ROOT))
+        assert snapshot.errors == {}
+        assert set(snapshot.model_sets) == set(shipped) >= {"proven", "budget", "balanced", "quality", "budget50", "claude_sonnet",
+                                                           "budget50_groq", "google_free", "claude_haiku", "claude_mixed"}
+        for name, data in snapshot.model_sets.items():
+            check_model_set(name, data)
+
+    def test_the_set_the_service_runs_on_exists_and_works_out_of_the_box(self, shipped):
+        assert DEFAULT_MODEL_SET in shipped
+        assert all(model for model, _ in effective_models(shipped_resolver(DEFAULT_MODEL_SET)).values())
+
+    def test_proven_is_every_step_on_the_free_tier_lite_model_with_the_fallbacks_of_adr_014(self, shipped):
+        assert DEFAULT_MODEL_SET == "proven"
         free = {m["id"] for m in load_models()["models"] if m["free_tier"]}
-        resolved = effective_models()
+        resolver = shipped_resolver("proven")
+        for step in ALL_STEP_NAMES:
+            assert ids(resolver, step) == ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-3-flash-preview"], step
+        resolved = effective_models(resolver)
         assert {model for model, _ in resolved.values()} == {"gemini-3.1-flash-lite"} and "gemini-3.1-flash-lite" in free
-        assert {source for _, source in resolved.values()} == {"profile proven default"}
+        assert {source for _, source in resolved.values()} == {"models (set proven)"}
 
     def test_google_free_is_defined_with_the_two_free_tier_models(self, shipped):
-        profile = load_config()["profiles"]["google_free"]
-        used = {profile["default"]} | {v for k, v in profile.items() if not k.startswith("_") and k not in ("default", "fallback_models")}
+        data = shipped["google_free"]
+        used = {ids_[0] for key, ids_ in data.items() if not key.startswith("_") and key not in ("schema_version", "name")}
         free = {m["id"] for m in load_models()["models"] if m["free_tier"]}
         assert used == {"gemini-3.1-flash-lite", "gemini-3.6-flash"} and used <= free
         assert all(get_selected_model(model).is_google() for model in used)
-        assert profile["project_manager"] == "gemini-3.6-flash" and profile["default"] == "gemini-3.1-flash-lite"
+        assert data["project_manager"][0] == "gemini-3.6-flash" and data["default"][0] == "gemini-3.1-flash-lite"
 
     def test_claude_mixed_puts_sonnet_on_the_planner_the_writer_and_the_editor(self, shipped):
-        profile = load_config()["profiles"]["claude_mixed"]
-        steps = {k: v for k, v in profile.items() if not k.startswith("_")}
-        assert steps == {
-            "default": "claude-haiku-4-5",
-            "project_manager": "claude-sonnet-5-5",
-            "draft_writer": "claude-sonnet-5-5",
-            "editor_in_chief": "claude-sonnet-5-5",
+        entries = {k: v for k, v in shipped["claude_mixed"].items() if not k.startswith("_") and k not in ("schema_version", "name")}
+        assert entries == {
+            "default": ["claude-haiku-4-5"],
+            "project_manager": ["claude-sonnet-5-5"],
+            "draft_writer": ["claude-sonnet-5-5"],
+            "editor_in_chief": ["claude-sonnet-5-5"],
         }
-        assert all(get_selected_model(model).is_anthropic() for model in steps.values())
-        assert config_profile() != "claude_mixed"
+        assert all(get_selected_model(model[0]).is_anthropic() for model in entries.values())
+        assert DEFAULT_MODEL_SET != "claude_mixed"
 
-    def test_the_other_profiles_still_name_models_of_the_catalog(self, shipped):
-        for name, profile in load_config()["profiles"].items():
-            for step, model in profile.items():
-                for one in (model if isinstance(model, list) else [model]):      # fallback_models is a list of ids
-                    if not step.startswith("_") and one:
-                        assert get_selected_model(one), (name, step)
+    @pytest.mark.parametrize("name", ["claude_sonnet", "claude_haiku", "claude_mixed"])
+    def test_a_claude_set_has_no_fallback_so_customer_data_stays_with_one_provider(self, shipped, name):
+        for key, models in shipped[name].items():
+            if not key.startswith("_") and key not in ("schema_version", "name"):
+                assert len(models) == 1, (name, key)
 
-    @pytest.mark.parametrize("profile", ["proven", "budget", "balanced", "quality"])
-    def test_every_profile_resolves_every_step_to_a_gemini_model_of_the_table(self, shipped, tmp_path, monkeypatch, profile):
-        data = json.load(open(CONFIG_PATH, encoding="utf-8"))
-        data["profile"] = profile
-        path = tmp_path / "p.json"
-        path.write_text(json.dumps(data), encoding="utf-8")
-        monkeypatch.setenv(MODELS_FILE_VARIABLE, str(path))
-        ids = {m["id"] for m in load_models()["models"]}
-        resolved = effective_models()
+    @pytest.mark.parametrize("name", ["proven", "budget", "balanced", "quality"])
+    def test_every_gemini_set_resolves_every_step_to_a_gemini_model_of_the_table(self, name):
+        table = {m["id"] for m in load_models()["models"]}
+        resolved = effective_models(shipped_resolver(name))
         assert set(resolved) == set(STEP_NAMES)
-        assert all(model in ids for model, _ in resolved.values()), resolved
+        assert all(model in table for model, _ in resolved.values()), resolved
 
-    def test_the_steps_section_lists_every_step_and_chooses_nothing(self, shipped):
-        steps = load_config()["steps"]
-        assert set(steps) == set(STEP_NAMES) and all(v is None for v in steps.values())
-
-    def test_the_provider_of_every_model_is_google(self, shipped):
+    def test_the_provider_of_every_model_of_the_table_is_google(self):
         for model in load_models()["models"]:
             assert get_selected_model(model["id"]).is_google(), model["id"]
 
 
-def config_profile():
-    return load_config()["profile"]
+class TestSameModelsAsBefore:
+    """T-05.5 moved the ten profiles of config/step_models.json into model sets: nothing may choose another model."""
 
+    @pytest.fixture(scope="class")
+    def old(self):
+        with open(OLD_TABLE, encoding="utf-8") as f:
+            return json.load(f)["profiles"]
+
+    def test_the_ten_profiles_are_the_ten_sets(self, old, shipped):
+        assert set(old) == set(shipped) and len(old) == 10
+
+    @pytest.mark.parametrize("name", ["proven", "budget", "balanced", "quality", "budget50", "claude_sonnet", "budget50_groq",
+                                      "google_free", "claude_haiku", "claude_mixed"])
+    def test_every_step_gets_the_model_and_the_fallbacks_it_got_before(self, old, name):
+        profile = old[name]
+        fallback = profile.get("fallback_models", [])
+        resolver = shipped_resolver(name)
+        for step in ALL_STEP_NAMES:
+            chosen = profile.get(step) or profile["default"]
+            assert ids(resolver, step) == [chosen] + [m for m in fallback if m != chosen], (name, step)
+
+
+# ===============================================
+#  THE TABLE OF GEMINI MODELS
+# ===============================================
 
 class TestTheTable:
     def test_the_models_are_sorted_from_the_lowest_to_the_highest_cost(self):
@@ -325,9 +384,8 @@ class TestTheTable:
 
     def test_the_profiles_never_use_a_model_the_api_refused(self):
         refused = {m["id"] for m in load_models()["models"] if m["api_check"].startswith("FAILED")}
-        config = json.load(open(CONFIG_PATH, encoding="utf-8"))
-        used = {v for p in config["profiles"].values() for k, v in p.items() if not k.startswith("_") and k != "fallback_models" and v}
-        used |= {v for p in config["profiles"].values() for v in p.get("fallback_models", [])}     # the fallbacks are models in use too
+        used = {model for data in read_model_sets().values() for key, ids in data.items()
+                if not key.startswith("_") and key not in ("schema_version", "name") for model in ids}   # the fallbacks are models in use too
         assert not used & refused
 
     def test_the_cost_of_a_message(self):
@@ -336,9 +394,9 @@ class TestTheTable:
         assert per_message(model, 10_000) == pytest.approx(0.0085)
 
     def test_the_document_is_up_to_date(self):
-        expected = markdown(load_models(), json.load(open(CONFIG_PATH, encoding="utf-8")))
+        expected = markdown(load_models(), read_config())
         actual = open(DOC_PATH, encoding="utf-8").read()
-        assert actual == expected, "run: windows\\Scripts\\python.exe tests\\manual\\show_models.py --write"
+        assert actual == expected, "run: windows\\Scripts\\python.exe scripts\\model_tables.py --write"
 
     def test_the_document_has_the_columns_that_were_asked_for(self):
         text = open(DOC_PATH, encoding="utf-8").read()
@@ -360,12 +418,12 @@ class TestTheTable:
             ids = [row.split("`")[1] for row in rows]
             assert ids == [m["id"] for m in data["models"]], step                 # cheapest first, same order in every table
 
-    def test_the_use_it_column_is_the_line_to_paste_in_steps(self):
+    def test_the_use_it_column_is_the_line_to_paste_in_a_model_set(self):
         text = open(DOC_PATH, encoding="utf-8").read()
-        assert '`"project_manager": "gemini-3.8-flash"`' in text
+        assert '`"project_manager": ["gemini-3.8-flash"]`' in text
         for step in STEP_NAMES:
             for model in load_models()["models"]:
-                json.loads("{" + f'"{step}": "{model["id"]}"' + "}")
+                json.loads("{" + f'"{step}": ["{model["id"]}"]' + "}")
 
     def test_every_step_has_a_token_count_and_a_number_of_calls(self):
         data = load_models()
@@ -390,53 +448,3 @@ class TestTheTable:
         summary = text.split("## 1. Choose the model of each step")[1].split("## 2.")[0]
         assert all(f"| {step} |" in summary for step in STEP_NAMES)
         assert "Cheapest rated best" in summary and "Uses now" in summary
-
-
-class TestChoosingFromTheTool:
-    @pytest.fixture
-    def file(self, tmp_path, monkeypatch):
-        path = tmp_path / "step_models.json"
-        path.write_text(open(CONFIG_PATH, encoding="utf-8").read(), encoding="utf-8")
-        monkeypatch.setenv(MODELS_FILE_VARIABLE, str(path))
-        set_profile("proven", str(path))                    # whatever profile is active in the shipped file
-        return str(path)
-
-    def test_a_step_is_chosen_and_the_agent_uses_it(self, file):
-        set_step("project_manager", "gemini-3.8-flash", file)
-        assert read_config(file)["steps"]["project_manager"] == "gemini-3.8-flash"
-        assert effective_models()["project_manager"] == ("gemini-3.8-flash", "config steps")
-        assert effective_models()["triage_specialist"][0] == "gemini-3.1-flash-lite"      # the others do not change (the default of proven)
-
-    def test_a_choice_can_be_cleared(self, file):
-        set_step("project_manager", "gemini-3.8-flash", file)
-        set_step("project_manager", None, file)
-        assert effective_models()["project_manager"][1] == "profile proven default"
-
-    def test_the_profile_changes_every_step(self, file):
-        set_profile("budget", file)
-        models = {name: model for name, (model, _) in effective_models().items()}
-        assert models["triage_specialist"] == "gemini-3.1-flash-lite" and models["project_manager"] == "gemini-3.5-flash-lite"
-
-    def test_an_unknown_step_is_refused_and_the_file_is_not_touched(self, file):
-        before = open(file, encoding="utf-8").read()
-        with pytest.raises(ValueError, match="unknown step 'project_manger'"):
-            set_step("project_manger", "gemini-3.8-flash", file)
-        assert open(file, encoding="utf-8").read() == before
-
-    def test_an_unknown_model_is_refused_and_the_file_is_not_touched(self, file):
-        before = open(file, encoding="utf-8").read()
-        with pytest.raises(ValueError, match="'gemini-9' is not a model of the catalog"):
-            set_step("project_manager", "gemini-9", file)
-        assert open(file, encoding="utf-8").read() == before
-
-    def test_an_unknown_profile_is_refused_and_the_file_is_not_touched(self, file):
-        before = open(file, encoding="utf-8").read()
-        with pytest.raises(ValueError, match="profile 'cheapest' is not defined"):
-            set_profile("cheapest", file)
-        assert open(file, encoding="utf-8").read() == before
-
-    def test_the_help_text_and_the_other_choices_are_kept(self, file):
-        set_step("draft_writer", "gemini-3.6-flash", file)
-        config = read_config(file)
-        assert config["_help"].startswith("Which LLM answers each step") and set(config["profiles"]) >= {"budget", "quality"}
-        assert config["steps"]["draft_writer"] == "gemini-3.6-flash"

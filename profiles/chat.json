@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "name": "chat",
+  "about": "A plain reply: the draft writer and the editor. Reads the classification the `identification` profile made (inputs).",
+  "token_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "flow": "conversation",
+  "models": "claude_haiku",
+  "tools": {
+    "servers": []
+  },
+  "inputs": {
+    "requires": [
+      "user_goal",
+      "task_category"
+    ],
+    "accepts": [
+      "intent",
+      "constraints",
+      "missing_information",
+      "next_step"
+    ]
+  },
+  "tested": "2026-11-04"
+}

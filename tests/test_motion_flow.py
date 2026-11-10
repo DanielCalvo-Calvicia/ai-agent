@@ -15,15 +15,15 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.orchestration.flows.movement import MOVEMENT_FLOW
-from application.orchestration.flows.registry import FLOWS
-from application.orchestration.flows.router import AgentRouter
-from application.orchestration.support.metrics import SessionMetrics
-from application.orchestration.support.model_selection import choose, load_config
-from application.orchestration.phases.movement import motion_validator as validator
-from application.orchestration.engine.pipeline import Pipeline
-from application.service.session_service import SessionService
+from flow_files import FLOWS, MOVEMENT_FLOW
+from brain_chain import AgentRouter
+from application.engine.support.metrics import SessionMetrics
+from application.engine.support.model_selection import ModelResolver
+from application.steps.movement import motion_validator as validator
+from application.engine.pipeline import Pipeline
+from brain_chain import ChainedSessionService as SessionService
 from application.system_prompts.general import build_system_prompt
+from domain.value_objects.llm_request.model import GoogleModels
 from domain.value_objects.movement.movement import Movement
 from infrastructure.inbound.http.fastapi import SessionFastAPI
 
@@ -78,7 +78,7 @@ class TestTheFlow:
         assert steps == ["motion_planner", "motion_validator"]
 
     def test_the_flow_is_registered(self):
-        assert FLOWS.get("movement") is MOVEMENT_FLOW
+        assert FLOWS["movement"] is MOVEMENT_FLOW
 
     def test_one_movement(self):
         llm = scripted(plan(("left", 90, "forward"), spoken_reply="Turning my left arm."))
@@ -262,16 +262,15 @@ class TestHttp:
 
 
 class TestModelAndMetrics:
-    def test_the_planner_model_can_be_set_by_its_variable(self, monkeypatch):
-        monkeypatch.setenv("AI_AGENT_MODEL_PHASE_20", "gemini-3.5-flash-lite")
-        assert choose(20) == ("gemini-3.5-flash-lite", "env AI_AGENT_MODEL_PHASE_20")
+    def test_the_planner_model_can_be_set_in_a_profile_by_its_step_name(self):
+        resolver = ModelResolver({"overrides": {"motion_planner": {"models": ["gemini-3.5-flash-lite"]}}})
+        assert resolver.source_for("movement", "motion_planner") == "overrides.motion_planner"
+        assert [m.id for m in resolver.models_for("movement", "motion_planner", GoogleModels.GEMINI_3_6_FLASH)] == ["gemini-3.5-flash-lite"]
 
-    def test_the_planner_model_can_be_set_in_the_config_file_by_its_step_name(self, monkeypatch, tmp_path):
-        config = tmp_path / "models.json"
-        config.write_text(json.dumps({"steps": {"motion_planner": "gemini-3.6-flash"}}), encoding="utf-8")
-        monkeypatch.setenv("AI_AGENT_MODELS_FILE", str(config))
-        assert choose(20) == ("gemini-3.6-flash", "config steps")
-        assert load_config()
+    def test_the_planner_model_can_be_set_for_the_movement_flow_only(self):
+        resolver = ModelResolver({"flows": {"movement": {"steps": {"motion_planner": {"models": ["gemini-3.6-flash"]}}}}})
+        assert resolver.source_for("movement", "motion_planner") == "flows.movement.steps.motion_planner"
+        assert resolver.source_for("special", "motion_planner") == "step default"
 
     def test_the_planner_is_reported_under_its_name(self):
         metrics = SessionMetrics()

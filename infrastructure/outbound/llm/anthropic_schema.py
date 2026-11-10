@@ -9,7 +9,7 @@
 # ===============================================
 
 import copy
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 # An action and, inside it, two levels of subactions. Deeper nesting is not allowed by the schema Claude receives.
 ACTION_DEPTH = 3
@@ -110,3 +110,35 @@ def _clean(node: Any) -> Any:
         else:
             _clean(value)
     return node
+
+
+def anthropic_schema_problems(schema: Dict[str, Any], depth: int = ACTION_DEPTH) -> List[str]:
+    """
+    What Claude's endpoint would not take from a custom answer schema as it is: a reference that nests deeper than `depth`
+    levels (circular references are refused, so the sanitizer would cut it). Empty when the schema is fine. The schemas of the
+    phases are not checked with this: their action recursion is unrolled on purpose (ADR-013).
+    """
+    definitions: Dict[str, Any] = {}
+    _collect_definitions(schema, definitions)
+    problems: set = set()
+
+    def walk(node: Any, seen: Dict[str, int]) -> None:
+        if isinstance(node, list):
+            for value in node:
+                walk(value, seen)
+        elif isinstance(node, dict):
+            reference = node.get("$ref")
+            if isinstance(reference, str) and reference.startswith("#/$defs/"):
+                name = reference.rsplit("/", 1)[-1]
+                if seen.get(name, 0) >= depth:
+                    problems.add(f"{name!r} nests deeper than {depth} levels, and Claude's endpoint refuses circular references "
+                                 f"(the sanitizer would cut the schema, ADR-013)")
+                elif name in definitions:
+                    walk(definitions[name], {**seen, name: seen.get(name, 0) + 1})
+                return
+            for key, value in node.items():
+                if key != "$defs":
+                    walk(value, seen)
+
+    walk(schema, {})
+    return sorted(problems)

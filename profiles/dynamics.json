@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "name": "dynamics",
+  "about": "The same steps as `special`, with only the Business Central tools of dynamics_microservice. It reaches customer data.",
+  "token_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "flow": "special",
+  "models": "claude_mixed",
+  "tools": {
+    "servers": [
+      "dynamics_microservice"
+    ]
+  },
+  "overrides": {
+    "draft_writer": {
+      "prompt_append": {
+        "file": "prompts/profiles/tools/draft_writer.txt"
+      }
+    },
+    "project_manager": {
+      "prompt_append": {
+        "file": "prompts/profiles/tools/project_manager.txt"
+      }
+    }
+  },
+  "tested": null
+}

@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "name": "special",
+  "about": "Triage, plan, check safety, execute with every MCP server, write, edit. It does its own triage.",
+  "token_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "flow": "special",
+  "models": "claude_mixed",
+  "overrides": {
+    "draft_writer": {
+      "prompt_append": {
+        "file": "prompts/profiles/tools/draft_writer.txt"
+      }
+    },
+    "project_manager": {
+      "prompt_append": {
+        "file": "prompts/profiles/tools/project_manager.txt"
+      }
+    }
+  },
+  "tested": "2026-11-04"
+}

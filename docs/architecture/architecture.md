@@ -17,20 +17,19 @@ POST /session/message
    -> SessionFastAPI            infrastructure/inbound/http/fastapi.py   (HTTP <-> DTOs, runs the flow in a worker thread)
    -> SessionService            application/service/session_service.py  (sessions, history, the run waiting for the user)
    -> MessageFlowService        application/service/message_flow_service.py   (one per message; owns the metrics)
-   -> AgentRouter.run()         application/orchestration/flows/router.py
-        1. identification flow   triage: what is this message?         (always)
-        2. ONE of these, picked by task_category.domain:
-              communication -> conversation flow    draft writer, editor
-              movement      -> movement flow        motion planner, motion validator
-              anything else -> special flow         project manager, safety gate, action executor, draft writer, editor
-   -> for a conversation or special reply: EXPRESSION flow (emotion_reader -> gesture_builder), after the reply is final
+   -> ProfileRunner.run()       application/engine/profile_runner.py   (ONE profile: its flow, its models, its MCP servers)
+        the profile of the request (`default` when it names none) names one flow:
+           identification -> triage                                                      chat -> draft writer, editor
+           special, dynamics, default -> triage, project manager, safety gate, action executor, draft writer, editor
+           movement -> motion planner, motion validator                                  gesture -> emotion reader, gesture builder
    -> FlowResult(reply, movements, paused, flow, state, gesture)
+
    -> MessageReceivedResponseDTO -> contracts AIAgentMessageResponse (response, directives, awaiting_user_input, flow)
 ```
 
 Every flow is run by the same engine (`Pipeline`). A flow is only data: a name, its steps, and how to build its result.
-The engine knows no particular flow, and the flows never call each other: **only the router moves a message from one
-flow to the next**.
+The engine knows no particular flow, and the flows never call each other. **The service does not move a message from one flow to the next
+any more** (T-05.7, PR-005 section 2): the client does, by asking one profile after another (section 4.1).
 
 ## 2. The folders
 
@@ -38,10 +37,11 @@ flow to the next**.
 composition_root/main.py          builds the app (run this one)
 application/
   inbound/{ports,dto}/            what the HTTP layer and the services implement and exchange
-  outbound/ports/                 LLMOutboundPort, McpToolsPort (and the signal a tool failure for good leaves for the step loop), UsageReporterPort (LLM calls and, optionally, MCP tool calls)
-  service/                        session_service, message_flow_service, user_session
+  outbound/ports/                 LLMOutboundPort, McpToolsPort (and the signal a tool failure for good leaves for the step loop), UsageReporterPort (LLM calls and, optionally, MCP tool calls), ConfigSourcePort (profiles, flows, step declarations, model sets and prompts, read once at start; T-05.4)
+  service/                        session_service, message_flow_service, user_session (the session keeps one `HistoryEntry` per request: `engine/state/history.py`)
   system_prompts/general.py       builds the system message of a phase
-  orchestration/                  the agents (section 3 to 8)
+  flows/  steps/  engine/         the agents (section 3 to 8); engine/ holds state/ and support/
+profiles/ flows/ step_defs/ model_sets/   data folders of PR-005, empty until their tasks (T-05.4 onward)
 domain/                           pure data (section 9)
 infrastructure/                   adapters: inbound HTTP, outbound LLM, MCP, usage (section 10)
 prompts/  schema/  config/  mcps/ data files the code reads (see rules/schemas-and-prompts.md and configuration/environment-variables.md)
@@ -53,48 +53,70 @@ docs/                             this documentation
 Dependencies point inward: `domain` imports nothing of the application; `application` never imports `infrastructure`;
 `composition_root` is the only place that knows every layer.
 
-## 3. `application/orchestration/`
+## 3. `flows/` (files), `application/steps/` and `application/engine/`
 
-Five folders, each with one job. The dependencies go one way and `tests/test_orchestration_layout.py` keeps it so:
+Four folders, each with one job (until 2026-11-02 they were the five folders of one `orchestration` package, T-05.3; since T-05.12 the flows are JSON files at the root and `application/flows/` is gone). The dependencies go one way and `tests/test_orchestration_layout.py` keeps it so:
 
 ```text
-flows/    WHAT each agent is        one file per flow, the router, the registry, the action executor
-phases/   the steps                 one phase per file, constants first; the catalog; the shape of a phase
-engine/   HOW any flow runs         Pipeline, Flow, PhaseRunner, clarification, answer check; knows no particular flow
-state/    WHAT travels through a run  FlowState, MotionFlowState, PausedRun, FlowResult
-support/  shared helpers            model choice, metrics, failures, schemas, action tree, MCP server list (a server with no tools is left out), clock
+flows/ (root)   WHAT each flow is          one JSON file per flow: its steps in order, its pause and retry rules, its hooks and the step its result comes from
+steps/          the steps (the phases)      one phase per file, constants first; the registry; the catalog; the shape of a phase; `conditions.py`, `hooks.py` and `build.py` (the names a flow file may use); the action executor
+engine/         HOW any flow runs           Pipeline, Flow, `flow_file.py` (a flow file -> a Flow), `profile_runner.py`, PhaseRunner, clarification, answer check, `config_snapshot.py` (the configuration read once through `ConfigSourcePort`); knows no particular flow
+engine/state/   WHAT travels through a run  FlowState, MotionFlowState, PausedRun, FlowResult
+engine/support/ shared helpers              model choice, metrics, failures, schemas, action tree, MCP server list (a server with no tools is left out), clock
 ```
 
-`flows` use everything below; `engine` never imports a flow; `phases` never import the engine; `state` and `support`
-are the base (`support` reads only `phases.catalog`).
+`engine` never imports the steps of one flow (the flow files name them and the registry finds them); `steps` never import the engine (only its base, `state` and `support`);
+`state` and `support` are the base (`support` reads only `steps.catalog`).
+
+## 3.1 Assembling the agent (T-05.6)
+
+`engine/assemble.py` builds the whole agent from the configuration snapshot (`engine/config_snapshot.py`: profiles, flows, step declarations, model sets and the
+catalog of fields `config/state_fields.json`, read once at start) and refuses what cannot work. Every problem names its file and its key. At start a profile with a
+problem is **disabled** and logged at ERROR (`Configuration problem`, `Profile disabled`) and the others serve; `scripts/check_agent.py` and the tests stop on the first
+problem (`Agent.raise_on_errors`). It checks: unknown names and keys; `flow` xor `steps` in a profile; that every step reads only what an input, an `initial_state` or an earlier step
+provides (the fields are those of the catalog, which a test keeps equal to the state classes); that a flow has a `result_from` and that its result writes `user_goal` (unless it is plain
+code); the models of every list (a custom answer schema must pass the rules of Claude); the token (`token_sha256`, 64 hex characters; the message never repeats it); and the tool
+names (`server`, `server.tool` or a bare name that only one server has). **Until flows and steps are files (T-05.12, T-05.16)** a profile may name a Python flow and a step with no
+declaration: the checks that need `reads` and `writes` skip them. Nothing serves a profile yet (T-05.9): the service still has one agent.
+
+## 3.2 What a session remembers (T-05.8)
+
+A session keeps a list of `HistoryEntry` (`engine/state/history.py`), one per request: `message` (the user's words), `reply` (what was answered) and `response` (the
+structured `Response` of the run, `FlowState.as_response()`: the fields of the state at the end of the run, the other side of `load_from`). `UserSession.history` derives
+the messages the steps read from them (a user message, then its reply when there is one), so `history_as_dicts()` and `message_with_history()` give exactly what they gave when the
+session kept text pairs. `AI_AGENT_HISTORY_TURNS` is the number of **requests** kept (it was 2 x messages). A request adds an entry only when its run has a `user_goal`
+(`response_of`): the `gesture` profile and a movement nobody classified add none (PR-005 section 7). `user_goal` holds a summary and the expected outcome, not the user's words, and a
+question to the user is a reply that is in no `user_goal`, so the entry keeps the words and the reply next to the `Response` (a deviation from Q09-4, which assumed `user_goal`
+held both). The history is the session's own copy: it will never be read from the `inputs` of a request (T-05.9). Entries are never logged.
 
 ## 4. The four flows
 
 | Flow | File | Steps | Answers | LLM calls |
 |---|---|---|---|---|
-| `identification` | `flows/identification.py` | triage | nothing: its state is what the router reads | 1 |
-| `conversation` | `flows/conversation.py` | draft writer, editor | a plain reply | 2 (3 with identification) |
-| `special` | `flows/special.py` | project manager, safety gate, action executor, draft writer, editor | a reply after planning and executing | 5 or more, plus one per action |
-| `movement` | `flows/movement.py` | motion planner, motion validator (plain code) | movements to run and a short spoken line | 1 (2 with identification) |
+| `identification` | `flows/identification.json` | triage | nothing: its `Response` is what the client reads (`default_return: full`) | 1 |
+| `conversation` | `flows/conversation.json` | draft writer, editor | a plain reply | 2 (3 with identification) |
+| `special` | `flows/special.json` | project manager, safety gate, action executor, draft writer, editor | a reply after planning and executing | 5 or more, plus one per action |
+| `movement` | `flows/movement.json` | motion planner, motion validator (plain code) | movements to run and a short spoken line | 1 (2 with identification) |
 
-### 4.1 The router (`flows/router.py`)
+### 4.1 One profile per message, and the client's chain (`engine/profile_runner.py`)
+
+The service runs the flow of **one profile** per message (`ProfileRunner.run`): the profile gives the flow, the models (its `ModelResolver`) and the MCP servers
+(`tools`, see section 4.2: the tools a step may use are those every level allows). Nothing routes. The
+**client** chains the profiles, and `tests/brain_chain.py` models that chain for the tests:
 
 ```text
-run(message, history, paused, speak_movements):
-  if a run is waiting for the user (paused):
-        resume the flow that stopped it (paused.flow); the message is its answer, nothing is identified again
-        (if that flow is identification and it now finished, continue as a new message below)
-  else:
-        result = identification.run(message)
-        if identification paused (triage needs a detail): return its question
-  flow = FLOW_BY_DOMAIN.get(task_category.domain, special)
-  state = flow.new_state(...); state.take_over(identification state)      # nothing is classified twice
-  return that flow's pipeline.run(state=state)
+identification(message)                      -> the Response (the classification); stops here if the triage asks the user
+domain = task_category.domain
+  communication -> chat(message, inputs=that Response)       movement -> movement(message)       anything else -> special(message)
+reply -> gesture(reply, message)             (not after movement: the user asked for movements, the robot does those)
 ```
 
-- `FLOW_BY_DOMAIN`: `communication` -> conversation, `movement` -> movement. Any other domain, or none, -> special.
+- `SessionService` resolves a request (T-05.9): the profile and its token (`engine/profile_access.py`: SHA-256 compared in constant time; one refusal for an unknown profile and a wrong token), the question it answers (`pause_id`), the `inputs` (`engine/profile_inputs.py`: only the fields the profile takes, read with the LLM-answer mapper) and `return`; then `ProfileRunner.run(..., inputs=...)`. A request with no profile runs `default`.
+- `special` and `dynamics` start with their own triage: a client that asks `identification` and then `special` classifies twice, and the service does not report it.
+- A run that stopped to ask the user is resumed by the next message **of the same profile** (`PausedRun.flow`); another profile gets `ProfileMismatch` (T-05.9 turns it into `PROFILE_MISMATCH`).
 - The domain comes from triage (`task_category.domain`, an enum of nine values, defined in the schema and in
   `domain/value_objects/llm_response/task_category/domain.py`). The triage prompt tells the model what each value means.
+
 - `speak_movements` is Brain's setting. It is put in the movement flow's state for the message (also for a resumed run,
   so the answer to a question uses the setting of its own message).
 - `FlowResult.flow` and `FlowResult.state` say which flow answered and with which state; `PausedRun.flow` says which flow
@@ -119,27 +141,37 @@ confirmation of the safety gate), **not an answer** (the question is asked again
 (the run is forgotten). Pausing happens in: identification (triage), special (project manager, safety gate) and
 movement (motion planner). Stop and decline end the run with a fixed sentence (`FlowResult.ended_early`).
 
+### 4.2 Which tools a step may use (T-05.13)
+
+A `tools` object (`{"servers": [...], "tools": [...]}`) can be set at five levels: the profile, `flows.<flow>` of the profile, the flow file, a step of the flow file (`{"step": ..., "tools": ...}`) and `overrides.<step>` of the profile. A level names whole servers and/or single tools (`server.tool`, or a bare name when only one server has it; assembly refuses a bare name two servers share); **a level that sets nothing sets no limit; `{"servers": []}` is no tool**. The tools a step may use are those **every level that is set allows** (the narrowest wins): a flow or a step that names a tool the profile does not allow gets nothing extra. The outer limit stays `allowed_tools` of `mcps/*.json`.
+
+`Pipeline` builds each step with the servers and the tools port of its own scope (`application/outbound/ports/mcp_ports.py`: `ToolScope`, `ScopedTools`, `scoped`), so the planner and the MCP operator are **shown only** the allowed tools (and a server with none left is not shown). Each server descriptor of a limited scope carries the scope: the LLM adapter (`infrastructure/outbound/llm/tools.py`) exposes only the allowed tools to the model and runs them through `MCPToolExecutor.execute(..., scope=)`, which **refuses** any other and calls no server (outcome `not_found`, no try). The tools of the action executor are those of the step `action_executor` (its MCP operator runs inside it). `ProfileRunner.servers_of(profile, step)` says which servers a profile or a step may use. No log, metric or span holds an argument or an answer, as before.
+
+### 4.3 The prompt of a step in a profile (T-05.14)
+
+`overrides.<step>.prompt_append` and `prompt_replace` of a profile (a file under `prompts/` or an inline text) change the step's part of the system prompt; the generic rules, the capabilities and the date stay in front. The text is read at assembly (`AssembledProfile.prompts`: step -> `PromptOverride`, `engine/support/prompt_overrides.py`); `Pipeline` hands it to `PhaseRunner`, the only place a payload is built, which applies it in `run_phase` and `run_action` (so a step run once per action gets it too). A profile cannot change an answer schema, so a replacement keeps the format; the step must have a prompt and be one of the profile's flow. The clarification (phase 99) has a prompt that is part of its code and takes no override. Today `special` and `dynamics` use it for two steps (T-06.4): the draft writer's rules for a tool answer and the project manager's rules for picking a tool, both under `prompts/profiles/tools/`; `chat` and `default` have no tools and do not carry them.
+
 ## 5. Phases
 
-One phase per file under `application/orchestration/phases/<folder>/`. Every file declares what it uses as constants at the
-top (`PHASE_ID`, `STEP_NAME`, `MODEL_ENV_VAR`, `DEFAULT_MODEL`, `PROMPT_FILE`, `FORMAT_NAME`, `INTENT`, `SCHEMAS`, ...) and
-`phases/catalog.py` reads them: the prompt loader, the model selection and the metrics take their tables from it.
+**Since T-05.16 an LLM step is a JSON declaration**, `step_defs/<name>.json` (below, section 5.1); Python stays for the `code` steps and for the two prompts the engine runs itself (the answer check, phase 9, and the clarification, phase 99). A Python step file declares what it uses as constants at the
+top (`PHASE_ID`, `STEP_NAME`, `DEFAULT_MODEL`, `PROMPT_FILE`, ...; the numbers are labels) and
+registers itself in `steps/registry.py` (`register_step(__name__, kind)`: `llm`, `llm_per_action` or `code`; a name or a phase id used twice is an error) and `steps/catalog.py` reads the registry: the prompt loader, the model selection and the metrics take their tables from it.
 `tests/test_phase_structure.py` enforces one phase per file and that every constant and file exists.
 
 | Id | Step name | Folder / file | Used by | What it does |
 |---|---|---|---|---|
-| 1 | `triage_specialist` | `identification/triage.py` | identification | Classifies: `intent`, `user_goal`, `task_category` (its `domain` picks the flow) and `next_step` (asks the user when a detail is missing) |
-| 2 | `project_manager` | `special/project_manager.py` | special | Splits the goal into a tree of `actions` (with subactions) and sets `next_step`. Sees the MCP servers and the history |
-| 3 | `safety_quality_gatekeeper` | `special/safety_gate.py` | special | Fills `safety_and_validation`; may require a confirmation |
-| 4 | `cognitive_worker` | `special/cognitive_worker.py` | special | Runs one non-MCP action given the outputs it depends on |
-| 5 | `mcp_operator` | `special/mcp_operator.py` | special | Runs one `mcp_tool_call` action with the tools of the MCP servers (blocked if a confirmation is pending); it follows a `running` answer up once, within the 60 s the tool calls of a message share |
-| 6 | `data_engineer` | `special/data_engineer.py` | special | Cleans the result of an MCP action |
-| 7 | `draft_writer` | `common/draft_writer.py` | conversation, special | Writes the first user-facing answer into `user_goal.expected_outcome` (the reply read by `FlowState.final_text()` has stray model tags stripped); reads the user's own words (`user_message`) so it answers in their language, short and speakable |
-| 8 | `editor_in_chief` | `common/editor_in_chief.py` | conversation, special | Polishes it; the reply is `user_goal.expected_outcome` |
+| 1 | `triage_specialist` | `step_defs/triage_specialist.json` | identification | Classifies: `intent`, `user_goal`, `task_category` (its `domain` picks the flow) and `next_step` (asks the user when a detail is missing) |
+| 2 | `project_manager` | `step_defs/project_manager.json` | special | Splits the goal into a tree of `actions` (with subactions) and sets `next_step`. Sees the MCP servers and the history |
+| 3 | `safety_quality_gatekeeper` | `step_defs/safety_quality_gatekeeper.json` | special | Fills `safety_and_validation`; may require a confirmation |
+| 4 | `cognitive_worker` | `step_defs/cognitive_worker.json` | special | Runs one non-MCP action given the outputs it depends on |
+| 5 | `mcp_operator` | `step_defs/mcp_operator.json` | special | Runs one `mcp_tool_call` action with the tools of the MCP servers (blocked if a confirmation is pending); it follows a `running` answer up once, within the 60 s the tool calls of a message share |
+| 6 | `data_engineer` | `step_defs/data_engineer.json` | special | Cleans the result of an MCP action |
+| 7 | `draft_writer` | `step_defs/draft_writer.json` | conversation, special | Writes the first user-facing answer into `user_goal.expected_outcome` (the reply read by `FlowState.final_text()` has stray model tags stripped); reads the user's own words (`user_message`) so it answers in their language, short and speakable |
+| 8 | `editor_in_chief` | `step_defs/editor_in_chief.json` | conversation, special | Polishes it; the reply is `user_goal.expected_outcome`. It reads `user_message` (the user's own words, T-06.4 change 7) only so the reply stays in the user's language: its other inputs are in English |
 | 9 | `answer_checker` | `common/answer_checker.py` | the engine | Reads the next message of a session with a saved run (answer / yes / no / not an answer / stop) |
-| 20 | `motion_planner` | `movement/motion_planner.py` | movement | Writes the ordered movement list, `is_motion_request` and a short `spoken_reply`; asks the user when the arm or the degrees are missing |
+| 20 | `motion_planner` | `step_defs/motion_planner.json` | movement | Writes the ordered movement list, `is_motion_request` and a short `spoken_reply`; asks the user when the arm or the degrees are missing |
 | 21 | `motion_validator` | `movement/motion_validator.py` | movement | **No LLM call.** Valid arm and direction, degrees within limits, at most 20 movements and 3600 degrees in total; one bad movement refuses the whole sequence |
-| 30 | `emotion_reader` | `expression/emotion_reader.py` | expression | Reads the feeling of an exchange (what the user said and what the robot answers): `emotion`, `intensity` 1 to 5 and up to 3 optional movements of its own |
+| 30 | `emotion_reader` | `step_defs/emotion_reader.json` | expression | Reads the feeling of an exchange (what the user said and what the robot answers): `emotion`, `intensity` 1 to 5 and up to 3 optional movements of its own |
 | 31 | `gesture_builder` | `expression/gesture_builder.py` | expression | **No LLM call.** Builds the gesture: random movements shaped by the emotion (`domain/operations/gesture.py`), about as long as the speech, every arm back where it started; the motion validator checks it and a refused gesture is dropped |
 | 99 | `user_clarification` | `common/user_clarification.py` | the engine | Writes the question for the user (plain text, temperature 0.7, 2000 tokens) |
 
@@ -148,7 +180,13 @@ A phase's answer is one JSON object built from the schema pieces it names in `SC
 
 The code defaults of `DEFAULT_MODEL` are Google models with a free tier: `gemini-3.1-flash-lite` for triage, data engineer, answer
 checker, clarification and emotion reader, `gemini-3.6-flash` for the others ([ADR-012](../decisions/ADR-012-gemini-free-tier-default-no-github-models.md)). The model really used is chosen by
-`AI_AGENT_MODEL_PHASE_<id>` or `config/step_models.json` (see `configuration.md`); the active profile `proven` puts `gemini-3.1-flash-lite` on every step ([ADR-012](../decisions/ADR-012-gemini-free-tier-default-no-github-models.md)).
+the model sets of `model_sets/` through `ModelResolver` (`engine/support/model_selection.py`, see [environment-variables](../configuration/environment-variables.md)): an ordered list per step, the most specific value wins; each profile names its set (`proven` puts `gemini-3.1-flash-lite` on every step, [ADR-012](../decisions/ADR-012-gemini-free-tier-default-no-github-models.md)).
+
+### 5.1 What a step declaration is (T-05.16)
+
+`step_defs/<name>.json` says everything an LLM step is: `kind` (`llm` one call, `llm_per_action` one call per planned action with `for_each: "actions"`, `code` a Python step), `legacy_id` and `group` (labels: the old phase number and the family it sorts with), `prompt.file`, `default_models` (the default of the step when a profile says nothing), `intent`, `format_name`, `answer` (`pieces`: `{name, file, key}` of existing schema pieces of `schema/response/`, and `required`; or a whole `schema` / `schema_file`; a piece with `mcp_servers: true` is the actions schema that names the servers the step may use), `reads` and `writes`. **`reads` and `writes` are fields of `config/state_fields.json` only** (a non-coder cannot create a field): a read is `"field"`, `"field?"` (it may be missing: nothing before it has to write it) or `{"key": "field"}` (the model is told it under another key; `draft_writer` tells the user's words as `user_message`). A plain `reads` is what the model is told, in that order; a plain `writes` copies each field of the answer into the state when it is there (`write_always` copies it even when it is not). When the input or the result is more than that the declaration names a function of `application/steps/functions.py` (`functions.input`, `functions.apply`, `functions.extra`: a developer writes it, a declaration cannot invent one). `application/steps/declared.py` builds the `PhaseSpec` (or `ActionPhaseSpec`) a flow runs from the declaration; `steps/build.py` builds the function of a step. `assemble()` checks every key (the schema files and their keys, the prompt file, the number, the group, the model, the functions, the fields) and then the data flow of every profile: a step may read only what an input, an initial value or an earlier step gives it. The three steps of the action executor (4, 5 and 6) are declared too and run by it, not by a flow; the three code steps (`action_executor`, `motion_validator`, `gesture_builder`) are declared for their `reads` and `writes` and name their Python function.
+
+The prompt of a declared step is read **through the configuration source** at assembly (`Agent.step_prompts`), so a configuration in another folder brings its own prompts. **Adding a step is one JSON file and its prompt**, and a flow that names it (`tests/test_step_declarations.py` does it on a temporary copy). Known limit: the tables that are not part of the agent (`PHASES`, the metric names of a phase id, the cost tables) are built from the declarations of this repository, so a step added elsewhere shows as `phase_<number>` in the metrics and cannot be named in `overrides` of a profile.
 
 ## 6. The engine
 
@@ -157,7 +195,7 @@ checker, clarification and emotion reader, `gemini-3.6-flash` for the others ([A
 `Pipeline(outbound_port, mcp_list, metrics, mcp_tools, flow=...)` builds the steps of a flow once and then
 `run(message, history, paused, state)`:
 
-1. a paused run is resumed (`_resume`); otherwise a state is created (or the router's is used);
+1. a paused run is resumed (`_resume`); otherwise a state is created (or the caller's is used);
 2. each step runs (`_run_step`: a step whose answer says `retry` or `error` runs again, up to `AI_AGENT_MAX_ATTEMPTS`,
    then an `AgentFailure`);
 3. after a step, `pause_if` can stop the run (section 4.3); `Flow.jump_after` can jump to another step (no flow uses it today);
@@ -174,16 +212,16 @@ There is no default flow: `Pipeline` needs its `flow`.
 | Response format | `json_schema` named by the phase's `FORMAT_NAME`, built by `object_schema(required, properties)` from the schema pieces (the actions' `$defs` are moved to the root) |
 | Sampling | temperature 1.0, max tokens 10000 (phase 99: 0.7 and 2000) |
 | Tools | none, except phase 5: the MCP servers, expanded by the adapter into the tools of each reachable `sse` or `streamable_http` server |
-| Model | `model_for_phase`: env variable, then `config/step_models.json`, then the code default |
+| Model | `PhaseRunner.models_for`: the ordered list of the step in this flow from the `ModelResolver` (a model set or a profile), else the code default |
 
 `send()` asks the LLM, retries a failed call up to `AI_AGENT_MAX_ATTEMPTS` unless the error cannot get better
-(`failure.worth_retrying`; after a lack of capacity it waits first, and then asks the `fallback_models` of the active profile once each, ADR-014), records the token usage in `SessionMetrics`, and raises an `AgentFailure` that says what
+(`failure.worth_retrying`; after a lack of capacity it waits first, and then asks the rest of the step's ordered list once each, ADR-014), records the token usage in `SessionMetrics`, and raises an `AgentFailure` that says what
 happened and in which activity (`PHASE_ACTIVITIES`).
 
 ### 6.3 Failures
 
 `AgentFailure(category, phase_id)` carries what the user is told. Categories: connection, timeout, rate limit, auth, not
-found, bad request, bad answer, unknown (`support/failure.py`, `classify`). The session service answers with
+found, bad request, bad answer, unknown (`engine/support/failure.py`, `classify`). The session service answers with
 `success = false`, an **apology that is always speakable** in `response` (what happened, in which activity and why), and
 the technical reason in `message`. An unknown session answers `error_code = SESSION_NOT_FOUND`.
 
@@ -191,10 +229,10 @@ the technical reason in `message`. An unknown session answers `error_code = SESS
 
 | Class | File | What it holds |
 |---|---|---|
-| `FlowState` | `state/flow_state.py` | `message`, `history`, `answers` (what the user said when asked), and the sections the phases fill: `intent`, `user_goal`, `task_category`, `mcp_routing`, `actions`, `missing_information`, `constraints`, `safety_and_validation`, `next_step`. `take_over(other)` copies the shared fields from the identification state |
-| `MotionFlowState` | `state/motion_state.py` | `FlowState` plus `motion_requested`, `movements`, `motion_rejection`, `spoken_reply`, `speak_movements`. `as_motion(state)` narrows a `FlowState` for the movement steps |
-| `PausedRun` | `state/paused_run.py` | the saved run: state, step index, kind (`input` / `confirmation`), question, requested items, **flow** |
-| `FlowResult` | `state/paused_run.py` | `reply`, `paused`, `movements`, `flow`, `state`, `ended_early` |
+| `FlowState` | `engine/state/flow_state.py` | `message`, `history`, `answers` (what the user said when asked), and the sections the phases fill: `intent`, `user_goal`, `task_category`, `mcp_routing`, `actions`, `missing_information`, `constraints`, `safety_and_validation`, `next_step`. `take_over(other)` copies the shared fields from the identification state |
+| `MotionFlowState` | `engine/state/motion_state.py` | `FlowState` plus `motion_requested`, `movements`, `motion_rejection`, `spoken_reply`, `speak_movements`. `as_motion(state)` narrows a `FlowState` for the movement steps |
+| `PausedRun` | `engine/state/paused_run.py` | the saved run: state, step index, kind (`input` / `confirmation`), question, requested items, **flow** |
+| `FlowResult` | `engine/state/paused_run.py` | `reply`, `paused`, `movements`, `flow`, `state`, `ended_early` |
 
 Who writes what: triage loads `intent`, `user_goal`, `task_category`, `next_step`; the project manager `actions`, `next_step`
 and the complexity; the safety gate `safety_and_validation`, `next_step`; the action executor the `output`/`error` of each
@@ -202,13 +240,13 @@ action; the draft writer and editor `user_goal` (and the editor `next_step`); th
 `spoken_reply`, `next_step`; the validator `movements` and `motion_rejection`. `constraints`, `mcp_routing` and
 `missing_information` have schemas and domain objects but no phase writes them today.
 
-## 8. The special flow's action executor (`flows/action_executor.py`)
+## 8. The special flow's action executor (`steps/special/action_executor.py`)
 
 An action is ready when its subactions and every action it depends on are settled (done or failed). It receives their
 outputs. Its type picks the phase: `mcp_tool_call` goes to the MCP operator (phase 5) and then the data engineer (6), any
 other type to the cognitive worker (4). Rules:
 
-- execution order comes from `support/action_tree.py` (parents after their subactions; unknown or circular dependencies
+- execution order comes from `engine/support/action_tree.py` (parents after their subactions; unknown or circular dependencies
   are marked as failed, not run);
 - `AI_AGENT_PARALLEL_ACTIONS=<n>` runs independent actions together (default 1; tool calls stay sequential);
 - an MCP action is **blocked** while `requires_confirmation` is set (the run pauses at the safety gate first);
@@ -248,6 +286,9 @@ response mapper builds them from the LLM's JSON, one function per section.
 | `outbound/llm/anthropic_schema.py` | the schema a Claude model receives: `strict`, `additionalProperties: false`, the keywords Anthropic refuses removed, the action recursion unrolled to 3 levels ([ADR-013](../decisions/ADR-013-claude-through-sanitized-structured-outputs.md)) |
 | `outbound/llm/tools.py` | `resolve_tools`: turns the MCP server list of phase 5 into real tools |
 | `outbound/llm/response_mapper.py` | LLM JSON to `Response`, one function per section |
+| `outbound/config/file_source.py` | `FileConfigSource`: reads `profiles/`, `flows/`, `step_defs/`, `model_sets/` (one JSON file each; a name that starts with `_` is skipped) and the prompt files; a file that cannot be read is reported by name, the others still load; a prompt name cannot leave the project. Nothing uses the snapshot yet (T-05.6) |
+| `outbound/mcp/config.py` `load_tool_snapshot` | the MCP servers of `mcps/*.json` and the tools each lists in `allowed_tools`: what a profile may name (not the live list of a server) |
+| `outbound/llm/anthropic_schema.py` `anthropic_schema_problems` | what Claude's endpoint would cut in a **custom** answer schema (a reference nested deeper than 3 levels); `assemble()` uses it, the schemas of the phases are not checked with it (their action recursion is unrolled on purpose) |
 | `outbound/mcp/` | `config.py` (reads `mcps/*.json`, skips a server whose `${NAME}` url is not filled), `client_manager.py` (SSE or Streamable HTTP connection by `type`, forwards the trace headers, keeps `httpx`, `httpcore` and `mcp.client` out of the logs), `tool_catalog.py` (which server offers which tool, only those in its `allowed_tools`; a listing is kept, a failed one is not retried for 60 s; 10 s listing limit), `availability.py` (the optional `AI_AGENT_CHECK_MCP_<NAME>` check, log only), `tool_executor.py` (what the LLM adapter calls: a 30 s call limit, `AI_AGENT_MCP_CALL_TIMEOUT_SECONDS`, and one retry after a transport error or `retry_later`) |
 | `outbound/usage/langfuse.py`, `prices.py` | optional cost reporting to Langfuse (section 11) |
 
@@ -269,21 +310,24 @@ response mapper builds them from the LLM's JSON, one function per section.
 | `test_orchestration_layout.py` | the one-way dependencies of section 3 |
 | `test_phase_structure.py` | one phase per file, every constant, every referenced file exists |
 | `test_schema_tree.py` | the schema tree matches `full.schema.json`, the motion enums match `ARMS` / `DIRECTIONS` |
-| `test_flow_golden.py` | every LLM call (model, prompts, messages, schema, sampling, tools) against `tests/golden/flow_golden.json` |
-| `test_router.py`, `test_flows.py`, `test_motion_flow.py`, `test_resume.py` | routing, flows, pausing and resuming |
+| `test_flow_golden.py` | every LLM call (model, prompts, messages, schema, sampling, tools) against `tests/golden/flow_golden.json`; since T-05.10 also one block per profile (`profile_identification`, `profile_chat`, `profile_special`, `profile_movement`, `profile_gesture`), and a test that the request of every step in a block is the request it had in the client's chain, only the model being the profile's |
+| `test_profiles_mock.py` | `default` and `dynamics`, which run the steps of `special` and have no block: their tools, models and token |
+| `test_plug_and_play.py` | a new profile is one file: a copy of the configuration in a temporary folder, one new file, the agent answers, nothing of the repository changed |
+| `test_router.py`, `test_flows.py`, `test_motion_flow.py`, `test_resume.py` | the client's chain (`brain_chain.py`), flows, pausing and resuming |
+| `test_profiles.py` | the seven profiles, one profile per message, the tools and models of each, the resume rule |
 | `contracts/tests/e2e/` (workspace) | a real ai-agent process driven over HTTP and by Brain, with a scripted LLM |
 
 ## 13. How to extend it
 
-- **A new phase:** its file (constants first) in `phases/<folder>/`, one line in `phases/catalog.py`, a step in its flow.
-- **A new flow:** a file in `flows/` with its steps and result, its phase files, one line in `flows/registry.py`, and a line in
-  `FLOW_BY_DOMAIN` in `flows/router.py` (plus the domain in the schema and the triage prompt if it is a new one).
+- **A new LLM step:** `step_defs/<name>.json` (copy `draft_writer.json`) and its prompt in `prompts/`, then a flow that names it; a Python function only when its input or result is not a plain list of fields (`steps/functions.py`). **A new code step:** its file in `steps/<folder>/` (constants first, then `register_step(__name__, "code")`) and a declaration for its `reads` and `writes`.
+- **A new flow:** a file in `flows/` (its steps in order, `pause_if` and `retry_on_status`, `on_pause` and `on_resume` if a step can ask, `result_from`) and a profile in `profiles/` that names it; no Python while it uses the steps, conditions and hooks that exist (`scripts/check_agent.py` says what is wrong)
+  (the client chooses the profile; the domain in the schema and the triage prompt only if it is a new one).
 - **A new domain value:** `schema/response/general/full.schema.json` (then `python scripts/split_schemas.py --write`),
-  `domain/value_objects/llm_response/task_category/domain.py`, the triage prompt, `FLOW_BY_DOMAIN`.
+  `domain/value_objects/llm_response/task_category/domain.py`, the triage prompt, and the client's table from domain to profile (`docs/api/api.md`).
 - **A new field in an answer:** the full schema, the prompt, the domain object and the response mapper, together
   (`rules/schemas-and-prompts.md`, section 4).
 - **A new provider:** a row in `infrastructure/outbound/llm/provider_models.py`, its key and URL in `VercelAIConfig`, its
   models in `domain/value_objects/llm_request/model_catalog.py`. A provider with limits of its own on the schema (Claude) gets its own copy of it inside the adapter (`anthropic_schema.py`), never a change of the schemas of the phases.
 
-If a change alters a prompt, a schema, a model or a message format, regenerate the golden file on purpose
+If a change alters a prompt, a schema, a model (a model set or a profile too: a profile block pins the models of its profile) or a message format, regenerate the golden file on purpose
 (`UPDATE_GOLDEN=1 python -m pytest tests/test_flow_golden.py`) and read the diff first.

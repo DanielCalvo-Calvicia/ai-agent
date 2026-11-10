@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "name": "claude_haiku",
+  "_about": "Claude through Anthropic's OpenAI-compatible endpoint (ADR-013): claude-haiku-4-5 on every step, claude-sonnet-5-5 for the planner. Needs ANTHROPIC_API_KEY. Not the active profile. Every call carries a strict, sanitized schema (an action nests at most 3 levels), which adds about 2.8k input tokens to the four actions steps. Claude 5 models think by default and the endpoint hides it, so the cost tables understate the cost of the planner. Untested as a combination until T-03.6.",
+  "default": [
+    "claude-haiku-4-5"
+  ],
+  "project_manager": [
+    "claude-sonnet-5-5"
+  ]
+}

@@ -17,7 +17,7 @@ import urllib.request
 import uuid
 from typing import Any, Dict, List, Optional, Tuple
 
-from application.orchestration.support.metrics import RequestRecord
+from application.engine.support.metrics import RequestRecord
 from application.outbound.ports.mcp_ports import ToolCallRecord
 from application.outbound.ports.usage_ports import CallDetails, UsageReporterPort
 from infrastructure.outbound.usage.prices import billed_output_tokens, cost_usd, load_prices
@@ -77,6 +77,7 @@ class LangfuseUsageReporter(UsageReporterPort):
             "langfuse.observation.type": "span",
             "langfuse.session.id": session_id,
             "langfuse.observation.metadata.kind": "mcp_tool_call",
+            **_run_metadata(details),
             "langfuse.observation.metadata.outcome": call.outcome,
             "langfuse.observation.metadata.duration_ms": str(call.duration_ms),
             "langfuse.observation.metadata.attempts": str(call.attempts),
@@ -101,6 +102,9 @@ class LangfuseUsageReporter(UsageReporterPort):
             "langfuse.trace.name": trace_name,
             "langfuse.session.id": session_id,
         }
+        tags = _tags(details)
+        if tags:
+            root["langfuse.trace.tags"] = tags
         if details.message:
             root["langfuse.trace.input"] = details.message
             root["langfuse.observation.input"] = details.message
@@ -124,6 +128,8 @@ class LangfuseUsageReporter(UsageReporterPort):
             "langfuse.observation.usage_details": json.dumps(
                 {"input": record.prompt_tokens, "output": billed, "total": record.prompt_tokens + billed}),
             "langfuse.observation.metadata.phase_id": str(record.phase_id),
+            "langfuse.observation.metadata.step": record.phase_name,
+            **_run_metadata(None, record),
             "langfuse.observation.metadata.answered_tokens": str(record.completion_tokens),
             "langfuse.observation.metadata.thinking_tokens": str(
                 max(0, record.total_tokens - record.prompt_tokens - record.completion_tokens)),
@@ -171,6 +177,19 @@ class LangfuseUsageReporter(UsageReporterPort):
         return done.wait(timeout)
 
 
+def _run_metadata(details: Optional[CallDetails], record: Optional[RequestRecord] = None) -> Dict[str, str]:
+    """profile, flow, client and the hash of the assembled profile, as metadata of an observation (only the ones that are set)."""
+    source = record or details
+    values = {"profile": source.profile, "flow": source.flow, "client": source.client, "profile_hash": source.profile_hash}
+    return {f"langfuse.observation.metadata.{name}": value for name, value in values.items() if value}
+
+
+def _tags(details: CallDetails) -> List[str]:
+    """The tags of a trace: profile, flow, client and the first 12 characters of the profile hash."""
+    pairs = (("profile", details.profile), ("flow", details.flow), ("client", details.client), ("hash", details.profile_hash[:12]))
+    return [f"{name}:{value}" for name, value in pairs if value]
+
+
 def _trace_name(message: str) -> str:
     """The name of a trace is what the user asked, on one line and not too long to group and read."""
     text = " ".join(message.split())
@@ -186,6 +205,8 @@ def _hex_id(value: str, length: int) -> str:
 
 
 def _attribute(key: str, value: Any) -> Dict[str, Any]:
+    if isinstance(value, list):                                    # an OTLP array (the tags of a trace)
+        return {"key": key, "value": {"arrayValue": {"values": [{"stringValue": str(item)} for item in value]}}}
     return {"key": key, "value": {"stringValue": str(value)}}
 
 

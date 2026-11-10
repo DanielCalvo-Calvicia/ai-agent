@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "name": "data_engineer",
+  "about": "Cleans the raw result of a tool before other actions use it (one call per action).",
+  "kind": "llm_per_action",
+  "legacy_id": 6,
+  "group": "special",
+  "prompt": {
+    "file": "prompts/6_data_engineer.txt"
+  },
+  "default_models": [
+    "gemini-3.1-flash-lite"
+  ],
+  "intent": {
+    "primary": "decision_support",
+    "secondary": [],
+    "confidence": 0.9
+  },
+  "format_name": "phase6_single_action_response_format",
+  "answer": {
+    "schema_file": "general/actions/actions.schema.json"
+  },
+  "for_each": "actions",
+  "reads": [
+    "actions"
+  ],
+  "writes": [
+    "actions"
+  ]
+}

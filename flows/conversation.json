@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "name": "conversation",
+  "about": "A plain spoken reply: the draft writer and the editor.",
+  "steps": [
+    {
+      "step": "draft_writer"
+    },
+    {
+      "step": "editor_in_chief",
+      "retry_on_status": true
+    }
+  ],
+  "result_from": "editor_in_chief"
+}

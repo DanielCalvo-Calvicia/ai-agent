@@ -21,20 +21,16 @@ OBLIVION workspace, `deployment/` regenerates its settings files from `.env.exam
 | `AI_AGENT_HOST` | `0.0.0.0` | bind address |
 | `AI_AGENT_PORT` | `7998` | bind port |
 | `AI_AGENT_RELOAD` | `1` | `1` = uvicorn auto-reload (development), `0` for a stable run (the deploy tool sets `0`) |
-| `AI_AGENT_HISTORY_TURNS` | `6` | exchanges (a user message and its reply) remembered per session; only triage and the project manager read them |
+| `AI_AGENT_HISTORY_TURNS` | `6` | requests remembered per session: the last N entries (T-05.8), each with the user's words, the reply that was sent and the structured `Response` of the run; the steps read them as a user message and its reply (none when the reply is empty). A request whose run has no `user_goal` (the `gesture` profile, a movement nobody classified) adds no entry. Only triage and the project manager read them |
 | `AI_AGENT_PARALLEL_ACTIONS` | `1` | independent actions of a plan that run together (`1` = one by one; tool calls stay sequential). Keep `1` on providers with a tokens-per-minute limit |
 | `AI_AGENT_MAX_ATTEMPTS` | `3` | tries (the first included) of a failed LLM call, MCP tool or `retry` answer |
 | `AI_AGENT_RETRY_WAIT_SECONDS` | `1` | seconds to wait before the second try of an LLM call that failed for lack of capacity (429, 5xx, timeout, no connection); it doubles on every try up to 8 times this value; `0` = no wait |
-| `AI_AGENT_FALLBACK_MODELS` | unset | comma-separated model ids tried once each, in order, when the chosen model is out of capacity; wins over `fallback_models` of the active profile; empty = none |
 | `AI_AGENT_MAX_MCP_CALLS_PER_MESSAGE` | `5` | how many MCP tool actions one message may run; the rest are **not run** (failed with a reason that says the limit was reached, so their dependants are skipped) and the writer is told in the actions' errors. A whole number; `0` = no limit; not a whole number or negative = `5`, with a warning (never `0`). Retries of the same action do not count; actions that are not tool calls are not counted |
 | `AI_AGENT_MASK_PERSONAL_DATA` | `1` | hides the cells of personal columns (customer name, e-mail, phone, address, contact, tax and bank numbers) of a tool answer as `[hidden]` before any model sees it; `0`, `false`, `no` or `off` turns it off. Add it for real data; see [security](../security/security.md) |
 | `AI_AGENT_MCP_CALL_TIMEOUT_SECONDS` | `30` | seconds one MCP tool call may take (connect, initialize and the call). Keep it above the 20 s a slow query makes `dynamics_microservice` wait before it answers `running`. Not a positive number = `30`, with a warning. Listing the tools of a server keeps its own 10 s limit |
 | `AI_AGENT_CHECK_MCP_<NAME>` | unset | `1` = optional reachability check of the MCP server `<NAME>` (its name in upper case, anything that is not a letter or a digit as `_`, for example `AI_AGENT_CHECK_MCP_DYNAMICS_MICROSERVICE`): it lists that server's tools, over the network, at start-up and on every `GET /available`, and **only logs** a warning naming the server when it is not reachable. `/available` answers the same either way; with this set the call takes up to 10 s per checked server. Unset or `0`: nothing is checked |
-| `AI_AGENT_EXPRESSION` | `1` | `1` = the arm gesture that goes with a spoken reply (the expression flow: one more model call per reply); `0` = no gestures |
-| `AI_AGENT_SPEECH_CHARS_PER_SECOND` | `14` | how fast the robot talks; the gesture lasts about as long as the reply takes to say at this rate |
+| `AI_AGENT_SPEECH_CHARS_PER_SECOND` | `14` | how fast the robot talks; the gesture lasts about as long as the reply takes to say at this rate (`AI_AGENT_EXPRESSION` was removed in T-05.7: the client asks the `gesture` profile) |
 | `AI_AGENT_EXPRESSION_SEED` | empty | a number makes the gestures repeatable (tests); empty = random |
-| `AI_AGENT_MODELS_FILE` | `config/step_models.json` | another models file |
-| `AI_AGENT_MODEL_PHASE_<n>` (n = 1..9, 20, 30, 99) | unset | model id for one phase; wins over the models file |
 | `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`, `MISTRAL_API_KEY`, `GROQ_API_KEY`, `COHERE_API_KEY` | empty | provider keys; set only the providers you use. `ANTHROPIC_API_KEY` is the key of the Claude profiles (`claude_haiku`, `claude_sonnet`). The default models are Google's, so `GOOGLE_API_KEY` is the one a default run needs (the free tier is enough). `GITHUB_PAT` and `GITHUB_API_KEY` are no longer read (GitHub Models is retired, ADR-012). `GET /available` is true when one of them or `OLLAMA_URL` is set |
 | `GOOGLE_URL`, `MISTRAL_URL`, `GROQ_URL`, `COHERE_URL`, `OLLAMA_URL` | empty | OpenAI-compatible base URLs of those providers (`GITHUB_URL` is no longer read). No Mistral model can be chosen until an API id is verified, so `MISTRAL_API_KEY` and `MISTRAL_URL` are kept for it but unused. OpenAI and Anthropic are native and need no URL |
 | `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_HOST` | empty | optional reporting to Langfuse (section 5). Empty host = the EU cloud |
@@ -51,48 +47,55 @@ whether the key is valid or the provider reachable.
 
 ## 3. Which model answers each step
 
-Precedence for a phase, first match wins (`support/model_selection.py`, `choose`):
+**No environment variable chooses a model** (`AI_AGENT_MODEL_PHASE_<n>`, `AI_AGENT_MODELS_FILE` and `AI_AGENT_FALLBACK_MODELS` were removed in T-05.5, and
+`config/step_models.json` with them). A model change is a file change and a new start: nothing is read again while the service runs.
 
-1. `AI_AGENT_MODEL_PHASE_<n>` in the environment;
-2. `steps.<step name>` in the models file;
-3. the active `profile`, entry for that step;
-4. the `default` of the active profile;
-5. the code default (`DEFAULT_MODEL` of the phase file: a Google model with a free tier, ADR-012: `gemini-3.1-flash-lite` for triage, data
+A step has an **ordered list** of model ids: the first one answers and the next ones are tried, once each, when it is out of capacity (ADR-014). The list comes
+from a **model set** (`model_sets/<name>.json`, a table with `default` and one entry per step) or from a profile, and the most specific value wins and replaces the broader
+one as a whole (PR-005 section 5). For a step of a flow, in the profile that is asked, first match wins (`engine/support/model_selection.py`, `ModelResolver`):
+
+1. `flows.<flow>.steps.<step>.models`: that step, in that flow;
+2. `overrides.<step>.models`: that step, in every flow;
+3. `flows.<flow>.models`: every step of that flow;
+4. `models`: every step;
+5. the code default (`DEFAULT_MODEL` of the step file: a Google model with a free tier, ADR-012: `gemini-3.1-flash-lite` for triage, data
    engineer, answer checker, clarification and emotion reader, `gemini-3.6-flash` for the others).
 
-`config/step_models.json`:
+A level is a list of ids or the **name of a model set** (a step takes the entry of the set for that step, else its `default`). Until profiles choose theirs (T-05.7) the
+service runs on one model set, `proven` (`DEFAULT_MODEL_SET`). A model set file:
 
 ```text
-{ "profile": "<name>",          which profile is active
-  "steps":   { "<step>": "<model id>" | null, ... },     per-step choice; null = the profile decides
-  "profiles": { "<name>": { "default": "<id>", "<step>": "<id>", ... }, ... } }
+{ "schema_version": 1, "name": "<name>", "_about": "...",
+  "default": ["<model id>", "<fallback id>", ...],
+  "<step name>": ["<model id>", ...] }          one entry per step that differs; keys that start with _ are comments
 ```
 
 Step names: `triage_specialist`, `project_manager`, `safety_quality_gatekeeper`, `cognitive_worker`, `mcp_operator`,
-`data_engineer`, `draft_writer`, `editor_in_chief`, `answer_checker`, `user_clarification` and `motion_planner`. An unknown
-step, profile or model fails at the first message, not silently. A model id must exist in
+`data_engineer`, `draft_writer`, `editor_in_chief`, `answer_checker`, `user_clarification`, `motion_planner` and `emotion_reader`. An unknown
+step, model set or model fails when the model set is used (at start for the one the service runs on), with the file and the key in the message. A model id must exist in
 `domain/value_objects/llm_request/model_catalog.py`.
 
-Profiles shipped: `proven` (**active since 2026-10-28**: every step on `gemini-3.1-flash-lite`, which has an end-to-end run of 2026-09-21 and answered 10 free-tier calls in a row; it replaces `gemini-2.5-flash`, which Google no longer gives to new keys), `budget`, `balanced`,
-`quality`, `claude_haiku` (Claude through Anthropic's OpenAI-compatible endpoint, ADR-013: `claude-haiku-4-5` on every step and `claude-sonnet-5-5` for the planner; needs `ANTHROPIC_API_KEY`; run once on 2026-10-28; not active), `claude_mixed` (`claude-haiku-4-5` on every step except the planner, the draft writer and the editor, which use `claude-sonnet-5-5`; needs `ANTHROPIC_API_KEY`; run once on 2026-10-28 with all three messages right, about 2.5 times the cost of `claude_haiku`; not active), `claude_sonnet` (`claude-sonnet-5` on every step, for the Dynamics MCP epic, needs `ANTHROPIC_API_KEY`, untested, not active), `budget50_groq` (Groq models for planning, safety, worker, writer and editor, Google lite models elsewhere; needs a Groq key, not active),
-and `google_free` (not active since 2026-10-28: `gemini-3.1-flash-lite` for triage, cleaning, checker, question and emotion reader, `gemini-3.6-flash` for the
+Model sets shipped (the ten tables of the old `step_models.json`, with the fallbacks of each written in its lists): `proven` (**the one the service runs on**: every step on `gemini-3.1-flash-lite`, which has an end-to-end run of 2026-09-21 and answered 10 free-tier calls in a row, then `gemini-3.5-flash-lite` and `gemini-3-flash-preview` as fallback; it replaces `gemini-2.5-flash`, which Google no longer gives to new keys), `budget`, `balanced`,
+`quality`, `budget50`, `budget50_groq`, `claude_sonnet`, `claude_haiku` (Claude through Anthropic's OpenAI-compatible endpoint, ADR-013: `claude-haiku-4-5` on every step and `claude-sonnet-5-5` for the planner; needs `ANTHROPIC_API_KEY`; run once on 2026-10-28), `claude_mixed` (`claude-haiku-4-5` on every step except the planner, the writer and the editor, which use `claude-sonnet-5-5`; run on 2026-10-28) and `google_free` (`gemini-3.1-flash-lite` for triage, cleaning, checker, question and emotion reader, `gemini-3.6-flash` for the
 other steps; Google models with a free tier, needs only `GOOGLE_API_KEY` and `GOOGLE_URL`; on the free tier `gemini-3.6-flash` returned 429 after about 7 calls in 30 s,
-and Google uses free-tier content to improve its products; **untested as a combination**; decided in PR-004).
+and Google uses free-tier content to improve its products; **untested as a combination**; decided in PR-004). The Claude sets are one-item lists on purpose: customer data must not move to another provider because one had a bad minute.
 
-Change it without editing JSON:
+See what every step of every profile uses and what it costs (nothing is sent to a provider), and write the generated documents
+(since T-05.17 these tools read the **assembled profiles**; `tests/manual/show_models.py` is gone):
 
 ```powershell
-& windows\Scripts\python.exe tests\manual\show_models.py                              # what every step uses now, with its price
-& windows\Scripts\python.exe tests\manual\show_models.py --step=project_manager       # every model for a step, cost per call and rating
-& windows\Scripts\python.exe tests\manual\show_models.py --set=project_manager=<model id>
-& windows\Scripts\python.exe tests\manual\show_models.py --clear=project_manager
-& windows\Scripts\python.exe tests\manual\show_models.py --profile=<name>
+& windows\Scripts\python.exe scripts\check_agent.py --explain special                  # one profile in full: steps, models and where they come from, tools, prompts, hash, cost of a full plan
+& windows\Scripts\python.exe scripts\model_tables.py                                   # the model of every step of every profile, with its price
+& windows\Scripts\python.exe scripts\model_tables.py --step=project_manager            # every model for a step, cost per call and rating, and which profiles use it
+& windows\Scripts\python.exe scripts\model_tables.py --profiles                        # docs/models/profiles.md: one table per profile
+& windows\Scripts\python.exe scripts\model_tables.py --write                           # docs/models/gemini_models_per_step.md
+& windows\Scripts\python.exe scripts\run_profile.py special --label before             # the fixed set of messages (13, `tests/manual/README.md`) on the REAL models (asks first; costs money); --label names the report, to run a change before and after
 ```
 
 `config/gemini_models.json`, `other_models.json` (prices and ratings), `budget.json` (the monthly budget) and
 `measured_runs.json` feed the cost tools. `docs/models/gemini_models_per_step.md` and `docs/models/models_per_step_budget.md` are
-**generated** from them (`show_models.py --write` and `--budget`); `docs/models/cost_of_a_full_plan.md` by
-`tests/manual/estimate_cost.py --write`. Do not edit those three by hand. The cost and budget tables cover the text flows'
+**generated** from them (`model_tables.py --write` and `--budget`); `docs/models/cost_of_a_full_plan.md` by
+`tests/manual/estimate_cost.py --write`; `docs/models/profiles.md` (one table per profile, from the assembled profile) by `model_tables.py --profiles`. Do not edit those four by hand. The cost and budget tables cover the text flows'
 steps only; `motion_planner` can be set like any step and is left out of those tables.
 
 ## 4. MCP servers (`mcps/*.json`)

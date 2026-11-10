@@ -1,28 +1,30 @@
 # T-04: a model that is out of capacity (429, 5xx, timeout, no connection) is waited for a little and then replaced by the
-# fallback models of the active profile; a daily quota that is gone goes to the next model at once. No real call, no real wait.
+# next model of the ordered list of its step (T-05.5: the list is the fallback); a daily quota that is gone goes to the next
+# model at once. No real call, no real wait.
 import json
 import os
 
 import pytest
 
-from application.orchestration.engine.phase_runner import PhaseRunner
-from application.orchestration.phases.catalog import PHASES
-from application.orchestration.phases.identification.triage import TRIAGE
-from application.orchestration.state.flow_state import FlowState
-from application.orchestration.support import failure as failure_module
-from application.orchestration.support.failure import (
+from application.engine.phase_runner import PhaseRunner
+from application.steps.catalog import PHASES
+from step_specs import TRIAGE
+from application.engine.state.flow_state import FlowState
+from application.engine.support import failure as failure_module
+from application.engine.support.failure import (
     AgentFailure, capacity_problem, daily_quota_used_up, retry_wait_seconds, wait_before_retry,
 )
-from application.orchestration.support.metrics import SessionMetrics
-from application.orchestration.support.model_selection import (
-    FALLBACK_VARIABLE, MODELS_FILE_VARIABLE, fallback_models, load_config,
-)
+from application.engine.support.metrics import SessionMetrics
+from application.engine.support.model_selection import ModelResolver
 from application.outbound.ports.llm_ports import LLMOutboundPort
 from domain.entities.llm_response.response import Response
 from domain.entities.llm_response.tokens_usage import TokensUsage
+from model_table import read_model_sets
 
-CONFIG_PATH = os.path.join(os.path.dirname(__file__), "..", "config", "step_models.json")
+GEMINI_MODELS = os.path.join(os.path.dirname(__file__), "..", "config", "gemini_models.json")
 DAILY = "Quota exceeded for metric: generate_content_free_tier_requests, limit: 20, Generate content requests per day limit exceeded"
+PRIMARY = PHASES[1].default_model.value                       # the model of the triage step: its code default
+FALLBACKS = ["gemini-3.5-flash-lite", "gemini-3-flash-preview"]
 
 
 class HttpError(Exception):
@@ -52,19 +54,17 @@ def a_response():
     return Response(None, None, None, None, None, tokens_usage=TokensUsage(10, 5, 15))
 
 
-def send(port, phase_id=1):
-    """One call of the triage step through the real PhaseRunner (the model comes from the usual rules)."""
-    runner = PhaseRunner(port, SessionMetrics())
+def send(port, models=None):
+    """One call of the triage step through the real PhaseRunner. `models` is the ordered list of the step: the first answers,
+    the rest is the fallback (default: the model of the code and two fallbacks)."""
+    resolver = ModelResolver({"models": models or [PRIMARY, *FALLBACKS]})
+    runner = PhaseRunner(port, SessionMetrics(), models=resolver, flow_name="identification")
     return runner.run_phase(TRIAGE, FlowState(message="hi")), runner
 
 
 @pytest.fixture
-def chosen(monkeypatch):
-    """The model of phase 1 (the code default) and two fallbacks."""
-    from application.orchestration.support.model_selection import model_for_phase
-    primary = model_for_phase(1, PHASES[1].default_model).id
-    monkeypatch.setenv(FALLBACK_VARIABLE, "gemini-3.5-flash-lite,gemini-3-flash-preview")
-    return primary
+def chosen():
+    return PRIMARY
 
 
 # ---------------------------------------------------------------- what counts as a lack of capacity
@@ -148,23 +148,17 @@ def test_a_rate_limit_that_nothing_answers_is_reported_as_a_rate_limit(chosen):
     assert raised.value.category == "rate_limit"
 
 
-def test_the_chosen_model_in_the_list_is_not_asked_again(monkeypatch):
-    from application.orchestration.support.model_selection import model_for_phase
-    primary = model_for_phase(1, PHASES[1].default_model).id
-    monkeypatch.setenv(FALLBACK_VARIABLE, f"{primary},gemini-3-flash-preview")
-    port = Ask({primary: HttpError(503)}, default=a_response())
-    send(port)
-    assert port.asked == [primary] * 3 + ["gemini-3-flash-preview"]
+def test_the_chosen_model_repeated_in_the_list_is_not_asked_again():
+    port = Ask({PRIMARY: HttpError(503)}, default=a_response())
+    send(port, models=[PRIMARY, PRIMARY, "gemini-3-flash-preview"])
+    assert port.asked == [PRIMARY] * 3 + ["gemini-3-flash-preview"]
 
 
-def test_no_fallback_models_means_the_old_behaviour(monkeypatch):
-    monkeypatch.setenv(FALLBACK_VARIABLE, "")
-    from application.orchestration.support.model_selection import model_for_phase
-    primary = model_for_phase(1, PHASES[1].default_model).id
-    port = Ask({primary: HttpError(503)}, default=a_response())
+def test_a_list_of_one_model_means_no_fallback():
+    port = Ask({PRIMARY: HttpError(503)}, default=a_response())
     with pytest.raises(AgentFailure):
-        send(port)
-    assert port.asked == [primary] * 3
+        send(port, models=[PRIMARY])
+    assert port.asked == [PRIMARY] * 3
 
 
 def test_a_success_never_looks_at_the_fallbacks(chosen):
@@ -173,40 +167,43 @@ def test_a_success_never_looks_at_the_fallbacks(chosen):
     assert port.asked == [chosen]
 
 
+def test_without_a_resolver_there_is_no_fallback():
+    port = Ask({PRIMARY: HttpError(503)}, default=a_response())
+    with pytest.raises(AgentFailure):
+        PhaseRunner(port, SessionMetrics()).run_phase(TRIAGE, FlowState(message="hi"))
+    assert port.asked == [PRIMARY] * 3
+
+
+def test_the_list_of_a_step_depends_on_the_flow_that_runs_it():
+    resolver = ModelResolver({"models": [PRIMARY], "flows": {"identification": {"models": [PRIMARY, "gemini-3-flash-preview"]}}})
+    port = Ask({PRIMARY: HttpError(503)}, default=a_response())
+    PhaseRunner(port, SessionMetrics(), models=resolver, flow_name="identification").run_phase(TRIAGE, FlowState(message="hi"))
+    assert port.asked == [PRIMARY] * 3 + ["gemini-3-flash-preview"]
+
+    other = Ask({PRIMARY: HttpError(503)}, default=a_response())
+    with pytest.raises(AgentFailure):
+        PhaseRunner(other, SessionMetrics(), models=resolver, flow_name="special").run_phase(TRIAGE, FlowState(message="hi"))
+    assert other.asked == [PRIMARY] * 3
+
+
 # ---------------------------------------------------------------- which models are the fallbacks
 
-def test_the_variable_wins_and_skips_ids_that_are_not_in_the_catalog(monkeypatch):
-    monkeypatch.setenv(FALLBACK_VARIABLE, " gemini-3-flash-preview , not-a-model ,")
-    assert [m.id for m in fallback_models()] == ["gemini-3-flash-preview"]
+def entries(model_set):
+    return {key: models for key, models in model_set.items() if not key.startswith("_") and key not in ("schema_version", "name")}
 
 
-def test_without_a_variable_or_a_config_there_are_none():
-    assert fallback_models() == []
-
-
-def test_the_shipped_google_profiles_name_free_tier_fallbacks(monkeypatch):
-    monkeypatch.setenv(MODELS_FILE_VARIABLE, CONFIG_PATH)
-    config = load_config()
-    free = {m["id"] for m in json.load(open(os.path.join(os.path.dirname(CONFIG_PATH), "gemini_models.json"), encoding="utf-8"))["models"] if m["free_tier"]}
+def test_the_shipped_google_sets_name_free_tier_fallbacks():
+    free = {m["id"] for m in json.load(open(GEMINI_MODELS, encoding="utf-8"))["models"] if m["free_tier"]}
+    sets = read_model_sets()
     for name in ("proven", "google_free"):
-        ids = config["profiles"][name]["fallback_models"]
-        assert ids and set(ids) <= free, name
-    assert [m.id for m in fallback_models()] == config["profiles"]["proven"]["fallback_models"]
+        for key, models in entries(sets[name]).items():
+            assert len(models) > 1 and set(models[1:]) <= free, (name, key)
+    assert entries(sets["proven"])["default"][1:] == FALLBACKS
 
 
-def test_the_claude_profiles_never_fall_back_to_another_provider(monkeypatch):
+def test_the_claude_sets_never_fall_back_to_another_provider():
     # customer data must not move to the Google free tier (it trains Google's products) because Claude had a bad minute
-    monkeypatch.setenv(MODELS_FILE_VARIABLE, CONFIG_PATH)
+    sets = read_model_sets()
     for name in ("claude_haiku", "claude_mixed", "claude_sonnet"):
-        assert "fallback_models" not in load_config()["profiles"][name]
-
-
-def test_a_config_with_a_bad_fallback_fails_loudly(tmp_path, monkeypatch):
-    path = tmp_path / "bad.json"
-    path.write_text(json.dumps({"profile": "p", "profiles": {"p": {"default": "gemini-3.1-flash-lite", "fallback_models": ["nope"]}}}), encoding="utf-8")
-    monkeypatch.setenv(MODELS_FILE_VARIABLE, str(path))
-    with pytest.raises(ValueError, match="fallback_models"):
-        load_config()
-    path.write_text(json.dumps({"profile": "p", "profiles": {"p": {"fallback_models": "gemini-3.1-flash-lite"}}}), encoding="utf-8")
-    with pytest.raises(ValueError, match="list of model ids"):
-        load_config()
+        for key, models in entries(sets[name]).items():
+            assert len(models) == 1, (name, key)

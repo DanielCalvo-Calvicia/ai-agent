@@ -25,8 +25,8 @@ POST /session/message
                                               executor -> 7 draft writer -> 8 editor                    execute, write
 ```
 
-- The flows never call each other. `AgentRouter` (`application/orchestration/flows/router.py`) hands the identification
-  state to the chosen flow, so nothing is classified twice.
+- The flows never call each other and the service does not choose between them: a request runs the flow of ONE profile
+  (`application/engine/profile_runner.py`); the client asks `identification` and then the profile that answers (T-05.7).
 - A flow that asks the user a question is **resumed by the next message** (the answer), without identifying it again.
 - A greeting costs 3 LLM calls, a movement 2, a task 5 or more (one per action, plus one per tool result).
 - Only the movement flow returns movements. Whether a movement that goes ahead is announced out loud is Brain's setting,
@@ -44,8 +44,8 @@ copy .env.example .env                  # fill in at least one provider key and 
 ```
 
 Then open `http://<host>:7998/docs` or call `GET /health`. It works from any folder (it changes to the project root).
-`AI_AGENT_RELOAD` defaults to `1` (auto-reload); set `0` for a stable run. Which model answers each step is chosen in
-`config/step_models.json` (see [`docs/configuration/environment-variables.md`](docs/configuration/environment-variables.md)).
+`AI_AGENT_RELOAD` defaults to `1` (auto-reload); set `0` for a stable run. Which model answers each step is chosen in the model sets of
+`model_sets/` (an ordered list per step; see [`docs/configuration/environment-variables.md`](docs/configuration/environment-variables.md)); no environment variable chooses a model.
 
 ```powershell
 & windows\Scripts\python.exe -m pytest tests          # no keys, no network, no cost
@@ -86,14 +86,15 @@ exactly "this session no longer exists here": open a new one and, for a message,
 
 ```text
 composition_root/   app wiring (main.py)
-application/        ports, DTOs, services, orchestration (flows, phases, engine, state, support), system prompts
+application/        ports, DTOs, services, steps/ (the phases), engine/ (with state/ and support/), system prompts
 domain/             entities/ and value_objects/, each grouped in llm_request / llm_response / movement
 infrastructure/     FastAPI inbound adapter, LLM adapter (ai_sdk), MCP client, Langfuse reporter
+profiles/ flows/ step_defs/ model_sets/   data folders of PR-005 (each has a README); `flows/` holds the five flows as JSON (T-05.12), `step_defs/` holds the declaration of every step (T-05.16)
 prompts/            one prompt per phase (<id>_<name>.txt), the generic rules and capabilities.txt
 schema/response/    JSON Schemas of the answers: general/ (text flows) and motion/ (movement flow)
 config/             models per step, prices, budget
-mcps/               MCP server configs
-scripts/            split_schemas.py (builds the schema tree)
+mcps/               MCP server configs (has a README: fields, limits, how a profile reaches a server)
+scripts/            split_schemas.py (builds the schema tree), check_agent.py (assembles everything; `--explain <profile>`), model_tables.py (the model tables and `docs/models/profiles.md`), run_profile.py (the fixed messages on a profile, `tests/manual/README.md`; asks first)
 docs/               documentation (index: docs/README.md)
 tests/              pytest (all mock-based); tests/manual has scripts that call real services and cost money
 ```
@@ -119,9 +120,10 @@ All run without keys, network or cost (about 880 tests, a few minutes).
 
 | File | Covers |
 |---|---|
-| `test_router.py`, `test_flows.py`, `test_motion_flow.py` | the routing by domain, the four flows, the routes, the movement flow and its validator |
+| `test_router.py`, `test_flows.py`, `test_motion_flow.py` | the client's chain (the old routing, tests/brain_chain.py), the flows, the routes, the movement flow and its validator |
 | `test_resume.py` | pausing to ask the user and resuming (answers, confirmations, stop) |
-| `test_flow_golden.py` | every LLM call of the pipeline (model, prompts, messages, schema, sampling, tools) against `tests/golden/flow_golden.json` |
+| `test_flow_golden.py` | every LLM call of the pipeline (model, prompts, messages, schema, sampling, tools) against `tests/golden/flow_golden.json`: the client's chain (14 scenarios) and one block per profile |
+| `test_profiles_mock.py`, `test_plug_and_play.py` | `default` and `dynamics` (tools, models, token) and "a profile is one file" |
 | `test_flow_objects.py` (with `flow_trace.py`) | the real steps traced to files; which step writes which field |
 | `test_parallel_actions.py`, `test_failures.py` | the action executor and the apologies for each kind of failure |
 | `test_schema_tree.py`, `test_phase_structure.py`, `test_orchestration_layout.py` | the structure: schema tree, one phase per file, one-way dependencies |
@@ -145,14 +147,14 @@ Open:
 3. **stdio MCP servers** (`fetch`, `filesystem`) are not supported, but the project manager is still told they exist, so it may plan
    actions that cannot run. `mcps/aws_microservice.json` (SSE, hardcoded to `http://localhost:8080/mcp/sse`) is used by nothing; the Dynamics tools are `mcps/dynamics_microservice.json` (Streamable HTTP, the URL in `DYNAMICS_MCP_URL`).
 4. **Langfuse receives the user's text and the prompts** (not only metadata) when its keys are set. Use a project you trust.
-5. `SessionService` builds a `MessageFlowService` (a router and four pipelines) per message. It is cheap, but it is not "once".
+5. `SessionService` builds a `MessageFlowService` (a `ProfileRunner` and the pipeline of one profile) per message. It is cheap, but it is not "once".
 6. `constraints`, `mcp_routing` and `missing_information` are in the schemas and the domain but no phase writes them; `next_step.retry_action_id`
    is read but nothing acts on it.
 7. The movement flow was exercised only with scripted LLMs and fake hardware (never a real LLM or a real stepper).
 8. **The Dynamics tools** (read-only Business Central data: orders of a customer, the state of an order, a customer card; [ADR-011](docs/decisions/ADR-011-mcp-streamable-http.md)) were run only with scripted LLMs and a local fake of the Go service. No real model has picked a tool, followed a `running` answer up or worded an error; that is the first real run (T-01.9), done by the maintainer.
 9. **Known limits of those tools:** no authentication in either service (the Go endpoint is open, reached by a public IP and port over plain HTTP), no masking of customer data sent to the model provider and, on purpose in the prototype, to Langfuse, and no row limit in ai-agent. Details: [security](docs/security/security.md).
 
-Decisions worth knowing: Brain makes one call per utterance (it used to ask two flows in order); the fast-path heuristic and
+Decisions worth knowing: the client chooses the profile on every request and chains them (ADR-015; Brain still makes one call per utterance and so gets `default`; before the redesign the service routed inside one call, ADR-003 and ADR-004); the fast-path heuristic and
 `robot_context` were removed; the answer schemas are one file per node, generated from `full.schema.json`;
 `value_objects` and `entities` are grouped by what uses them. History of how it got here: `docs/proposals/PR-001-layered-refactor.md`,
 `docs/proposals/PR-002-flows-split.md` and `docs/proposals/PR-003-orchestrator-review/` (all marked historical).

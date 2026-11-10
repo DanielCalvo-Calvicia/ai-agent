@@ -1,14 +1,14 @@
 """
 Builds docs/models/models_per_step_budget.md: the models of every provider, per step, with what they cost against a monthly
 budget (config/budget.json). Prices and ratings: config/gemini_models.json and config/other_models.json.
-`python tests/manual/show_models.py --budget` writes the document.
+`python scripts/model_tables.py --budget` writes the document.
 """
 import json
 import os
 from typing import Any, Dict, List
 
 from cost_estimate import THINKING_FACTOR, StepUsage, price, rows_for, total_row, usage
-from model_table import CONFIG_PATH, PROJECT_ROOT, blended, load_models
+from model_table import PROJECT_ROOT, blended, load_models
 
 OTHER_PATH = os.path.join(PROJECT_ROOT, "config", "other_models.json")
 BUDGET_PATH = os.path.join(PROJECT_ROOT, "config", "budget.json")
@@ -107,7 +107,7 @@ def markdown(data: Dict[str, Any], config: Dict[str, Any], budget: Dict[str, Any
         "# Models for each step, within a budget",
         "",
         "_Generated from `config/gemini_models.json`, `config/other_models.json`, `config/measured_runs.json` and "
-        "`config/budget.json` by `tests/manual/show_models.py --budget`. Edit those files, not this one._",
+        "`config/budget.json` by `scripts/model_tables.py --budget`. Edit those files, not this one._",
         "",
         "## The budget",
         "",
@@ -182,8 +182,8 @@ def markdown(data: Dict[str, Any], config: Dict[str, Any], budget: Dict[str, Any
             lines += [config["profiles"][name]["_about"], ""]
 
     lines += [
-        "To use one: `windows\\Scripts\\python.exe tests\\manual\\show_models.py --profile=budget50` "
-        "(then `--step=<step>` and `--set=<step>=<model id>` to change a step).",
+        "To use one: name that model set in the profile (`\"models\": \"budget50\"`); to change a step, write its entry in "
+        "`model_sets/<name>.json` (`--step=<step>` of `model_tables.py` shows the options).",
         "",
         "## 3. All the models, cheapest first",
         "",
@@ -221,17 +221,16 @@ def markdown(data: Dict[str, Any], config: Dict[str, Any], budget: Dict[str, Any
             cost = price(m, u, True)
             lines.append(f"| {m['name']} | {PROVIDER_NAMES[m['provider']]} | `{m['id']}` | {m['input']:.3f} | "
                          f"{m['output']:.2f}{'*' if m['price_note'] else ''} | {_usd(cost)} | {_eur(eur(cost * 1000, budget))} | "
-                         f"{WORKS_TEXT[m['works_today']]} | **{level}** | `\"{step}\": \"{m['id']}\"` |")
+                         f"{WORKS_TEXT[m['works_today']]} | **{level}** | `\"{step}\": [\"{m['id']}\"]` |")
         lines.append("")
 
     lines += ["## 5. How to choose", "",
-              "1. One profile for every step: `windows\\Scripts\\python.exe tests\\manual\\show_models.py --profile=budget50`.",
-              "2. One step: `windows\\Scripts\\python.exe tests\\manual\\show_models.py --set=project_manager=openai/gpt-oss-120b` "
-              "(or write the line of the table in `steps` of `config/step_models.json`). Only models the agent's provider "
-              "table knows can be chosen (`domain/value_objects/llm_request/model_catalog.py`).",
-              "3. See what is in use with its price: `windows\\Scripts\\python.exe tests\\manual\\show_models.py`.",
+              "1. One model set for every step: name it in the profile (`\"models\": \"budget50\"`).",
+              "2. One step: write the line of the table in the entry of that step of a model set (`model_sets/<name>.json`). "
+              "Only models the agent's provider table knows can be chosen (`domain/value_objects/llm_request/model_catalog.py`).",
+              "3. See what is in use with its price: `windows\\Scripts\\python.exe scripts\\model_tables.py`.",
               "4. Before you trust a model on a step: `tests/manual/debug_flow.py --real`, then `--only=<step> --state=<file> "
               "--repeat=5`. The problems it finds and `compare.md` show if the model is steady.",
-              "5. To change the budget, the rate or the size of the plans: `config/budget.json`, then `show_models.py --budget`.",
+              "5. To change the budget, the rate or the size of the plans: `config/budget.json`, then `model_tables.py --budget`.",
               ""]
     return "\n".join(lines)

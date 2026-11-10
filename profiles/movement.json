@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "name": "movement",
+  "about": "The arm movements the user asked for: the motion planner and the motion validator (plain code).",
+  "token_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "flow": "movement",
+  "models": "proven",
+  "tools": {
+    "servers": []
+  },
+  "inputs": {
+    "requires": [],
+    "accepts": [
+      "intent",
+      "user_goal",
+      "task_category",
+      "constraints",
+      "missing_information",
+      "next_step"
+    ]
+  },
+  "tested": "2026-11-04"
+}

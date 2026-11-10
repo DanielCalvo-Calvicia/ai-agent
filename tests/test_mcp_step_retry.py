@@ -7,9 +7,9 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.orchestration.engine.pipeline import Pipeline
-from application.orchestration.support.metrics import SessionMetrics
-from application.orchestration.flows.action_executor import MAX_TOOL_WAIT_SECONDS
+from application.engine.pipeline import Pipeline
+from application.engine.support.metrics import SessionMetrics
+from application.steps.special.action_executor import MAX_TOOL_WAIT_SECONDS
 from application.outbound.ports.mcp_ports import remaining_tool_wait, report_final_tool_failure, watch_tool_failures
 from flow_trace import FULL_FLOW
 from test_flow_golden import PM, ScriptedLLM, _action, _no_result, _plan

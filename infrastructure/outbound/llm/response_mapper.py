@@ -4,6 +4,7 @@
 #  a domain Response. One small function per section.
 # ===============================================
 
+from dataclasses import replace
 from typing import Any, Dict, List, Optional
 
 from domain.entities.llm_response.action import Action, create_action
@@ -25,6 +26,12 @@ JsonObject = Dict[str, Any]
 MAX_SUBACTIONS = 10
 
 logger = get_logger(__name__)
+
+
+def read_response_json(data: JsonObject) -> Response:
+    """A Response from sections a client sent back (`inputs`): the same code as an LLM answer, with no token usage and no raw text kept."""
+    response = build_response(data, {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0})
+    return replace(response, raw=None, tokens_usage=None)
 
 
 def build_response(response_ai: JsonObject | str, tokens_usage: JsonObject) -> Response:

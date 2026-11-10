@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "name": "budget",
+  "_about": "The cheapest that should work: gemini-3.1-flash-lite everywhere except the planner and the tool step (gemini-3.5-flash-lite). Untested. It replaces the gemini-2.5-flash-lite and gemini-2.5-flash of the first version, which Google no longer gives to new keys.",
+  "default": [
+    "gemini-3.1-flash-lite"
+  ],
+  "project_manager": [
+    "gemini-3.5-flash-lite"
+  ],
+  "mcp_operator": [
+    "gemini-3.5-flash-lite"
+  ]
+}

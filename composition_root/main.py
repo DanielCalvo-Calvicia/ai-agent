@@ -23,18 +23,24 @@ load_dotenv(os.path.join(PROJECT_ROOT, ".env"), override=False)
 #  OUTBOUND ADAPTERS
 # -----------------------------------------------
 
+from infrastructure.outbound.config.file_source import FileConfigSource
+from infrastructure.outbound.llm.anthropic_schema import anthropic_schema_problems
 from infrastructure.outbound.llm.config import VercelAIConfig
+from infrastructure.outbound.llm.response_mapper import read_response_json
 from infrastructure.outbound.llm.vercel import VercelAIAdapter
 from infrastructure.outbound.mcp.availability import McpAvailabilityCheck
 from infrastructure.outbound.mcp.client_manager import MCPClientManager, quiet_client_libraries
-from infrastructure.outbound.mcp.config import load_supported_mcp_configs
+from infrastructure.outbound.mcp.config import load_supported_mcp_configs, load_tool_snapshot
 from infrastructure.outbound.mcp.tool_executor import MCPToolExecutor
 from infrastructure.outbound.usage.langfuse import LangfuseUsageReporter
+from infrastructure.outbound.usage.prices import cost_usd, load_prices
 
 # -----------------------------------------------
 #  APPLICATION SERVICES
 # -----------------------------------------------
 
+from application.engine.assemble import assemble
+from application.engine.config_snapshot import build_snapshot
 from application.service.session_service import SessionService
 
 # -----------------------------------------------
@@ -55,12 +61,29 @@ def CreateApp() -> FastAPI:
 
     Dependency graph:
         MCPToolExecutor + VercelAIAdapter (outbound) -> SessionService (application) -> SessionFastAPI (inbound)
-    One session per user: every message is identified first and then answered by one flow (see
-    application/orchestration/flows/router.py). Routes: /session/*, /health, /available.
+    One session per user: every message runs ONE profile and its flow (flows/<name>.json; the client chains profiles). Routes: /session/*, /health, /available.
     """
 
     init_logging("ai-agent")
     quiet_client_libraries()          # again: the logging set-up may have reset their levels
+
+    # Step 0: what the agent is made of (profiles, flows, step declarations, model sets), read once, now, and assembled. A
+    # profile with a problem is disabled and logged here, the others serve (the service is not stopped); scripts/check_agent.py
+    # is the strict version. Nothing serves a profile yet (T-05.9): the service still has one agent, on the model set below.
+    configSnapshot = build_snapshot(FileConfigSource(PROJECT_ROOT))
+    agent = assemble(
+        configSnapshot,
+        mcp_servers=load_tool_snapshot(),
+        schema_rules={"anthropic": anthropic_schema_problems},
+    )
+    for file, messages in agent.problems.items():
+        for message in messages:
+            get_logger(__name__).error("Configuration problem", file=file, problem=message)
+    for profile in agent.disabled():
+        get_logger(__name__).error("Profile disabled", profile=profile)
+    get_logger(__name__).info("Configuration loaded", profiles=len(configSnapshot.profiles), flows=len(configSnapshot.flows),
+                              step_defs=len(configSnapshot.step_defs), model_sets=len(configSnapshot.model_sets),
+                              profiles_ready=len(agent.profiles))
 
     # Step 1: Outbound adapters — MCP tools and LLM provider
     mcpList = load_supported_mcp_configs()
@@ -75,6 +98,7 @@ def CreateApp() -> FastAPI:
     llmAdapter = VercelAIAdapter(Config=llmConfig)
 
     # Step 2: Application service — implements the inbound port
+    prices = load_prices()                                  # USD per 1M tokens, from config/: the cost of every call in the metrics
     usageReporter = LangfuseUsageReporter.from_env()        # None unless the LANGFUSE_* keys are set
     sessionService = SessionService(
         outbound_port=llmAdapter,
@@ -82,6 +106,9 @@ def CreateApp() -> FastAPI:
         mcp_tools=toolExecutor,
         history_turns=int(os.environ.get("AI_AGENT_HISTORY_TURNS", "6")),
         usage_reporter=usageReporter,
+        cost_of=lambda model, prompt, completion, total: cost_usd(prices, model, prompt, completion, total),
+        agent=agent,
+        response_reader=read_response_json,
     )
 
     # Step 3: FastAPI application

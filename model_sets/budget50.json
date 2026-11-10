@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "name": "budget50",
+  "_about": "Fits 50 EUR for 1,000 messages even if every message has a plan of 30 actions. Google models only. gemini-3.1-flash-lite for almost everything (it does not think, so it costs little), gemini-3.5-flash-lite for the planner (the one step that needs reasoning: a Lite model, rated ok). Untested as a combination. It replaces gemini-2.5-flash for the planner and gemini-2.5-flash-lite for three steps, which Google no longer gives to new keys.",
+  "default": [
+    "gemini-3.1-flash-lite"
+  ],
+  "project_manager": [
+    "gemini-3.5-flash-lite"
+  ]
+}

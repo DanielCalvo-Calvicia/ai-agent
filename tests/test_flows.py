@@ -13,16 +13,15 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.orchestration.engine.flow import Flow
-from application.orchestration.flows.conversation import CONVERSATION_FLOW
-from application.orchestration.flows.identification import IDENTIFICATION_FLOW
-from application.orchestration.flows.movement import MOVEMENT_FLOW
-from application.orchestration.flows.registry import FLOWS, FlowRegistry
-from application.orchestration.flows.special import SPECIAL_FLOW
-from application.orchestration.support.metrics import SessionMetrics
-from application.orchestration.engine.pipeline import Pipeline
-from application.orchestration.phases.phase import Step
-from application.service.session_service import SessionService
+from application.engine.flow import Flow
+from flow_files import CONVERSATION_FLOW, FLOWS
+from flow_files import IDENTIFICATION_FLOW
+from flow_files import MOVEMENT_FLOW
+from flow_files import SPECIAL_FLOW
+from application.engine.support.metrics import SessionMetrics
+from application.engine.pipeline import Pipeline
+from application.steps.phase import Step
+from brain_chain import ChainedSessionService as SessionService
 from infrastructure.inbound.http.fastapi import SessionFastAPI
 
 from test_flow_golden import ScriptedLLM
@@ -39,39 +38,37 @@ def _app() -> TestClient:
     return TestClient(app)
 
 
-class TestRegistry:
-    def test_the_flows_are_registered_under_their_public_names(self):
-        assert FLOWS.get("identification") is IDENTIFICATION_FLOW
-        assert FLOWS.get("conversation") is CONVERSATION_FLOW
-        assert FLOWS.get("special") is SPECIAL_FLOW
-        assert FLOWS.get("movement") is MOVEMENT_FLOW
-        assert FLOWS.names() == ["identification", "conversation", "special", "movement", "expression"]
+class TestTheFlowFiles:
+    def test_the_flows_are_the_files_of_flows_under_their_public_names(self):
+        assert list(FLOWS) == ["conversation", "expression", "identification", "movement", "special"]
+        assert FLOWS["identification"] is IDENTIFICATION_FLOW and FLOWS["conversation"] is CONVERSATION_FLOW
+        assert FLOWS["special"] is SPECIAL_FLOW and FLOWS["movement"] is MOVEMENT_FLOW
 
-    def test_an_unknown_flow_fails_loudly(self):
-        with pytest.raises(KeyError, match="unknown flow"):
-            FLOWS.get("nope")
+    def test_every_flow_file_has_the_name_of_its_file(self):
+        for name, flow in FLOWS.items():
+            assert flow.name == name
 
-    def test_a_flow_cannot_be_registered_twice(self):
-        with pytest.raises(ValueError, match="already registered"):
-            FlowRegistry([CONVERSATION_FLOW, CONVERSATION_FLOW])
-
-    def test_the_registry_is_iterable_in_registration_order(self):
-        assert [flow.name for flow in FlowRegistry([CONVERSATION_FLOW])] == ["conversation"]
+    def test_only_the_flows_that_can_ask_the_user_carry_the_hooks(self):
+        asking = {name for name, flow in FLOWS.items() if flow.on_pause and flow.on_resume}
+        assert asking == {"identification", "special", "movement"}
+        assert FLOWS["conversation"].on_pause is None and FLOWS["expression"].on_resume is None
 
 
 class TestTheStepsOfEachFlow:
     @pytest.mark.parametrize("flow,steps", [
         (IDENTIFICATION_FLOW, ["triage_specialist"]),
         (CONVERSATION_FLOW, ["draft_writer", "editor_in_chief"]),
-        (SPECIAL_FLOW, ["project_manager", "safety_quality_gatekeeper", "action_executor", "draft_writer", "editor_in_chief"]),
+        (SPECIAL_FLOW, ["triage_specialist", "project_manager", "safety_quality_gatekeeper", "action_executor", "draft_writer", "editor_in_chief"]),
         (MOVEMENT_FLOW, ["motion_planner", "motion_validator"]),
     ])
     def test_the_steps(self, flow, steps):
         assert [step.name for step in Pipeline(ScriptedLLM(), [], SessionMetrics(), flow=flow).steps] == steps
 
-    def test_only_identification_runs_triage(self):
-        for flow in (CONVERSATION_FLOW, SPECIAL_FLOW, MOVEMENT_FLOW):
+    def test_only_identification_and_special_run_triage(self):
+        # the special flow starts with its own triage (T-05.7), so its profile works on its own
+        for flow in (CONVERSATION_FLOW, MOVEMENT_FLOW):
             assert "triage_specialist" not in [s.name for s in Pipeline(ScriptedLLM(), [], SessionMetrics(), flow=flow).steps]
+        assert [s.name for s in Pipeline(ScriptedLLM(), [], SessionMetrics(), flow=SPECIAL_FLOW).steps][0] == "triage_specialist"
 
     def test_a_pipeline_tags_its_result_with_the_flow_and_the_state(self):
         result = Pipeline(ScriptedLLM(), [], SessionMetrics(), flow=IDENTIFICATION_FLOW).run("hello")
@@ -102,7 +99,7 @@ class TestGenericPipeline:
         assert ran == ["a", "c"]
 
     def test_the_flow_builds_its_own_result(self):
-        from application.orchestration.state.paused_run import FlowResult
+        from application.engine.state.paused_run import FlowResult
         flow = Flow(
             name="result-flow",
             build_steps=lambda context: [],

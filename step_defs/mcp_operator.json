@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "name": "mcp_operator",
+  "about": "Runs one MCP tool action with the tools its scope allows (one call per action).",
+  "kind": "llm_per_action",
+  "legacy_id": 5,
+  "group": "special",
+  "prompt": {
+    "file": "prompts/5_mcp_operator.txt"
+  },
+  "default_models": [
+    "gemini-3.6-flash"
+  ],
+  "intent": {
+    "primary": "decision_support",
+    "secondary": [],
+    "confidence": 0.9
+  },
+  "format_name": "phase5_single_action_response_format",
+  "answer": {
+    "schema_file": "general/actions/actions.schema.json"
+  },
+  "for_each": "actions",
+  "reads": [
+    "safety_and_validation",
+    "actions"
+  ],
+  "writes": [
+    "actions"
+  ],
+  "functions": {
+    "extra": "operator_extra"
+  }
+}

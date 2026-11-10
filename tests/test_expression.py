@@ -16,14 +16,15 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from application.inbound.dto.session import MessageReceivedResponseDTO
-from application.orchestration.flows.expression import EXPRESSION_FLOW
-from application.orchestration.flows.router import EXPRESSIVE_FLOWS, AgentRouter
-from application.orchestration.phases.expression import emotion_reader, gesture_builder
-from application.orchestration.phases.movement import motion_validator as validator
-from application.orchestration.state.expression_state import ExpressionFlowState
-from application.orchestration.state.paused_run import FlowResult
-from application.orchestration.support import expression_settings
-from application.orchestration.support.metrics import SessionMetrics
+from flow_files import EXPRESSION_FLOW
+from brain_chain import EXPRESSIVE_FLOWS, AgentRouter
+from application.steps.expression import gesture_builder
+from step_specs import EMOTION_READER, prompt_file
+from application.steps.movement import motion_validator as validator
+from application.engine.state.expression_state import ExpressionFlowState
+from application.engine.state.paused_run import FlowResult
+from application.engine.support import expression_settings
+from application.engine.support.metrics import SessionMetrics
 from domain.operations import gesture
 from domain.operations.gesture import EMOTIONS, build_gesture, gesture_seconds, net_rotation
 from domain.value_objects.movement.movement import Movement
@@ -136,7 +137,7 @@ class Answer:
 class TestEmotionReaderPhase:
     def apply(self, raw):
         state = ExpressionFlowState(message="hi", reply="hello")
-        emotion_reader.EMOTION_READER.apply(state, Answer(raw))
+        EMOTION_READER.apply(state, Answer(raw))
         return state
 
     def test_it_reads_the_emotion_the_intensity_and_the_ideas(self):
@@ -157,28 +158,33 @@ class TestEmotionReaderPhase:
 
     def test_the_model_sees_what_the_user_said_and_what_the_robot_answers(self):
         state = ExpressionFlowState(message="I got a puppy!", reply="How wonderful!")
-        text = emotion_reader.EMOTION_READER.build_input(state)
+        text = EMOTION_READER.build_input(state)
         assert "I got a puppy!" in text and "How wonderful!" in text
 
     def test_the_schema_asks_for_the_emotion_the_intensity_and_the_ideas(self):
-        properties = emotion_reader.EMOTION_READER.properties()
+        properties = EMOTION_READER.properties()
         assert set(properties) == {"emotion", "intensity", "improvised"}
         assert properties["emotion"]["enum"] == list(EMOTIONS)
         assert properties["improvised"]["maxItems"] == 3
 
     def test_the_prompt_names_every_emotion_the_builder_knows(self):
-        with open(os.path.join(PROJECT_ROOT, emotion_reader.PROMPT_FILE), encoding="utf-8") as f:
+        with open(os.path.join(PROJECT_ROOT, prompt_file("emotion_reader")), encoding="utf-8") as f:
             prompt = f.read()
         assert all(emotion in prompt for emotion in EMOTIONS)
 
 
 class TestSettings:
-    def test_it_is_on_unless_switched_off(self, monkeypatch):
+    def test_the_service_has_no_switch_for_the_gesture_any_more(self):
+        # the client asks the `gesture` profile; the knob of the tests' model of the client lives in tests/brain_chain.py
+        assert not hasattr(expression_settings, "expression_enabled") and not hasattr(expression_settings, "EXPRESSION_VARIABLE")
+
+    def test_the_knob_of_the_tests_model_of_the_client_is_on_unless_switched_off(self, monkeypatch):
+        from brain_chain import expression_enabled
         monkeypatch.delenv("AI_AGENT_EXPRESSION", raising=False)
-        assert expression_settings.expression_enabled() is True
+        assert expression_enabled() is True
         for off in ("0", "false", "No", "OFF"):
             monkeypatch.setenv("AI_AGENT_EXPRESSION", off)
-            assert expression_settings.expression_enabled() is False
+            assert expression_enabled() is False
 
     def test_the_speech_length_comes_from_the_text_and_the_speaking_rate(self, monkeypatch):
         monkeypatch.delenv("AI_AGENT_SPEECH_CHARS_PER_SECOND", raising=False)
@@ -311,7 +317,7 @@ class TestTheReplyIsNeverHeldBack:
         assert EXPRESSIVE_FLOWS == ("conversation", "special")
 
     def test_the_expression_flow_is_two_steps_the_reader_and_the_builder(self, on):
-        from application.orchestration.engine.pipeline import Pipeline
+        from application.engine.pipeline import Pipeline
         pipeline = Pipeline(ScriptedLLM(overrides=feeling()), [], SessionMetrics(), flow=EXPRESSION_FLOW)
         assert [step.name for step in pipeline.steps] == ["emotion_reader", "gesture_builder"]
 
@@ -326,11 +332,11 @@ class TestWhatBrainReceives:
             response="How wonderful!", success=True, flow="conversation", gesture=True,
             movements=[Movement("left", 60.0, "forward", 0.0), Movement("right", 45.0, "reverse", 0.8)])
         data = message_data(answer)
-        assert data.gesture is True
-        assert [(d.arm, d.degrees, d.direction, d.pause_seconds) for d in data.directives] == [
+        assert data["gesture"] is True
+        assert [(d["arm"], d["degrees"], d["direction"], d["pause_seconds"]) for d in data["directives"]] == [
             ("left", 60.0, "forward", 0.0), ("right", 45.0, "reverse", 0.8)]
 
     def test_what_the_user_asked_for_is_not_flagged_as_a_gesture(self):
         data = message_data(MessageReceivedResponseDTO(
             response="Turning.", success=True, flow="movement", movements=[Movement("left", 90.0)]))
-        assert data.gesture is False and data.directives[0].pause_seconds == 0.0
+        assert data["gesture"] is False and data["directives"][0]["pause_seconds"] == 0.0

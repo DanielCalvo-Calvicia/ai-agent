@@ -29,20 +29,20 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.orchestration.state.flow_state import FlowState
-from application.orchestration.support.metrics import SessionMetrics
-from application.orchestration.engine.pipeline import Pipeline
-from application.orchestration.engine.flow import Flow
-from application.orchestration.flows.identification import IDENTIFICATION_FLOW
-from application.orchestration.flows.special import SPECIAL_FLOW
+from application.engine.state.flow_state import FlowState
+from application.engine.support.metrics import SessionMetrics
+from application.engine.pipeline import Pipeline
+from application.engine.flow import Flow
+from flow_files import IDENTIFICATION_FLOW
+from flow_files import SPECIAL_FLOW
 from domain.entities.llm_response.response import Response
 
-# The identification flow and the special flow as ONE flow, the way the whole text chain ran before the router split it
-# (triage, plan, check, execute, write, polish). The tools below trace and re-run its steps one by one; the router has its
-# own tests (test_router.py).
+# The whole text chain as ONE flow: triage, plan, check, execute, write, polish. The `special` flow starts with the triage
+# (T-05.7), so it is that flow; `IDENTIFICATION_FLOW` stays imported for the tests that use it. The tools below trace and re-run its
+# steps one by one; the client's chain has its own tests (test_router.py, tests/brain_chain.py).
 FULL_FLOW = Flow(
     name="full",
-    build_steps=lambda context: IDENTIFICATION_FLOW.build_steps(context) + SPECIAL_FLOW.build_steps(context),
+    build_steps=SPECIAL_FLOW.build_steps,
     build_result=SPECIAL_FLOW.build_result,
 )
 
@@ -718,8 +718,8 @@ def run_with_stops(
     Returns the FlowResult of the pipeline.
     """
     from unittest.mock import patch
-    from application.orchestration.flows.action_executor import ActionExecutor
-    from application.orchestration.engine.phase_runner import PhaseRunner
+    from application.steps.special.action_executor import ActionExecutor
+    from application.engine.phase_runner import PhaseRunner
 
     stop = stop or _pause
     unknown = set(at) - set(STOP_POINTS)
@@ -747,8 +747,8 @@ def run_with_stops(
     original_send = PhaseRunner.send
     original_succeed, original_fail = ActionExecutor._succeed, ActionExecutor._fail
 
-    def send(self, payload, phase_id, model, action_id=None):
-        response = original_send(self, payload, phase_id, model, action_id)
+    def send(self, payload, phase_id, model, action_id=None, fallbacks=()):
+        response = original_send(self, payload, phase_id, model, action_id, fallbacks)
         if "response" in at and selected():
             stop("response", step=current["step"], state=current["state"], payload=payload, response=response,
                  phase_id=phase_id)

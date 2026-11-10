@@ -200,7 +200,7 @@ def markdown(data: Dict[str, Any], actions: int = 5, subactions: int = 5, tool_a
               "The planner is a single call, but it writes the whole plan on the priciest model; "
               "the worker has one call per action, so its cost grows with the size of the plan.",
               "- Changing the model of the biggest steps moves the total the most. To see the options of a step: "
-              "`windows\\Scripts\\python.exe tests\\manual\\show_models.py --step=cognitive_worker`.",
+              "`windows\\Scripts\\python.exe scripts\\model_tables.py --step=cognitive_worker`.",
               "- Change the size of the plan: `windows\\Scripts\\python.exe tests\\manual\\estimate_cost.py --actions=3 --subactions=2 --tools=0`.",
               ""]
     return "\n".join(lines)

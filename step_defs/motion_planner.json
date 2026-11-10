@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "name": "motion_planner",
+  "about": "Writes the movement list and a short spoken line; asks when the arm or the degrees are missing.",
+  "kind": "llm",
+  "legacy_id": 20,
+  "group": "movement",
+  "prompt": {
+    "file": "prompts/20_motion_planner.txt"
+  },
+  "default_models": [
+    "gemini-3.6-flash"
+  ],
+  "intent": {
+    "primary": "decision_support",
+    "secondary": [
+      "information_request"
+    ],
+    "confidence": 0.9
+  },
+  "format_name": "motion_planner_phase20_response_format",
+  "answer": {
+    "required": [
+      "is_motion_request",
+      "movements",
+      "spoken_reply",
+      "next_step"
+    ],
+    "pieces": [
+      {
+        "name": "is_motion_request",
+        "file": "motion/is_motion_request.schema.json",
+        "key": "is_motion_request"
+      },
+      {
+        "name": "movements",
+        "file": "motion/movements/movements.schema.json",
+        "key": "movements"
+      },
+      {
+        "name": "spoken_reply",
+        "file": "motion/spoken_reply.schema.json",
+        "key": "spoken_reply"
+      },
+      {
+        "name": "next_step",
+        "file": "general/next_steps/next_step.schema.json",
+        "key": "next_step"
+      }
+    ]
+  },
+  "reads": [
+    "message",
+    "history",
+    "answers"
+  ],
+  "writes": [
+    "motion_requested",
+    "movements",
+    "spoken_reply",
+    "next_step"
+  ],
+  "functions": {
+    "input": "message_with_history",
+    "apply": "motion_plan_result"
+  }
+}

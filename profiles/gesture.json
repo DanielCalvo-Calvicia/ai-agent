@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "name": "gesture",
+  "about": "The gesture that goes with a reply: the emotion reader and the gesture builder (plain code). Input: the reply (and the user's message).",
+  "token_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "flow": "expression",
+  "models": "proven",
+  "tools": {
+    "servers": []
+  },
+  "inputs": {
+    "requires": [
+      "reply"
+    ],
+    "accepts": [
+      "speech_seconds"
+    ]
+  },
+  "tested": null
+}

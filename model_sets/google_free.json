@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "name": "google_free",
+  "_about": "Google models only, both with a free tier (no billing needed to run or test). The small steps (triage, cleaning, the checker, the question, the emotion reader) use gemini-3.1-flash-lite; the planner, the gate, the worker, the tool step, the draft, the editor and the motion planner use gemini-3.6-flash (the same price as gemini-3.8-flash, which was the first choice but answered 503 \"high demand\" on every try of 2026-10-28; change them back when it answers). Needs GOOGLE_API_KEY and GOOGLE_URL only. Untested as a combination. Free-tier content is used by Google to improve its products, and its rate limits are not published on Google's pricing page; with a billed key neither applies, but the price of gemini-3.6-flash doubles on 2027-01-01. Decided in PR-004 (2026-10-27). Not active since 2026-10-28: on the free tier gemini-3.6-flash returned 429 \"quota exceeded\" after about 7 calls in 30 s, and one message calls it about 6 times; proven (every step on gemini-3.1-flash-lite) is active instead.",
+  "default": [
+    "gemini-3.1-flash-lite",
+    "gemini-3.5-flash-lite",
+    "gemini-3-flash-preview"
+  ],
+  "project_manager": [
+    "gemini-3.6-flash",
+    "gemini-3.5-flash-lite",
+    "gemini-3-flash-preview"
+  ],
+  "safety_quality_gatekeeper": [
+    "gemini-3.6-flash",
+    "gemini-3.5-flash-lite",
+    "gemini-3-flash-preview"
+  ],
+  "cognitive_worker": [
+    "gemini-3.6-flash",
+    "gemini-3.5-flash-lite",
+    "gemini-3-flash-preview"
+  ],
+  "mcp_operator": [
+    "gemini-3.6-flash",
+    "gemini-3.5-flash-lite",
+    "gemini-3-flash-preview"
+  ],
+  "draft_writer": [
+    "gemini-3.6-flash",
+    "gemini-3.5-flash-lite",
+    "gemini-3-flash-preview"
+  ],
+  "editor_in_chief": [
+    "gemini-3.6-flash",
+    "gemini-3.5-flash-lite",
+    "gemini-3-flash-preview"
+  ],
+  "motion_planner": [
+    "gemini-3.6-flash",
+    "gemini-3.5-flash-lite",
+    "gemini-3-flash-preview"
+  ]
+}

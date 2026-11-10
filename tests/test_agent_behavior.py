@@ -17,8 +17,8 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.orchestration.support.model_selection import model_for_phase
-from application.service.session_service import SessionService
+from application.engine.support.model_selection import ModelResolver
+from brain_chain import ChainedSessionService as SessionService
 from application.system_prompts.general import LoadSystemPrompt
 from domain.entities.llm_request.payload import Payload
 from domain.entities.llm_response.response import Response
@@ -437,33 +437,20 @@ class TestSessionMemory:
 # ===============================================
 
 class TestModelPerPhase:
-    def test_default_is_used_without_override(self, monkeypatch):
-        monkeypatch.delenv("AI_AGENT_MODEL_PHASE_2", raising=False)
-        assert model_for_phase(2, GoogleModels.GEMINI_3_8_FLASH).id == "gemini-3.8-flash"
+    """The resolver itself is tested in tests/test_model_config.py; here, that a model reaches the call."""
 
-    def test_override_replaces_the_default(self, monkeypatch):
+    def test_default_is_used_without_a_profile(self):
+        models = ModelResolver().models_for("special", "project_manager", GoogleModels.GEMINI_3_8_FLASH)
+        assert [m.id for m in models] == ["gemini-3.8-flash"]
+
+    def test_a_variable_no_longer_chooses_a_model(self, monkeypatch):
         monkeypatch.setenv("AI_AGENT_MODEL_PHASE_2", "gemini-3.1-flash-lite")
-        assert model_for_phase(2, GoogleModels.GEMINI_3_8_FLASH).id == "gemini-3.1-flash-lite"
+        models = ModelResolver().models_for("special", "project_manager", GoogleModels.GEMINI_3_8_FLASH)
+        assert [m.id for m in models] == ["gemini-3.8-flash"]
 
-    def test_override_of_one_phase_does_not_touch_the_others(self, monkeypatch):
-        monkeypatch.setenv("AI_AGENT_MODEL_PHASE_2", "gemini-3.1-flash-lite")
-        monkeypatch.delenv("AI_AGENT_MODEL_PHASE_3", raising=False)
-        assert model_for_phase(3, GoogleModels.GEMINI_3_8_FLASH).id == "gemini-3.8-flash"
-
-    def test_a_model_of_another_provider_can_be_used(self, monkeypatch):
-        monkeypatch.setenv("AI_AGENT_MODEL_PHASE_2", "llama-3.3-70b-versatile")
-        model = model_for_phase(2, GoogleModels.GEMINI_3_8_FLASH)
-        assert model.id == "llama-3.3-70b-versatile" and model.is_groq()
-
-    def test_unknown_override_fails_loudly(self, monkeypatch):
-        monkeypatch.setenv("AI_AGENT_MODEL_PHASE_2", "not-a-model")
-        with pytest.raises(ValueError, match="AI_AGENT_MODEL_PHASE_2"):
-            model_for_phase(2, GoogleModels.GEMINI_3_8_FLASH)
-
-    def test_override_reaches_the_llm_call(self, monkeypatch):
-        monkeypatch.setenv("AI_AGENT_MODEL_PHASE_1", "gemini-3.5-flash-lite")
+    def test_the_model_of_a_profile_reaches_the_llm_call(self):
         llm = ScriptedLLM()
-        service, sid = _service(llm)
+        service, sid = _service(llm, models=ModelResolver({"overrides": {"triage_specialist": {"models": ["gemini-3.5-flash-lite"]}}}))
         _say(service, sid, "hi")
         assert llm.calls[0]["model"] == "gemini-3.5-flash-lite"
 

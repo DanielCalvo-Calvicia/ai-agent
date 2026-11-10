@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "name": "triage_specialist",
+  "about": "Classifies intent, extracts the user goal and the task category (the domain says which profile the client asks next).",
+  "kind": "llm",
+  "legacy_id": 1,
+  "group": "identification",
+  "prompt": {
+    "file": "prompts/1_triage_specialist.txt"
+  },
+  "default_models": [
+    "gemini-3.1-flash-lite"
+  ],
+  "intent": {
+    "primary": "clarification_request",
+    "secondary": [
+      "information_request"
+    ],
+    "confidence": 1.0
+  },
+  "format_name": "triage_specialist_phase1_response_format",
+  "answer": {
+    "required": [
+      "intent",
+      "user_goal",
+      "task_category",
+      "next_step"
+    ],
+    "pieces": [
+      {
+        "name": "intent",
+        "file": "general/intent/intent.schema.json",
+        "key": "intent"
+      },
+      {
+        "name": "user_goal",
+        "file": "general/user_goal/user_goal.schema.json",
+        "key": "user_goal"
+      },
+      {
+        "name": "task_category",
+        "file": "general/task_category/task_category.schema.json",
+        "key": "task_category"
+      },
+      {
+        "name": "next_step",
+        "file": "general/next_steps/next_step.schema.json",
+        "key": "next_step"
+      }
+    ]
+  },
+  "reads": [
+    "message",
+    "history",
+    "answers"
+  ],
+  "writes": [
+    "intent",
+    "user_goal",
+    "mcp_routing",
+    "task_category",
+    "actions",
+    "missing_information",
+    "constraints",
+    "safety_and_validation",
+    "next_step"
+  ],
+  "functions": {
+    "input": "message_with_history",
+    "apply": "load_from_response"
+  }
+}

@@ -19,3 +19,5 @@ Four flows in one service and one venv: `identification` (triage), `conversation
 
 - Positive: nothing is classified twice; a new flow is a file, its phases and one line in the registry and the router.
 - Negative: a message that mixes a reply and a movement goes to one flow only; a wrong `domain` sends the message to the wrong flow.
+
+**Note 2026-11-04, [ADR-015](ADR-015-profiles-flows-steps.md):** the **router is gone** (T-05.7): the service runs the flow of ONE profile per message and the client chains the profiles. The four flows (and the expression flow) remain, now as files in `flows/` that profiles name; `tests/brain_chain.py` is the tests' model of the old routing. The consequences above about a wrong `domain` now concern the client's choice of profile.

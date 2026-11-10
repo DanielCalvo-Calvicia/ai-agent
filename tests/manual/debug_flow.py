@@ -22,7 +22,7 @@ Options:
     --scenario=NAME  script the LLM with a scenario of the tests (default: full_path_with_mcp; --list to see them)
     --list           list the scenarios
     --message="..."  the message to send
-    --real           use the real LLM (needs the keys and models of .env / AI_AGENT_MODEL_PHASE_<n>)
+    --real           use the real LLM (needs the keys of .env; the models are the code defaults of the steps)
     --only=STEP      run only this step (needs --state)
     --state=PATH     a states/*.pkl file saved by a previous run (only files you saved yourself)
     --repeat=N       with --only: how many times to run the step
