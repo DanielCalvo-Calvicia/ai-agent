@@ -1,0 +1,38 @@
+# ==============================================================================
+# PIPELINE: Deploy to Production
+# ==============================================================================
+# Runs POST-MERGE on `main`. Assumes the PR gate (verify-pr.yml) has already
+# enforced the Verify flow.
+#
+# Delegates the real work to the Deploy flow targeting the 'production'
+# environment. The Deploy flow honours the repository Variable DEPLOY_ENABLED
+# (when it is 'false', nothing is deployed). Concurrent runs are NEVER
+# cancelled — we don't interrupt a production deploy.
+# ==============================================================================
+
+name: Deploy - Production
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
+  workflow_dispatch:
+
+# Do NOT cancel in-progress production deploys.
+concurrency:
+  group: deploy-prod-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: "Deploy -> production"
+    uses: ./.github/workflows/~flow-deploy.yml
+    with:
+      env_name: production
+    secrets: inherit
+    permissions:
+      contents: read
+      packages: write

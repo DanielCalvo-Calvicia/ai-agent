@@ -15,8 +15,10 @@ mcp==1.26.0
 # Tests
 pytest==9.0.2
 
-# Shared logging + distributed tracing (local checkout; see shared-logging/README.md)
--e ../shared-logging
+# Shared logging + distributed tracing, bundled in this folder like contracts so the image and the CI build on their own
+# (the sibling ../shared-logging checkout is no longer needed). Refresh it after a change there:
+#   pip wheel --no-deps -w vendor ../shared-logging   (from a copy without build/ and *.egg-info), then update the name below
+./vendor/shared_logging-0.1.0-py3-none-any.whl
 
 # Project contracts (single source of truth for what microservices exchange), bundled in this
 # folder so the service builds on its own. Refresh with contracts/scripts/bundle.py

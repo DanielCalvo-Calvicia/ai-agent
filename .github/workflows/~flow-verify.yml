@@ -1,0 +1,104 @@
+# ==============================================================================
+# FLOW: Verify
+# ==============================================================================
+# Quality gate. Runs the read-only checks in parallel, then notifies. NEVER
+# builds, scans or deploys.
+#
+# Step 3 (Unit Tests) is the expensive one and the only one gated by
+# `run_tests`:
+#   - verify-pr.yml leaves it at the default (true) — this is the actual
+#     required merge gate (branch protection), so it runs the full suite.
+#   - verify-topic-branch.yml passes false — fast lint+secrets-only feedback
+#     on every push to a WIP branch, without re-running the full suite on
+#     every commit before a PR even exists. The full suite still runs once,
+#     for real, when the PR is opened/synced.
+#
+# Called by: verify-pr.yml, verify-topic-branch.yml (workflow_call only)
+#
+# Stages:
+#   Step 1 - Secret Scanning   (TruffleHog)
+#   Step 2 - Lint              (Super-Linter, one run per linter category)
+#   Step 3 - Unit Tests        (pip install + schema tree + agent assembly + pytest) — gated by run_tests
+#   Step 7 - Notify            (always)
+# ==============================================================================
+
+name: Flow - Verify
+
+on:
+  workflow_call:
+    inputs:
+      context:
+        description: "Label shown in the notify summary (e.g. 'pr-to-main',
+          'topic-feature_x')."
+        required: true
+        type: string
+      run_tests:
+        description: "Whether to run Step 3 (Unit Tests). Defaults to true —
+          the merge-gate case. Pass false for fast, pre-PR feedback on a
+          topic-branch push."
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  # ============================================================================
+  # INDEX: Setup Context (cosmetic anchor — creates a dedicated start node in
+  # the GitHub Actions visual graph so the flow renders as a proper pipeline
+  # chain instead of a flat two-box layout)
+  # ============================================================================
+  index:
+    name: "🗂️ Index — Setup Context"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Context"
+        run: |
+          echo "context : ${{ inputs.context }}"
+          echo "ref     : ${{ github.ref_name }}"
+          echo "sha     : ${{ github.sha }}"
+
+  # ============================================================================
+  # STEP 1: Secret Scanning
+  # ============================================================================
+  secrets:
+    name: "🔐 Step 1 — Secret Scanning"
+    needs: index
+    uses: ./.github/workflows/~step-1-secrets.yml
+
+  # ============================================================================
+  # STEP 2: Lint
+  # ============================================================================
+  lint:
+    name: "🔍 Step 2 — Lint"
+    needs: index
+    uses: ./.github/workflows/~step-2-lint.yml
+    secrets: inherit
+
+  # ============================================================================
+  # STEP 3: Unit Tests (skipped entirely, not run-and-ignored, when
+  # run_tests is false — see header comment)
+  # ============================================================================
+  test:
+    name: "🧪 Step 3 — Unit Tests"
+    needs: index
+    if: inputs.run_tests
+    uses: ./.github/workflows/~step-3-test.yml
+    secrets: inherit
+
+  # ============================================================================
+  # STEP 7: Notify (always)
+  # ============================================================================
+  notify:
+    name: "📣 Step 7 — Notify"
+    if: always()
+    needs: [ index, secrets, lint, test ]
+    uses: ./.github/workflows/~step-7-notify.yml
+    with:
+      pipeline_status: >-
+        ${{
+          (needs.secrets.result == 'success' &&
+           needs.lint.result    == 'success' &&
+           (needs.test.result == 'success' || needs.test.result == 'skipped'))
+          && 'success' || 'failure'
+        }}
+      env_name: ${{ inputs.context }}
+    secrets: inherit

@@ -1,6 +1,6 @@
 # CLAUDE.md: ai-agent
 
-Port **7998** (`AI_AGENT_PORT`). Python/FastAPI. The "mind" of OBLIVION: it receives what the user said and **decides what to do**.
+Port **7998** (`HTTP_ADDR`, default `:7998`). Python/FastAPI. The "mind" of OBLIVION: it receives what the user said and **decides what to do**.
 Status: prototype. Read `README.md` first, then `docs/architecture/architecture.md` (how it works), `docs/rules/schemas-and-prompts.md`,
 `docs/configuration/environment-variables.md` and `../CLAUDE.md` (workspace rules). Each doc says which parts are generated or historical (`docs/README.md`).
 
@@ -92,7 +92,7 @@ Use dated notes in history (ADRs, proposals); correct the text in documents that
 ## Rules
 
 - `.env` holds many provider keys. Never read the values out, print them or copy them; use variable names only.
-- Uses `shared_logging` (`init_logging("ai-agent")`, `TracingMiddleware`, `-e ../shared-logging`) and the bundled `contracts` wheel in `vendor/`
+- Uses `shared_logging` (`init_logging("ai-agent")`, `TracingMiddleware`, the bundled `shared_logging` wheel) and the bundled `contracts` wheel in `vendor/`
   (refresh with `contracts/scripts/bundle.py`; the version is in `requirements.txt`).
 - Keep the LLM adapter behind `LLMOutboundPort` so providers stay swappable.
 - A change to a prompt, schema, model or message format changes the golden file: read the diff first, then regenerate on purpose (`UPDATE_GOLDEN=1`).
@@ -127,3 +127,7 @@ Use dated notes in history (ADRs, proposals); correct the text in documents that
 `tests/` is all mock-based and runs without the config file (`tests/conftest.py`). `tests/output/` holds generated reports of manual runs, not
 documentation. `tests/manual/` scripts call real LLMs and MCP servers, are not collected by pytest, were not re-run after the redesign, and cost
 money: ask first. The cross-service e2e tests are in `../contracts/tests/e2e/`.
+
+## Delivery (2026-11-10, branch `feature_deployment`, ADR-017, written and never run)
+
+`Dockerfile`, `.dockerignore`, `k8s/`, `.github/workflows/` and `.env.github` (names only) deliver the service to K3s, adapted from `dynamics_microservice`: `docs/deployment/deployment.md`. The repository Variable `DEPLOY_ENABLED` = `false` stops every deploy. Every setting of the project is a repository Variable or Secret of the same name (there is no `APP_CONFIG` block); the URL of `dynamics_microservice` is one secret per environment (`DYNAMICS_MCP_URL_DEVELOPMENT`, `DYNAMICS_MCP_URL_PRODUCTION`, written as `DYNAMICS_MCP_URL`). The workflow computes only `PROJECTNAME`, `APP_ENV` and `HTTP_ADDR` (the name `dynamics_microservice` reads; it replaced `AI_AGENT_HOST` and `AI_AGENT_PORT`); a new setting a deployed environment must be able to take goes in `.env.example`, `.env.github`, the `env:` block of `~step-6-deploy.yml` and `docs/configuration/environment-variables.md`. `requirements.txt` installs `shared-logging` from the wheel in `vendor/` (a snapshot: refresh it after a change in `../shared-logging`).

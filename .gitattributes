@@ -1,0 +1,5 @@
+# CI/CD and container files run on Linux: keep them LF on a Windows checkout.
+.github/** text eol=lf
+k8s/** text eol=lf
+Dockerfile text eol=lf
+.dockerignore text eol=lf

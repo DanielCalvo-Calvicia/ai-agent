@@ -1,0 +1,36 @@
+# ==============================================================================
+# PIPELINE: Verify a Pull Request
+# ==============================================================================
+# Runs BEFORE a merge into `main` or `feature`. This is the actual merge
+# gate — the full suite (secrets + lint + test + notify), run_tests left at
+# its default (true) unlike verify-topic-branch.yml's fast, tests-skipped
+# push checks. Does NOT build, scan or deploy.
+#
+# Branch protection should mark the jobs produced by ~flow-verify.yml as
+# required status checks on `main` and `feature`.
+# ==============================================================================
+
+name: Verify - Pull Request
+
+on:
+  pull_request:
+    branches:
+      - main
+      - feature
+    types: [ opened, synchronize, reopened, ready_for_review ]
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
+
+# Cancel older PR runs on the same ref when a new commit is pushed.
+concurrency:
+  group: verify-pr-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: "Verify (PR -> ${{ github.base_ref }})"
+    uses: ./.github/workflows/~flow-verify.yml
+    with:
+      context: pr-to-${{ github.base_ref }}
+    secrets: inherit

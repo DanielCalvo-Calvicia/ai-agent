@@ -1,0 +1,77 @@
+# ==============================================================================
+# STEP 5 - Security Scan (Trivy)
+# ==============================================================================
+# Scans the Docker image built in Step 4 for known OS and package
+# vulnerabilities using Aqua Security's Trivy.
+# Blocks the deploy if any CRITICAL/HIGH severity vulnerabilities are found.
+#
+# Called by: ~flow-deploy.yml (workflow_call only — never runs on its own).
+# Currently NOT wired in (commented out in ~flow-deploy.yml): enable it there
+# when a blocking vulnerability scan of the image is wanted.
+# ==============================================================================
+
+name: Step 5 - Security Scan
+
+on:
+  workflow_call:
+    inputs:
+      image_sha:
+        description: "The short SHA of the built image to scan"
+        required: true
+        type: string
+
+jobs:
+  scan:
+    name: "🛡️ Scan Docker Image (Trivy)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    permissions:
+      contents: read
+      packages: read
+      security-events: write # Required to upload SARIF results
+
+    steps:
+      # --------------------------------------------------------------------------
+      # 1. Source
+      # --------------------------------------------------------------------------
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # --------------------------------------------------------------------------
+      # 2. Login to GHCR to pull the image to scan
+      # --------------------------------------------------------------------------
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # --------------------------------------------------------------------------
+      # 3. Resolve image reference
+      # --------------------------------------------------------------------------
+      - name: Resolve image reference
+        id: meta
+        run: echo "repo=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+
+      # --------------------------------------------------------------------------
+      # 4. Run Trivy vulnerability scanner
+      # --------------------------------------------------------------------------
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ghcr.io/${{ steps.meta.outputs.repo }}:${{ inputs.image_sha }}
+          format: "sarif"
+          output: "trivy-results.sarif"
+          severity: "CRITICAL,HIGH"
+          exit-code: "1" # Fail the pipeline if CRITICAL or HIGH vulns found
+
+      # --------------------------------------------------------------------------
+      # 5. Upload SARIF report to GitHub Security tab
+      # --------------------------------------------------------------------------
+      - name: Upload Trivy scan results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() # Always upload so we can see results even on failure
+        with:
+          sarif_file: "trivy-results.sarif"

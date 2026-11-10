@@ -1,0 +1,85 @@
+# ==============================================================================
+# STEP 2 - Linting
+# ==============================================================================
+# Validates the syntax and style of the files of the repository that are not
+# Python, before building. Uses GitHub Super-Linter, matrixed one run per linter
+# category so a failure in one is isolated and clearly attributed rather than
+# buried in one monolithic run.
+#
+# Each matrix entry's "Select linter" step turns on exactly one
+# VALIDATE_<X> and nothing else. Super-Linter hard-refuses to start at all
+# if any VALIDATE_<LANG> is "true" while another is explicitly "false"
+# ("please either only include ... or exclude ... but not both") — one
+# whitelisted linter per run sidesteps that entirely.
+#
+# Python is deliberately NOT linted here. The project has no linter
+# configuration (no ruff, flake8, pylint or black settings), and turning one on
+# with its defaults would fail on code that is correct. What guards the Python
+# code is Step 3: the project's own checks (the schema tree, the assembly of
+# every profile, flow and step, and the whole test suite).
+#
+# The matrix is the one of dynamics_microservice, without the Go parts. JSON
+# matters here (profiles, flows, step declarations, model sets, schemas and the
+# configuration of the models are JSON files that the service reads at start-up).
+#
+# Custom configs for the linters below live in .github/linters/ — Super-
+# Linter's default LINTER_RULES_PATH.
+#
+# Called by: ~flow-verify.yml (workflow_call only — never runs on its own)
+# ==============================================================================
+
+name: Step 2 - Lint
+
+on:
+  workflow_call:
+
+jobs:
+  lint:
+    name: "🔍 Lint — ${{ matrix.name }}"
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: YAML
+            validate_var: VALIDATE_YAML
+          - name: JSON
+            validate_var: VALIDATE_JSON
+          - name: Markdown
+            validate_var: VALIDATE_MARKDOWN
+          - name: Dockerfile
+            validate_var: VALIDATE_DOCKERFILE_HADOLINT
+          - name: GitHub Actions
+            validate_var: VALIDATE_GITHUB_ACTIONS
+
+    steps:
+      # --------------------------------------------------------------------------
+      # 1. Source
+      # --------------------------------------------------------------------------
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # --------------------------------------------------------------------------
+      # 2. Turn on this matrix entry's one linter (see header comment for why
+      #    this can't just be a literal `VALIDATE_<X>: true` per matrix row
+      #    in the env: block below — env keys are static, not templated).
+      # --------------------------------------------------------------------------
+      - name: Select linter
+        run: echo "${{ matrix.validate_var }}=true" >> "$GITHUB_ENV"
+
+      # --------------------------------------------------------------------------
+      # 3. Run Super-Linter
+      # --------------------------------------------------------------------------
+      - name: Run Super-Linter
+        uses: github/super-linter/slim@v5
+        env:
+          DEFAULT_BRANCH: main
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VALIDATE_ALL_CODEBASE: true
+          # docs/models/ is generated (scripts/model_tables.py) and never edited
+          # by hand; vendor/ holds the wheels; tests/output is the (gitignored)
+          # output of the manual runs.
+          FILTER_REGEX_EXCLUDE: .*/(docs/models|vendor|tests/output)/.*

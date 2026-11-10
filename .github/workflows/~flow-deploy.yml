@@ -1,0 +1,119 @@
+# ==============================================================================
+# FLOW: Deploy
+# ==============================================================================
+# Post-merge delivery recipe. Builds the image, deploys it to the given
+# environment and notifies. Assumes the Verify flow has already passed
+# pre-merge (enforced via branch protection on the PR gate).
+#
+# KILL SWITCH: the repository Variable DEPLOY_ENABLED. When it is the text
+# "false" (any case), the whole flow is skipped: nothing is built, pushed or
+# applied to the cluster, and the run only prints that the deploy is off. Unset
+# or any other value deploys. It is read here, so the push triggers AND a manual
+# workflow_dispatch of deploy-to-dev.yml / deploy-to-prod.yml obey it.
+# Settings > Secrets and variables > Actions > Variables > DEPLOY_ENABLED.
+#
+# Called by: deploy-to-dev.yml, deploy-to-prod.yml (workflow_call only)
+#
+# Stages:
+#   Step 4 - Build & Push     (Docker -> GHCR)
+#   Step 5 - Security Scan    (Trivy; disabled, see below)
+#   Step 6 - Deploy           (kubectl apply to K3s)
+#   Step 7 - Notify           (always, unless the deploy is switched off)
+# ==============================================================================
+
+name: Flow - Deploy
+
+on:
+  workflow_call:
+    inputs:
+      env_name:
+        description: "Target environment: 'development' or 'production'."
+        required: true
+        type: string
+
+jobs:
+  # ============================================================================
+  # INDEX: Setup Context (cosmetic anchor — creates a dedicated start node in
+  # the GitHub Actions visual graph so the flow renders as a proper pipeline
+  # chain instead of a flat two-box layout). It also says out loud whether the
+  # kill switch is on, so a skipped run is not a mystery.
+  # ============================================================================
+  index:
+    name: "🗂️ Index — Setup Context"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Context"
+        run: |
+          echo "env_name       : ${{ inputs.env_name }}"
+          echo "ref            : ${{ github.ref_name }}"
+          echo "sha            : ${{ github.sha }}"
+          echo "DEPLOY_ENABLED : '${{ vars.DEPLOY_ENABLED }}'"
+
+      - name: "Deploy switched off"
+        if: vars.DEPLOY_ENABLED == 'false'
+        run: |
+          echo "::notice title=Deploy skipped::The repository variable DEPLOY_ENABLED is 'false': nothing was built or deployed to ${{ inputs.env_name }}."
+          {
+            echo "# ⏸️ Deploy skipped"
+            echo
+            echo "The repository variable \`DEPLOY_ENABLED\` is \`false\`, so nothing was built or deployed to \`${{ inputs.env_name }}\`."
+            echo "Set it to \`true\` (or delete it) under Settings > Secrets and variables > Actions > Variables to deploy again."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ============================================================================
+  # STEP 4: Build & Push Docker Image
+  # ============================================================================
+  build:
+    name: "🐳 Step 4 — Build & Push"
+    needs: index
+    if: vars.DEPLOY_ENABLED != 'false'
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/~step-4-build.yml
+    secrets: inherit
+
+  # ============================================================================
+  # STEP 5: Security Scan (Trivy)
+  # Blocks deploy if CRITICAL/HIGH vulnerabilities are found.
+  # Disabled by default (as in dynamics_microservice). Re-enable once desired.
+  # ============================================================================
+  #scan:
+  #  name: "🛡️ Step 5 — Security Scan"
+  #  needs: build
+  #  uses: ./.github/workflows/~step-5-scan.yml
+  #  with:
+  #    image_sha: ${{ needs.build.outputs.image_sha }}
+  #  secrets: inherit
+
+  # ============================================================================
+  # STEP 6: Deploy to K3s
+  # ============================================================================
+  deploy:
+    name: "🚀 Step 6 — Deploy"
+    needs: [index, build] # [ build, scan ]
+    if: vars.DEPLOY_ENABLED != 'false'
+    uses: ./.github/workflows/~step-6-deploy.yml
+    with:
+      image_sha: ${{ needs.build.outputs.image_sha }}
+      env_name: ${{ inputs.env_name }}
+    secrets: inherit
+
+  # ============================================================================
+  # STEP 7: Notify (always, except when the deploy is switched off: the index
+  # job already wrote that to the summary)
+  # ============================================================================
+  notify:
+    name: "📣 Step 7 — Notify"
+    if: always() && vars.DEPLOY_ENABLED != 'false'
+    needs: [index, build, deploy] # [ build, scan, deploy ]
+    uses: ./.github/workflows/~step-7-notify.yml
+    with:
+      pipeline_status: >-
+        ${{
+          (needs.build.result  == 'success' &&
+           needs.deploy.result == 'success')
+          && 'success' || 'failure'
+        }}
+      env_name: ${{ inputs.env_name }}
+    secrets: inherit

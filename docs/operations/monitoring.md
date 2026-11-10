@@ -9,7 +9,7 @@
 
 ## Logging and tracing
 
-- `shared_logging` (`init_logging("ai-agent")`, `TracingMiddleware`, installed with `-e ../shared-logging`). Messages are constant strings with keyword fields. `LOG_LEVEL`, `LOG_FORMAT` and `TRACE_EXPORT_*` are read by that package (`shared-logging/docs/logging.md`).
+- `shared_logging` (`init_logging("ai-agent")`, `TracingMiddleware`, installed from the wheel in `vendor/`). Messages are constant strings with keyword fields. `LOG_LEVEL`, `LOG_FORMAT`, `APP_ENV` (the `environment` field: `development` or `production` when deployed) and `TRACE_EXPORT_*` are read by that package (`shared-logging/docs/logging.md`). In the cluster the logs are one JSON object per line on stdout, as the pod's log.
 - The trace headers are forwarded to the MCP servers (`infrastructure/outbound/mcp/client_manager.py`).
 - Never log a provider key, a token or the content of `.env`.
 - At each request: `Profile refused` (WARNING: the profile name only if it looks like a name, and the reason `unknown_or_disabled_profile`, `no_token` or `wrong_token`; never the token) and `A waiting question was discarded` (the session id). No token and no `inputs` content in any log, metric or span (T-05.9).

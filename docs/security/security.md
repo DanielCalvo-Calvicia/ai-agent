@@ -5,6 +5,7 @@
 - `.env` holds many provider keys (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`, `MISTRAL_API_KEY`, `GROQ_API_KEY`, `COHERE_API_KEY`, `LANGFUSE_*`; `GITHUB_PAT` is no longer used). It is never committed. Copy `.env.example` to `.env`.
 - Never read the values out, print them or copy them into code, tests, fixtures, documents or memory. Documents name variables only.
 - The process environment wins over `.env` (`override=False`).
+- In a deployed environment the keys are **GitHub repository Secrets** (`DYNAMICS_MCP_URL_DEVELOPMENT` and `DYNAMICS_MCP_URL_PRODUCTION` hold the private host of the Go service) that the deploy writes to a Kubernetes Secret; nothing is in the image (`.dockerignore` excludes `.env` and `.env.*`) or in a manifest. [`.env.github`](../../.env.github) holds names only. The deploy also needs `GH_PAT` (read access to GHCR, for the image pull secret) and `KUBE_CONFIG`. The step that writes the settings never prints them; do not add `set -x` or an `echo` of the environment to it.
 
 ## What the service can do
 
@@ -15,7 +16,7 @@
 
 ## Exposure
 
-- No authentication and no CORS in this service: it is meant to be reached by Brain inside the workspace only. Do not expose port `7998` outside it.
+- No authentication and no CORS in this service: it is meant to be reached by Brain inside the workspace only. Do not expose port `7998` outside it. The deployed Service is a `NodePort` (`30000 + PORT_OFFSET` in development, `31000 + PORT_OFFSET` in production), open on the node's address: the network in front of the node decides who can reach it, and the container runs as a non-root user with a read-only root filesystem and all capabilities dropped.
 - Sessions live in process memory and are not tied to a caller identity beyond `user_id` (3 to 128 characters).
 - **`dynamics_microservice` has no authentication either**: its endpoint is open and ai-agent reaches it by a **public IP and port over plain HTTP**, set only in `DYNAMICS_MCP_URL` (never in git). Anyone who can reach that address can read what the service exposes. A Cognito identity service is planned; **who may see which customer is decided by a layer above ai-agent**, not here. Some requests will carry sensitive data (customer names, orders), but most are capped by the Go service, which forces what it returns. When ai-agent moves inside the Kubernetes network the address becomes a cluster service name.
 
@@ -40,7 +41,7 @@ A profile (except `default`) carries `token_sha256`, the SHA-256 of its token in
 
 ## Dependencies
 
-- `contracts` comes from the bundled wheel in `vendor/` (refresh with `contracts/scripts/bundle.py`); `shared-logging` is a sibling package. Nothing is downloaded at run time.
+- `contracts` comes from the bundled wheel in `vendor/` (refresh with `contracts/scripts/bundle.py`); `shared-logging` is a wheel in `vendor/` too (a snapshot of `../shared-logging`: refresh it after a change there, see `requirements.txt`). The image installs `requirements.txt` at build time; nothing is downloaded at run time. The pinned packages of `requirements.txt` that no code imports are still installed in the image (see the comment in `requirements.txt`); Dependabot proposes updates weekly for pip, GitHub Actions and the base image.
 
 ## Open points
 

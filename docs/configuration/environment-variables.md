@@ -5,22 +5,20 @@ into docs or tests); this file names variables and never shows a value.
 
 ## 1. Where settings come from
 
-1. The process environment (what the deploy tool or your shell exports) always wins.
+1. The process environment (what the Kubernetes Secret of the deploy or your shell exports) always wins.
 2. `.env` in the ai-agent folder, loaded at startup by `python-dotenv` with `override=False`. Copy `.env.example` to `.env`.
 3. The code defaults listed below.
 4. Files under `config/` (models, prices, budget) and `mcps/` (MCP servers).
 
-`.env.example` and the code agree on every variable below; when you add one, add it to both and to this file. In the
-OBLIVION workspace, `deployment/` regenerates its settings files from `.env.example`
-(`deployment/scripts/env_inventory.py --write`).
+`.env.example` and the code agree on every variable below; when you add one, add it to both and to this file, **and to `.env.github` and the `env:` block of `.github/workflows/~step-6-deploy.yml`** if it should be settable in a deployed environment (section 7). In the
+OBLIVION workspace, a sibling `deployment/` project used to regenerate its settings files from `.env.example` (`deployment/scripts/env_inventory.py --write`); it is not in this repository.
 
 ## 2. Environment variables
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `AI_AGENT_HOST` | `0.0.0.0` | bind address |
-| `AI_AGENT_PORT` | `7998` | bind port |
-| `AI_AGENT_RELOAD` | `1` | `1` = uvicorn auto-reload (development), `0` for a stable run (the deploy tool sets `0`) |
+| `HTTP_ADDR` | `:7998` | address the server listens on: `host:port`, or `:port` for every interface (the name and format of `dynamics_microservice`; it replaced `AI_AGENT_HOST` and `AI_AGENT_PORT`, which are no longer read). A wrong value stops the start |
+| `AI_AGENT_RELOAD` | `1` | `1` = uvicorn auto-reload (development), `0` for a stable run (the image and the deploy set `0`) |
 | `AI_AGENT_HISTORY_TURNS` | `6` | requests remembered per session: the last N entries (T-05.8), each with the user's words, the reply that was sent and the structured `Response` of the run; the steps read them as a user message and its reply (none when the reply is empty). A request whose run has no `user_goal` (the `gesture` profile, a movement nobody classified) adds no entry. Only triage and the project manager read them |
 | `AI_AGENT_PARALLEL_ACTIONS` | `1` | independent actions of a plan that run together (`1` = one by one; tool calls stay sequential). Keep `1` on providers with a tokens-per-minute limit |
 | `AI_AGENT_MAX_ATTEMPTS` | `3` | tries (the first included) of a failed LLM call, MCP tool or `retry` answer |
@@ -36,7 +34,8 @@ OBLIVION workspace, `deployment/` regenerates its settings files from `.env.exam
 | `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_HOST` | empty | optional reporting to Langfuse (section 5). Empty host = the EU cloud |
 | `MCP_FILESYSTEM_DIR` | unset | folder mounted by `mcps/filesystem.json` (`${NAME}` is expanded in every `mcps/*.json`; a variable that is not set stays as written) |
 | `DYNAMICS_MCP_URL` | unset | full URL (with its `/mcp` path) of the Streamable HTTP endpoint of `dynamics_microservice`, read by `mcps/dynamics_microservice.json`. A public IP and port over plain HTTP in the first stage. Never committed. Unset = that server is skipped with a warning |
-| `LOG_LEVEL`, `LOG_FORMAT`, `TRACE_EXPORT_*` | see shared-logging | read by the shared logging package (`shared-logging/docs/logging.md`) |
+| `LOG_LEVEL`, `LOG_FORMAT`, `LOG_OUTPUT`, `SERVICE_NAME`, `TRACE_EXPORT_*` | see shared-logging | read by the shared logging package (`shared-logging/docs/logging.md`): level (`INFO`), format (`json`), destination (`stdout`), the `service` field (`ai-agent`) and the optional export of spans |
+| `APP_ENV` (also `ENVIRONMENT`) | `development` | the `environment` field of every log line, read by the same package. The deploy sets it to `development` or `production` |
 
 Not settings any more: `AI_AGENT_FAST_PATH_ENABLED` (removed with the four-flow redesign: `task_category.domain` decides which
 flow answers) and Brain's `AI_AGENT_FLOWS` (Brain makes one call per utterance). Brain's `AI_AGENT_SPEAK_MOVEMENTS` is
@@ -127,3 +126,7 @@ counted, cost from `infrastructure/outbound/usage/prices.py`). **The generations
 received, so the user's text and the prompts reach Langfuse.** Use a project you trust with them, or leave the keys empty.
 A failure of the reporter never breaks a call. A chat can be named with `session_name` at `/session/start`: its messages
 are grouped under it.
+
+## 7. Settings in a deployed environment (GitHub Actions)
+
+In the cluster there is no `.env`: `.github/workflows/~step-6-deploy.yml` writes every setting that is set as a key of the Kubernetes Secret `<PROJECTNAME>-secrets` and the pod reads it with `envFrom`. [`.env.github`](../../.env.github) lists, by name only, the repository Variables and Secrets: every variable of the tables above (keys and private hosts are Secrets, the rest Variables) has one with the same name, except `DYNAMICS_MCP_URL`, which comes from `DYNAMICS_MCP_URL_DEVELOPMENT` or `DYNAMICS_MCP_URL_PRODUCTION` according to the environment. The workflow **computes** `PROJECTNAME`, `APP_ENV` and `HTTP_ADDR` (`:` plus `30000` or `31000` plus the Variable `PORT_OFFSET`), and they win over anything else; the image sets `AI_AGENT_RELOAD=0`. Two Variables belong to the workflows and are not read by the process: `DEPLOY_ENABLED` (`false` = nothing is deployed) and `PYTHON_VERSION` (image and test job, default `3.14`).

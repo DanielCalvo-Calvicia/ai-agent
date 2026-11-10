@@ -1,0 +1,277 @@
+# ==============================================================================
+# STEP 6 - Deploy to K3s
+# ==============================================================================
+# Uses envsubst to inject the image SHA and the port into the Kubernetes
+# manifests, upserts the settings of the service as a Kubernetes Secret and
+# applies everything to the K3s cluster.
+#
+# Called by: ~flow-deploy.yml (workflow_call only — never runs on its own)
+# Inputs:    image_sha, env_name
+#
+# Workload kind is Deployment + Service (a long-running HTTP API). Every env var
+# the app reads comes from GitHub and is upserted into one Kubernetes Secret in
+# step 8 — see that step's own comment for why. The names the process reads are
+# the ones of .env.example (docs/configuration/environment-variables.md) plus the
+# ones shared-logging reads (APP_ENV, LOG_LEVEL, LOG_FORMAT).
+# ==============================================================================
+
+name: Step 6 - Deploy to K3s
+
+on:
+  workflow_call:
+    inputs:
+      image_sha:
+        description: "The short SHA of the built image to deploy"
+        required: true
+        type: string
+      env_name:
+        description: "Runtime environment name derived from the branch ('production' on
+          main, 'development' otherwise). Used as the Kubernetes namespace."
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    name: "🚀 Deploy to K3s"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      # --------------------------------------------------------------------------
+      # 1. Source  (needed for the k8s/ manifests)
+      # --------------------------------------------------------------------------
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # --------------------------------------------------------------------------
+      # 2. Resolve parameters
+      # --------------------------------------------------------------------------
+      - name: Resolve metadata
+        id: meta
+        run: |
+          echo "repo=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+          echo "actor=${GITHUB_ACTOR,,}" >> "$GITHUB_OUTPUT"
+
+      # --------------------------------------------------------------------------
+      # 2b. Compute this deploy's one port number
+      #     Deliberately a single number used everywhere below — container
+      #     port, Service port, targetPort, nodePort, and the app's own
+      #     HTTP_ADDR — there's no reason for these to differ. vars.PORT_OFFSET
+      #     is the only mandatory port-related repo Variable: this repo's
+      #     own small number (e.g. "3") within this org's shared
+      #     port-allocation scheme (30000-30999 development, 31000-31999
+      #     production — the 30000/31000 split exists only because
+      #     Kubernetes' apiserver restricts nodePort specifically to
+      #     30000-32767 by default). Every service in the org follows the same
+      #     formula with its own offset (dynamics_microservice has its own).
+      # --------------------------------------------------------------------------
+      - name: Compute port
+        id: ports
+        run: |
+          if [ "${{ inputs.env_name }}" = "production" ]; then
+            BASE=31000
+          else
+            BASE=30000
+          fi
+          echo "port=$((BASE + ${{ vars.PORT_OFFSET }}))" >> "$GITHUB_OUTPUT"
+
+      # --------------------------------------------------------------------------
+      # 3. Install kubectl
+      # --------------------------------------------------------------------------
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+
+      # --------------------------------------------------------------------------
+      # 4. Configure kubeconfig from secret
+      #    KUBE_CONFIG must be stored as a base64-encoded kubeconfig string.
+      # --------------------------------------------------------------------------
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p "$HOME/.kube"
+          echo "${{ secrets.KUBE_CONFIG }}" | base64 --decode > "$HOME/.kube/config"
+          chmod 600 "$HOME/.kube/config"
+
+      # --------------------------------------------------------------------------
+      # 5. Verify cluster connectivity before touching anything
+      # --------------------------------------------------------------------------
+      - name: Verify cluster connection
+        run: kubectl cluster-info
+
+      # --------------------------------------------------------------------------
+      # 6. Apply namespace (idempotent — safe to re-run)
+      # --------------------------------------------------------------------------
+      - name: Apply namespace
+        env:
+          PROJECTNAME: ${{ vars.PROJECTNAME }}
+          K8S_NAMESPACE: ${{ inputs.env_name }}
+          RANCHER_PROJECT_ID: ${{ inputs.env_name == 'production' && secrets.RANCHER_PROJECT_ID_PRODUCTION || secrets.RANCHER_PROJECT_ID_DEVELOPMENT }}
+        run: envsubst < k8s/namespace.yaml | kubectl apply -f -
+
+      # --------------------------------------------------------------------------
+      # 7. Upsert the GHCR image pull secret
+      # --------------------------------------------------------------------------
+      - name: Upsert GHCR pull secret
+        run: |
+          kubectl delete secret ghcr-secret --namespace=${{ inputs.env_name }} --ignore-not-found
+
+          kubectl create secret docker-registry ghcr-secret \
+            --docker-server=ghcr.io \
+            --docker-username=${{ steps.meta.outputs.actor }} \
+            --docker-password=${{ secrets.GH_PAT }} \
+            --namespace=${{ inputs.env_name }}
+
+          kubectl delete pods -l app=${{ vars.PROJECTNAME }} --namespace=${{ inputs.env_name }} --ignore-not-found
+
+      # --------------------------------------------------------------------------
+      # 8. Upsert application secrets
+      #    Mandatory rule for this app's config: every env var the running
+      #    process reads comes from GitHub (a repo Variable or Secret) and
+      #    lands here, in the app's own Kubernetes Secret — never hard-coded
+      #    in a manifest, and never passed to the container any other way.
+      #    k8s/deployment.yaml pulls this whole Secret in via envFrom, so a
+      #    new key here needs no manifest change to reach the container.
+      #    Consequences: (1) edit the GitHub Variable/Secret, next deploy
+      #    picks it up automatically; (2) for an already-running deployment,
+      #    editing this Secret directly (e.g. in Rancher) and restarting the
+      #    pod is enough — no redeploy required.
+      #
+      #    Every setting of the project is one repository Variable (plain
+      #    settings and the public base URLs) or Secret (keys and private
+      #    hosts) with the SAME NAME as the variable the code reads; see
+      #    .env.github. One that is empty or unset is not written, so the
+      #    default of the code applies. The only exception is the URL of
+      #    dynamics_microservice, which differs per environment: the secrets
+      #    DYNAMICS_MCP_URL_DEVELOPMENT and DYNAMICS_MCP_URL_PRODUCTION are
+      #    written, according to env_name, as DYNAMICS_MCP_URL.
+      #
+      #    Three keys are computed here and always win: PROJECTNAME, APP_ENV
+      #    (the environment; shared-logging puts it on every log line) and
+      #    HTTP_ADDR (":" + the port of step 2b: the name and the format that
+      #    dynamics_microservice reads too). AI_AGENT_RELOAD is not computed:
+      #    the Dockerfile sets it to 0.
+      # --------------------------------------------------------------------------
+      - name: Upsert app secrets
+        env:
+          # Provider keys (the profiles shipped today use GOOGLE_API_KEY and ANTHROPIC_API_KEY)
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+          # OpenAI-compatible base URLs (GOOGLE_URL is required to use a Google model)
+          GOOGLE_URL: ${{ vars.GOOGLE_URL }}
+          MISTRAL_URL: ${{ vars.MISTRAL_URL }}
+          GROQ_URL: ${{ vars.GROQ_URL }}
+          COHERE_URL: ${{ vars.COHERE_URL }}
+          OLLAMA_URL: ${{ secrets.OLLAMA_URL }}
+          # Langfuse (cost tracking; it receives the user's text and the prompts)
+          LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
+          LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+          LANGFUSE_HOST: ${{ vars.LANGFUSE_HOST }}
+          # Service behaviour
+          AI_AGENT_RELOAD: ${{ vars.AI_AGENT_RELOAD }}
+          AI_AGENT_HISTORY_TURNS: ${{ vars.AI_AGENT_HISTORY_TURNS }}
+          AI_AGENT_PARALLEL_ACTIONS: ${{ vars.AI_AGENT_PARALLEL_ACTIONS }}
+          AI_AGENT_MAX_ATTEMPTS: ${{ vars.AI_AGENT_MAX_ATTEMPTS }}
+          AI_AGENT_RETRY_WAIT_SECONDS: ${{ vars.AI_AGENT_RETRY_WAIT_SECONDS }}
+          AI_AGENT_MAX_MCP_CALLS_PER_MESSAGE: ${{ vars.AI_AGENT_MAX_MCP_CALLS_PER_MESSAGE }}
+          AI_AGENT_MASK_PERSONAL_DATA: ${{ vars.AI_AGENT_MASK_PERSONAL_DATA }}
+          AI_AGENT_MCP_CALL_TIMEOUT_SECONDS: ${{ vars.AI_AGENT_MCP_CALL_TIMEOUT_SECONDS }}
+          AI_AGENT_SPEECH_CHARS_PER_SECOND: ${{ vars.AI_AGENT_SPEECH_CHARS_PER_SECOND }}
+          AI_AGENT_EXPRESSION_SEED: ${{ vars.AI_AGENT_EXPRESSION_SEED }}
+          AI_AGENT_CHECK_MCP_DYNAMICS_MICROSERVICE: ${{ vars.AI_AGENT_CHECK_MCP_DYNAMICS_MICROSERVICE }}
+          # MCP server: the full URL with its /mcp path, one secret per environment (the host is private)
+          DYNAMICS_MCP_URL: ${{ inputs.env_name == 'production' && secrets.DYNAMICS_MCP_URL_PRODUCTION || secrets.DYNAMICS_MCP_URL_DEVELOPMENT }}
+          # shared-logging (logging and the optional export of the spans)
+          LOG_LEVEL: ${{ vars.LOG_LEVEL }}
+          LOG_FORMAT: ${{ vars.LOG_FORMAT }}
+          LOG_OUTPUT: ${{ vars.LOG_OUTPUT }}
+          SERVICE_NAME: ${{ vars.SERVICE_NAME }}
+          TRACE_EXPORT_ENABLED: ${{ vars.TRACE_EXPORT_ENABLED }}
+          TRACE_EXPORT_URL: ${{ secrets.TRACE_EXPORT_URL }}
+          TRACE_EXPORT_HEADERS: ${{ secrets.TRACE_EXPORT_HEADERS }}
+          TRACE_EXPORT_TIMEOUT: ${{ vars.TRACE_EXPORT_TIMEOUT }}
+          TRACE_EXPORT_BATCH_SIZE: ${{ vars.TRACE_EXPORT_BATCH_SIZE }}
+          TRACE_EXPORT_FLUSH_INTERVAL: ${{ vars.TRACE_EXPORT_FLUSH_INTERVAL }}
+          TRACE_EXPORT_QUEUE_SIZE: ${{ vars.TRACE_EXPORT_QUEUE_SIZE }}
+          TRACE_EXPORT_ATTRIBUTES: ${{ vars.TRACE_EXPORT_ATTRIBUTES }}
+          # Folder of mcps/filesystem.json
+          MCP_FILESYSTEM_DIR: ${{ vars.MCP_FILESYSTEM_DIR }}
+        run: |
+          # The settings of the env block above, in the same order.
+          SETTINGS="OPENAI_API_KEY ANTHROPIC_API_KEY GOOGLE_API_KEY MISTRAL_API_KEY GROQ_API_KEY COHERE_API_KEY
+            GOOGLE_URL MISTRAL_URL GROQ_URL COHERE_URL OLLAMA_URL
+            LANGFUSE_PUBLIC_KEY LANGFUSE_SECRET_KEY LANGFUSE_HOST
+            AI_AGENT_RELOAD AI_AGENT_HISTORY_TURNS AI_AGENT_PARALLEL_ACTIONS AI_AGENT_MAX_ATTEMPTS
+            AI_AGENT_RETRY_WAIT_SECONDS AI_AGENT_MAX_MCP_CALLS_PER_MESSAGE AI_AGENT_MASK_PERSONAL_DATA
+            AI_AGENT_MCP_CALL_TIMEOUT_SECONDS AI_AGENT_SPEECH_CHARS_PER_SECOND AI_AGENT_EXPRESSION_SEED
+            AI_AGENT_CHECK_MCP_DYNAMICS_MICROSERVICE DYNAMICS_MCP_URL
+            LOG_LEVEL LOG_FORMAT LOG_OUTPUT SERVICE_NAME TRACE_EXPORT_ENABLED TRACE_EXPORT_URL
+            TRACE_EXPORT_HEADERS TRACE_EXPORT_TIMEOUT TRACE_EXPORT_BATCH_SIZE TRACE_EXPORT_FLUSH_INTERVAL
+            TRACE_EXPORT_QUEUE_SIZE TRACE_EXPORT_ATTRIBUTES MCP_FILESYSTEM_DIR"
+
+          # The service answers nothing without a model: at least one provider key
+          # (or an Ollama endpoint) must be set.
+          if [ -z "$OPENAI_API_KEY$ANTHROPIC_API_KEY$GOOGLE_API_KEY$MISTRAL_API_KEY$GROQ_API_KEY$COHERE_API_KEY$OLLAMA_URL" ]; then
+            echo "::error::No provider key is set (GOOGLE_API_KEY, ANTHROPIC_API_KEY, ...): see .env.github."
+            exit 1
+          fi
+
+          CLEAN_PROJECTNAME=$(echo "${{ vars.PROJECTNAME }}" | xargs)
+
+          # One KEY=VALUE line per setting that is set (kubectl does not allow
+          # --from-env-file together with --from-literal, so the computed keys
+          # go in the same file).
+          {
+            for key in $SETTINGS; do
+              if [ -n "${!key}" ]; then printf '%s=%s\n' "$key" "${!key}"; fi
+            done
+            echo "PROJECTNAME=$CLEAN_PROJECTNAME"
+            echo "APP_ENV=${{ inputs.env_name }}"
+            echo "HTTP_ADDR=:${{ steps.ports.outputs.port }}"
+          } > "$RUNNER_TEMP/app.env"
+
+          kubectl create secret generic ${{ vars.PROJECTNAME }}-secrets \
+            --from-env-file="$RUNNER_TEMP/app.env" \
+            --namespace=${{ inputs.env_name }} \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          rm -f "$RUNNER_TEMP/app.env"
+
+      # --------------------------------------------------------------------------
+      # 9. Inject manifest variables and apply the workload
+      # --------------------------------------------------------------------------
+      - name: Deploy workload
+        env:
+          PROJECTNAME: ${{ vars.PROJECTNAME }}
+          K8S_NAMESPACE: ${{ inputs.env_name }}
+          IMAGE: ghcr.io/${{ steps.meta.outputs.repo }}:${{ inputs.image_sha }}
+          # The manifests' port fields (containerPort/port/targetPort/
+          # nodePort — see k8s/service.yaml's own comment) — the exact same
+          # number step 8 above used for HTTP_ADDR.
+          PORT: ${{ steps.ports.outputs.port }}
+          # Hard-coded here, not repository variables: the sessions live in the
+          # memory of the process (one replica), and the LLM and MCP calls wait
+          # on the network, so the CPU stays low.
+          MEM_REQUEST: "256Mi"
+          CPU_REQUEST: "100m"
+          MEM_LIMIT: "1Gi"
+          CPU_LIMIT: "1"
+        run: |
+          envsubst < k8s/deployment.yaml | kubectl apply -f -
+          envsubst < k8s/service.yaml | kubectl apply -f -
+
+      # --------------------------------------------------------------------------
+      # 10. Confirm the applied workload
+      # --------------------------------------------------------------------------
+      - name: Verify deployment
+        run: |
+          kubectl get deployment ${{ vars.PROJECTNAME }} \
+            --namespace=${{ inputs.env_name }} \
+            -o wide
+          # Wait for the new pod to be ready (its /health probe answers): a
+          # deploy whose pod never becomes ready fails here, not silently.
+          kubectl rollout status deployment/${{ vars.PROJECTNAME }} \
+            --namespace=${{ inputs.env_name }} \
+            --timeout=300s
