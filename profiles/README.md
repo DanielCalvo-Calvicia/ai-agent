@@ -2,7 +2,7 @@
 
 One JSON file per **profile**: what a client asks for (PR-005, `docs/proposals/PR-005-flows-steps-profiles.md`; ADR-015). A request runs **one** profile. A profile names **one flow** ([flows/README.md](../flows/README.md)), the **models** of its steps ([model_sets/README.md](../model_sets/README.md)), the **tools** it may reach ([mcps/README.md](../mcps/README.md)), the **inputs** it accepts, and optional per-step changes (`overrides`). It never contains code or a prompt of its own unless you write one under `overrides`.
 
-Read at start by `infrastructure/outbound/config/file_source.py` and checked by `application/engine/assemble.py`. A profile with a problem is **disabled and logged**; the others keep serving. `python scripts/check_agent.py` (strict) prints every problem with its file and key: run it before every pull request that touches a profile.
+Read at start by `infrastructure/outbound/config/file_source.py` and checked by `application/assembly/assemble.py`. A profile with a problem is **disabled and logged**; the others keep serving. `python scripts/check_agent.py` (strict) prints every problem with its file and key: run it before every pull request that touches a profile.
 
 ## 1. File rules
 

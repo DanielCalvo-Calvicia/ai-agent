@@ -7,14 +7,14 @@
 
 from typing import Dict, List, Optional
 
-from application.engine.flow import Flow, FlowContext
-from application.steps.build import build_step_function
-from application.steps.conditions import CONDITIONS
-from application.steps.declared import repository_declarations
-from application.steps.hooks import result_builder, state_factory
-from application.steps.phase import Step
+from application.runtime.flow.flow import Flow, FlowContext
+from application.runtime.step.build import build_step_function
+from application.runtime.flow.conditions import CONDITIONS
+from application.runtime.step.declared import repository_declarations
+from application.runtime.flow.hooks import result_builder, state_factory
+from application.runtime.step.spec import Step
 from application.outbound.ports.mcp_ports import ToolScope, scoped
-from application.steps.registry import step as registered_step
+from application.runtime.step.registry import step as registered_step
 
 
 def step_entries(data: dict) -> List[dict]:

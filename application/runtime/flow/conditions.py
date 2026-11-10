@@ -6,7 +6,7 @@
 
 from typing import Callable, Dict
 
-from application.engine.state.flow_state import FlowState
+from application.runtime.state.flow_state import FlowState
 
 
 def needs_user_input(state: FlowState) -> bool:

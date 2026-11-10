@@ -5,11 +5,11 @@ import os
 
 import pytest
 
-from application.engine.assemble import assemble
-from application.engine.config_snapshot import build_snapshot
-from application.engine.state.flow_state import FlowState
-from application.engine.state.history import HistoryEntry, messages_of, response_of
-from application.engine.state.paused_run import FlowResult
+from application.assembly.assemble import assemble
+from application.assembly.config_snapshot import build_snapshot
+from application.runtime.state.flow_state import FlowState
+from application.runtime.state.history import HistoryEntry, messages_of, response_of
+from application.runtime.state.paused_run import FlowResult
 from application.inbound.dto.session import MessageReceivedRequestDTO, StartSessionRequestDTO
 from application.service.message_flow_service import MessageFlowService
 from application.service.session_service import SessionService
@@ -104,8 +104,8 @@ class TestTheMessagesAreTheSameAsBefore:
 class TestTheResponseOfARun:
     def classified(self):
         llm = ScriptedLLM()
-        from application.engine.support.metrics import SessionMetrics
-        from application.engine.pipeline import Pipeline
+        from application.support.metrics import SessionMetrics
+        from application.runtime.flow.pipeline import Pipeline
         from flow_files import IDENTIFICATION_FLOW
         return Pipeline(llm, [], SessionMetrics(), flow=IDENTIFICATION_FLOW).run("hello")
 

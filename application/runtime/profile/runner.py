@@ -9,15 +9,15 @@
 
 from typing import Iterable, List, Optional
 
-from application.engine.assemble import Agent, AssembledProfile
-from application.engine.flow import Flow
-from application.engine.pipeline import Pipeline
-from application.engine.state.expression_state import ExpressionFlowState
-from application.engine.state.flow_state import FlowState
-from application.engine.state.motion_state import MotionFlowState
-from application.engine.state.paused_run import FlowResult, PausedRun
-from application.engine.support.expression_settings import speech_seconds
-from application.engine.support.metrics import SessionMetrics
+from application.assembly.model import Agent, AssembledProfile
+from application.runtime.flow.flow import Flow
+from application.runtime.flow.pipeline import Pipeline
+from application.runtime.state.expression_state import ExpressionFlowState
+from application.runtime.state.flow_state import FlowState
+from application.runtime.state.motion_state import MotionFlowState
+from application.runtime.state.paused_run import FlowResult, PausedRun
+from application.support.expression_settings import speech_seconds
+from application.support.metrics import SessionMetrics
 from application.outbound.ports.llm_ports import LLMOutboundPort
 from application.outbound.ports.mcp_ports import McpToolsPort, scoped
 from domain.value_objects.llm_request.message import Message

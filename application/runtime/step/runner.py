@@ -9,16 +9,16 @@ import json
 import time
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
 
-from application.engine.support.failure import (
+from application.support.llm.failure import (
     AgentFailure, capacity_problem, classify, daily_quota_used_up, max_attempts, wait_before_retry, worth_retrying,
 )
-from application.engine.state.flow_state import FlowState
-from application.engine.support.metrics import SessionMetrics
-from application.steps.phase import ActionPhaseSpec, PhaseSpec
-from application.engine.support.schemas import actions_schema, object_schema
+from application.runtime.state.flow_state import FlowState
+from application.support.metrics import SessionMetrics
+from application.runtime.step.spec import ActionPhaseSpec, PhaseSpec
+from application.support.llm.schemas import actions_schema, object_schema
 from application.outbound.ports.llm_ports import LLMOutboundPort
-from application.engine.support.model_selection import ModelResolver
-from application.engine.support.prompt_overrides import PromptOverride
+from application.support.llm.model_selection import ModelResolver
+from application.support.llm.prompt_overrides import PromptOverride
 from application.system_prompts.general import build_system_prompt_from_file
 
 from domain.entities.llm_response.action import Action

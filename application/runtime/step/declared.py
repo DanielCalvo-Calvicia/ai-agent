@@ -3,7 +3,7 @@
 #  Builds what a flow runs from the JSON declaration of a step (step_defs/<name>.json, PR-005 section 3.2): the PhaseSpec of an LLM
 #  step (its prompt, its answer made of existing schema pieces, what it reads and writes) or the ActionPhaseSpec of a step run once
 #  per action. A declaration may read and write only fields of config/state_fields.json; when its input or result is more than a plain
-#  list of fields it names a function of steps/functions.py. Python stays for the `code` steps.
+#  list of fields it names a function of runtime/step/functions.py. Python stays for the `code` steps.
 # ===============================================
 
 import json
@@ -13,14 +13,14 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from domain.value_objects.llm_request.model import GoogleModels
 
-from application.engine.state.flow_state import FlowState
-from application.engine.support.mcp_servers import server_names
-from application.engine.support.schemas import actions_schema, load_schema_file
+from application.runtime.state.flow_state import FlowState
+from application.support.tools.mcp_servers import server_names
+from application.support.llm.schemas import actions_schema, load_schema_file
 from application.outbound.ports.mcp_ports import McpToolsPort
-from application.steps import functions
-from application.steps.phase import ActionPhaseSpec, PhaseSpec
+from application.runtime.step import functions
+from application.runtime.step.spec import ActionPhaseSpec, PhaseSpec
 
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", ".."))
 STEP_DEFS_DIR = os.path.join(PROJECT_ROOT, "step_defs")
 
 Reads = List[Tuple[str, str, bool]]          # (the key in what the model is told, the state field, whether the field may be missing)

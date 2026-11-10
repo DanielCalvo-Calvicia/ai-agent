@@ -11,7 +11,7 @@ import uuid
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
-from application.steps.catalog import CONVERSATION_PHASES, PHASES
+from application.runtime.step.catalog import CONVERSATION_PHASES, PHASES
 from application.outbound.ports.mcp_ports import ToolCallRecord
 from shared_logging import get_logger
 
@@ -26,7 +26,7 @@ RECORD_KEYS = ("profile", "flow", "step", "model", "client")
 # model, prompt tokens, completion tokens, total tokens -> USD, or None when the model has no price (composition root)
 CostOf = Callable[[str, int, int, int], Optional[float]]
 
-# phase id -> step name, read from the constants of each phase file (application/steps).
+# phase id -> step name, read from the constants of each phase file (application/runtime/step/library).
 # PHASE_NAMES covers the text flows (identification, conversation, special: what the cost and budget tables are about); ALL_PHASE_NAMES every flow.
 PHASE_NAMES: Dict[int, str] = {phase_id: info.step_name for phase_id, info in CONVERSATION_PHASES.items()}
 ALL_PHASE_NAMES: Dict[int, str] = {phase_id: info.step_name for phase_id, info in PHASES.items()}

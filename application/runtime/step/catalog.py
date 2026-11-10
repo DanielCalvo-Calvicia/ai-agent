@@ -1,6 +1,6 @@
 # ===============================================
 #  PHASE CATALOG
-#  Every phase of every flow, read from the step registry (each step file registers itself, steps/registry.py).
+#  Every phase of every flow, read from the step registry (each step file registers itself, runtime/step/registry.py).
 #  The prompt loader, the model selection and the metrics take their tables from here,
 #  so a phase is defined in one place only. A new phase = its file.
 # ===============================================
@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from types import ModuleType
 from typing import Dict, Optional
 
-from application.steps.registry import CODE, TEXT_GROUPS, all_steps
+from application.runtime.step.registry import CODE, TEXT_GROUPS, all_steps
 from domain.value_objects.llm_request.model import GoogleModels
 
 

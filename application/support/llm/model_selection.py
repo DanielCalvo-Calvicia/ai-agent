@@ -15,7 +15,7 @@
 
 from typing import Any, Dict, List, Optional, Tuple
 
-from application.engine.support.metrics import ALL_PHASE_NAMES, PHASE_NAMES
+from application.support.metrics import ALL_PHASE_NAMES, PHASE_NAMES
 from domain.value_objects.llm_request.model import GoogleModels, SelectedModel, get_selected_model
 
 # The steps of the text flows (identification, conversation, special): what the cost, budget and ratings tables cover. A step of the movement
@@ -140,7 +140,7 @@ class ModelResolver:
 
 def effective_models(resolver: ModelResolver, flow: str = "") -> Dict[str, Tuple[str, str]]:
     """step name -> (the model that answers it, where the choice comes from), for the steps of the text flows. Without touching the network."""
-    from application.steps.catalog import PHASES
+    from application.runtime.step.catalog import PHASES
 
     result = {}
     for phase_id, name in PHASE_NAMES.items():

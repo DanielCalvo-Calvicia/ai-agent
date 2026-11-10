@@ -7,8 +7,8 @@
 from dataclasses import dataclass
 from typing import List, Optional
 
-from application.engine.state.flow_state import FlowState
-from application.engine.state.paused_run import FlowResult
+from application.runtime.state.flow_state import FlowState
+from application.runtime.state.paused_run import FlowResult
 from domain.entities.llm_response.response import Response
 from domain.value_objects.llm_request.message import Message, Role
 

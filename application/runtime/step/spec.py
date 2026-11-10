@@ -7,7 +7,7 @@
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, Optional, Tuple
 
-from application.engine.state.flow_state import FlowState
+from application.runtime.state.flow_state import FlowState
 from domain.entities.llm_response.response import Response
 from domain.value_objects.llm_request.model import GoogleModels
 

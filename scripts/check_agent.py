@@ -1,6 +1,6 @@
 """
 Checks the whole agent: reads the profiles, flows, step declarations, model sets and the catalog of fields, and assembles them
-(application/engine/assemble.py). Strict: every problem is printed, with its file and key, and the exit code is 1 if there is any.
+(application/assembly/assemble.py). Strict: every problem is printed, with its file and key, and the exit code is 1 if there is any.
 It reads files only: no model is called and no server is reached.
 
     python scripts/check_agent.py                 the repository
@@ -17,8 +17,8 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__fi
 sys.path.insert(0, PROJECT_ROOT)
 sys.path.insert(0, os.path.join(PROJECT_ROOT, "tests"))          # profile_tables.py (--explain)
 
-from application.engine.assemble import assemble
-from application.engine.config_snapshot import build_snapshot
+from application.assembly.assemble import assemble
+from application.assembly.config_snapshot import build_snapshot
 from infrastructure.outbound.config.file_source import FileConfigSource
 from infrastructure.outbound.llm.anthropic_schema import anthropic_schema_problems
 from infrastructure.outbound.mcp.config import load_tool_snapshot

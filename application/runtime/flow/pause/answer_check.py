@@ -7,9 +7,9 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from application.engine.state.paused_run import CONFIRMATION, PausedRun
-from application.engine.phase_runner import PhaseRunner
-from application.steps.common.answer_checker import (  # the verdicts belong to the phase
+from application.runtime.state.paused_run import CONFIRMATION, PausedRun
+from application.runtime.step.runner import PhaseRunner
+from application.runtime.step.library.common.answer_checker import (  # the verdicts belong to the phase
     ANSWERED,
     CONFIRMED,
     DECLINED,

@@ -14,9 +14,9 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from application.inbound.dto.session import MessageReceivedRequestDTO, StartSessionRequestDTO
-from application.engine.answer_check import AnswerChecker, Check, FALLBACK_MESSAGE
-from application.engine.state.paused_run import CONFIRMATION, INPUT
-from application.engine.pipeline import DECLINED_TEXT, STOPPED_TEXT
+from application.runtime.flow.pause.answer_check import AnswerChecker, Check, FALLBACK_MESSAGE
+from application.runtime.state.paused_run import CONFIRMATION, INPUT
+from application.runtime.flow.pipeline import DECLINED_TEXT, STOPPED_TEXT
 from brain_chain import ChainedSessionService as SessionService
 
 from test_flow_golden import GATE, PM, TRIAGE, ScriptedLLM, _action, _plan
@@ -394,7 +394,7 @@ class TestContextOfEveryPhase:
 
     def test_the_clock_text_has_a_weekday_a_date_and_an_offset(self):
         import re
-        from application.engine.support.clock import now_text
+        from application.support.clock import now_text
         assert re.fullmatch(r"[A-Z][a-z]+, \d{4}-\d{2}-\d{2}, \d{2}:\d{2} \(UTC[+-]\d{2}:\d{2}\)", now_text())
 
     def test_small_talk_and_refusals_do_not_pause_the_flow_by_prompt(self):

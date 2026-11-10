@@ -3,7 +3,7 @@
 # It has no prompt file and no response schema: its prompt is the constant below and it answers with plain text.
 
 from domain.value_objects.llm_request.model import GoogleModels
-from application.steps.registry import register_step
+from application.runtime.step.registry import register_step
 
 # --- What this phase uses ---------------------------------------------------
 PHASE_ID = 99

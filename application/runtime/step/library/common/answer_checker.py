@@ -2,11 +2,11 @@
 # The user replied to a question of the assistant. Was it the answer, a yes or a no,
 # a reply that does not answer, or a request to stop? Any flow that pauses uses it.
 
-from application.engine.state.flow_state import FlowState
-from application.engine.state.paused_run import PausedRun
-from application.steps.phase import PhaseSpec
+from application.runtime.state.flow_state import FlowState
+from application.runtime.state.paused_run import PausedRun
+from application.runtime.step.spec import PhaseSpec
 from domain.value_objects.llm_request.model import GoogleModels
-from application.steps.registry import register_step
+from application.runtime.step.registry import register_step
 
 # What the user's reply is.
 ANSWERED = "answered"

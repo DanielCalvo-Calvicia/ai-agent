@@ -2,8 +2,8 @@
 # (before T-05.12) take them from here: same names, same objects of the same kind.
 import os
 
-from application.engine.assemble import assemble
-from application.engine.config_snapshot import build_snapshot
+from application.assembly.assemble import assemble
+from application.assembly.config_snapshot import build_snapshot
 from infrastructure.outbound.config.file_source import FileConfigSource
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))

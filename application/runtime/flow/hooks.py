@@ -8,10 +8,10 @@
 
 from typing import Callable, Dict, Iterable, List, Optional, Type
 
-from application.engine.state.expression_state import ExpressionFlowState, as_expression
-from application.engine.state.flow_state import FlowState
-from application.engine.state.motion_state import MotionFlowState, as_motion
-from application.engine.state.paused_run import FlowResult
+from application.runtime.state.expression_state import ExpressionFlowState, as_expression
+from application.runtime.state.flow_state import FlowState
+from application.runtime.state.motion_state import MotionFlowState, as_motion
+from application.runtime.state.paused_run import FlowResult
 from domain.value_objects.llm_request.message import Message
 
 USER_CLARIFICATION = "user_clarification"    # on_pause: turn the missing inputs into a question (phase 99)

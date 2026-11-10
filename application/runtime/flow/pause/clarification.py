@@ -6,9 +6,9 @@
 
 from typing import List
 
-from application.engine.state.flow_state import FlowState
-from application.engine.phase_runner import PhaseRunner
-from application.steps.common import user_clarification as phase
+from application.runtime.state.flow_state import FlowState
+from application.runtime.step.runner import PhaseRunner
+from application.runtime.step.library.common import user_clarification as phase
 from domain.entities.llm_request.payload import Payload
 from domain.value_objects.llm_response.intent.intent import create_intent
 from domain.value_objects.llm_request.max_tokens import create_max_tokens

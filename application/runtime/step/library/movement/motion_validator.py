@@ -8,9 +8,9 @@ from typing import List, Optional
 
 from domain.value_objects.movement.movement import ARMS, DIRECTIONS, Movement
 
-from application.engine.state.flow_state import FlowState
-from application.engine.state.motion_state import as_motion
-from application.steps.registry import register_step
+from application.runtime.state.flow_state import FlowState
+from application.runtime.state.motion_state import as_motion
+from application.runtime.step.registry import register_step
 
 # --- What this phase uses ---------------------------------------------------
 LLM = False                              # no model, no prompt, no schema

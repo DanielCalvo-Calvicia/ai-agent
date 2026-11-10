@@ -20,22 +20,23 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__fi
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.engine.assemble import Agent, assemble
-from application.engine.config_snapshot import build_snapshot
-from application.engine.flow import Flow
-from application.engine.state.expression_state import ExpressionFlowState
-from application.engine.state.flow_state import FlowState
-from application.engine.state.history import response_of
-from application.engine.state.motion_state import MotionFlowState
-from application.engine.state.paused_run import FlowResult, PausedRun
-from application.engine.support.expression_settings import speech_seconds
-from application.engine.support.metrics import SessionMetrics
-from application.engine.support.model_selection import ModelResolver
+from application.assembly.assemble import assemble
+from application.assembly.model import Agent
+from application.assembly.config_snapshot import build_snapshot
+from application.runtime.flow.flow import Flow
+from application.runtime.state.expression_state import ExpressionFlowState
+from application.runtime.state.flow_state import FlowState
+from application.runtime.state.history import response_of
+from application.runtime.state.motion_state import MotionFlowState
+from application.runtime.state.paused_run import FlowResult, PausedRun
+from application.support.expression_settings import speech_seconds
+from application.support.metrics import SessionMetrics
+from application.support.llm.model_selection import ModelResolver
 from flow_files import CONVERSATION_FLOW
 from flow_files import EXPRESSION_FLOW
 from flow_files import IDENTIFICATION_FLOW
 from flow_files import MOVEMENT_FLOW
-from application.engine.profile_runner import ProfileRunner
+from application.runtime.profile.runner import ProfileRunner
 from flow_files import FLOWS, SPECIAL_FLOW
 from application.outbound.ports.llm_ports import LLMOutboundPort
 from application.outbound.ports.mcp_ports import McpToolsPort

@@ -7,11 +7,12 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from application.engine.assemble import Agent, assemble
-from application.engine.config_snapshot import build_snapshot
-from application.engine.profile_access import NO_HASH, check_access, sha256_hex
-from application.engine.profile_inputs import INVALID_INPUT, MISSING_INPUT, InputsError, read_inputs
-from application.engine.state.response_json import response_to_json
+from application.assembly.assemble import assemble
+from application.assembly.model import Agent
+from application.assembly.config_snapshot import build_snapshot
+from application.runtime.profile.access import NO_HASH, check_access, sha256_hex
+from application.runtime.profile.inputs import INVALID_INPUT, MISSING_INPUT, InputsError, read_inputs
+from application.runtime.state.response_json import response_to_json
 from application.inbound.dto.session import MessageReceivedRequestDTO, StartSessionRequestDTO
 from application.service.session_service import SessionService
 from infrastructure.inbound.http.fastapi import SessionFastAPI
@@ -225,8 +226,8 @@ class TestInputs:
                                                 "task_category": {"domain": "communication", "type": "analysis", "complexity": "low"}}, None)
 
     def test_the_output_of_a_plan_can_be_read_back_unchanged(self):
-        from application.engine.pipeline import Pipeline
-        from application.engine.support.metrics import SessionMetrics
+        from application.runtime.flow.pipeline import Pipeline
+        from application.support.metrics import SessionMetrics
         from flow_files import SPECIAL_FLOW
         from test_flow_golden import MCP_LIST
         scenario = SCENARIOS["action_with_subactions"]

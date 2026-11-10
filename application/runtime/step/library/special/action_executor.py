@@ -13,18 +13,18 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Dict, List, Optional
 
-from application.engine.support.action_tree import (
+from application.support.tools.action_tree import (
     BLOCKED_BY_CONFIRMATION,
     MCP_ACTION_TYPE,
     action_type_of,
     in_execution_order,
     subactions_of,
 )
-from application.engine.support.failure import AgentFailure, max_attempts, max_mcp_calls
-from application.engine.state.flow_state import FlowState
-from application.steps.phase import ActionPhaseSpec
-from application.steps.registry import register_step
-from application.steps.declared import action_spec_from, extra_function, repository_declarations
+from application.support.llm.failure import AgentFailure, max_attempts, max_mcp_calls
+from application.runtime.state.flow_state import FlowState
+from application.runtime.step.spec import ActionPhaseSpec
+from application.runtime.step.registry import register_step
+from application.runtime.step.declared import action_spec_from, extra_function, repository_declarations
 from application.outbound.ports.mcp_ports import McpToolsPort, tool_wait_budget, watch_tool_failures
 from domain.entities.llm_response.action import Action
 from domain.value_objects.llm_response.action.output import create_output
@@ -51,7 +51,7 @@ UNRESOLVABLE = "The step could not run: circular or unknown dependencies."
 
 
 def build_step(runner, mcp_list: list, mcp_tools: Optional[McpToolsPort] = None, declarations: Optional[Dict[str, dict]] = None):
-    """The function a flow runs for this step (steps/build.py)."""
+    """The function a flow runs for this step (runtime/step/build.py)."""
     return ActionExecutor(runner, mcp_list, mcp_tools, declarations).run
 
 

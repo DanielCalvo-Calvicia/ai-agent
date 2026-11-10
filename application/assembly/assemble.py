@@ -12,25 +12,24 @@
 import hashlib
 import json
 import re
-from dataclasses import dataclass, field
 from typing import Any, Callable, Collection, Dict, List, Mapping, Optional, Sequence
 
-from application.engine.config_snapshot import ConfigSnapshot
-from application.engine.flow import Flow
-from application.engine.flow_file import flow_from_file
-from application.engine.support.model_selection import ModelResolver, check_model_set
-from application.engine.support.prompt_overrides import SOURCE_KEYS, PromptOverride
-from application.engine.support.schemas import load_schema_file
+from application.assembly.config_snapshot import ConfigSnapshot
+from application.assembly.model import DEFAULT_PROFILE, Agent, AssembledProfile
+from application.runtime.flow.flow import Flow
+from application.assembly.flow_file import flow_from_file
+from application.support.llm.model_selection import ModelResolver, check_model_set
+from application.support.llm.prompt_overrides import SOURCE_KEYS, PromptOverride
+from application.support.llm.schemas import load_schema_file
 from application.outbound.ports.config_ports import ConfigError
-from application.steps import functions as step_functions
-from application.steps.catalog import PHASES
-from application.steps.conditions import CONDITIONS
-from application.steps.hooks import HOOKS
-from application.steps.declared import parse_reads
-from application.steps.registry import CODE, GROUP_ORDER, KINDS, LLM, LLM_PER_ACTION, all_steps
+from application.runtime.step import functions as step_functions
+from application.runtime.step.catalog import PHASES
+from application.runtime.flow.conditions import CONDITIONS
+from application.runtime.flow.hooks import HOOKS
+from application.runtime.step.declared import parse_reads
+from application.runtime.step.registry import CODE, GROUP_ORDER, KINDS, LLM, LLM_PER_ACTION, all_steps
 from domain.value_objects.llm_request.model import GoogleModels
 
-DEFAULT_PROFILE = "default"                       # the profile of a request with no profile: it needs no token
 RETURNS = ("text", "full")
 TOKEN_HASH = re.compile(r"^[0-9a-f]{64}$")        # the SHA-256 of the token, in hex
 
@@ -51,46 +50,6 @@ FUNCTION_KEYS = ("input", "apply", "extra")
 TOOL_KEYS = {"servers", "tools"}
 
 
-@dataclass
-class AssembledProfile:
-    name: str
-    definition: dict
-    flow_name: Optional[str]                 # None when the profile lists its own steps
-    steps: List[str]                         # in order; empty when the flow is a Python flow (until T-05.12)
-    resolver: ModelResolver
-    default_return: str
-    requires: List[str] = field(default_factory=list)       # inputs the request must carry
-    accepts: List[str] = field(default_factory=list)
-    prompts: Dict[str, PromptOverride] = field(default_factory=dict)     # step -> what the profile does to its prompt (T-05.14)
-    profile_hash: str = ""                    # SHA-256 (hex) of what the profile is made of, without its token hash (T-05.15)
-
-
-@dataclass
-class Agent:
-    profiles: Dict[str, AssembledProfile]
-    problems: Dict[str, List[str]]           # "<kind>/<name>" -> every problem of that file
-    flows: Dict[str, Flow] = field(default_factory=dict)     # the flow files that are fine, built
-    step_defs: Dict[str, dict] = field(default_factory=dict)  # the step declarations that are fine
-    step_prompts: Dict[str, str] = field(default_factory=dict)  # step -> its prompt, read through the configuration source
-
-    def profile(self, name: str) -> AssembledProfile:
-        if name not in self.profiles:
-            raise KeyError(name)
-        return self.profiles[name]
-
-    def disabled(self) -> Dict[str, str]:
-        """Profile name -> why it cannot be used (a profile whose file could not even be read is here too)."""
-        return {key[len("profiles/"):]: "; ".join(messages) for key, messages in self.problems.items() if key.startswith("profiles/")}
-
-    def all_problems(self) -> List[str]:
-        return [message for messages in self.problems.values() for message in messages]
-
-    def raise_on_errors(self) -> None:
-        """Strict mode (tests, check_agent.py): the first problem stops everything."""
-        if self.problems:
-            raise ConfigError(self.all_problems()[0])
-
-
 SchemaRule = Callable[[dict], List[str]]
 
 
@@ -105,7 +64,7 @@ def assemble(
 ) -> Agent:
     """
     `known_flows`: names of flows that exist without a file (a test's own); a profile may name them. `conditions` and `hooks`: the names
-    a flow may use (the lists of steps/conditions.py and steps/hooks.py when none are given).
+    a flow may use (the lists of runtime/flow/conditions.py and runtime/flow/hooks.py when none are given).
     `mcp_servers`: server name -> its allowed tools (None = the server lists none); None = tool names are not checked.
     `schema_rules`: provider (`anthropic`) -> a function that returns what that provider refuses in a custom answer schema.
     """
@@ -235,7 +194,7 @@ class _Assembly:
             self._check_runnable(key, name, data)
         elif kind == CODE and data.get("function") is not None:
             if data["function"] not in self.registry or self.registry[data["function"]].kind != CODE:
-                self._problem(key, f"function {data['function']!r} is not a code step of application/steps/. Code steps: "
+                self._problem(key, f"function {data['function']!r} is not a code step of application/runtime/step/library/. Code steps: "
                                    f"{', '.join(n for n, e in self.registry.items() if e.kind == CODE) or 'none'}")
 
     def _check_reads_and_writes(self, key: str, data: dict) -> None:
@@ -306,7 +265,7 @@ class _Assembly:
             if slot not in FUNCTION_KEYS:
                 self._problem(key, f"functions: unknown key {slot!r}. Keys: {', '.join(FUNCTION_KEYS)}")
             elif function_name not in step_functions.TABLES[slot]:
-                self._problem(key, f"functions.{slot}: {function_name!r} is not a function of application/steps/functions.py. "
+                self._problem(key, f"functions.{slot}: {function_name!r} is not a function of application/runtime/step/functions.py. "
                                    f"Functions: {', '.join(step_functions.TABLES[slot]) or 'none'}")
         if data["kind"] == LLM and "input" not in (data.get("functions") or {}) and not isinstance(data.get("reads"), list):
             self._problem(key, "a step with no functions.input must list the fields it reads")

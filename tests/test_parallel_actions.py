@@ -11,8 +11,8 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.engine.support.metrics import SessionMetrics
-from application.engine.pipeline import Pipeline
+from application.support.metrics import SessionMetrics
+from application.runtime.flow.pipeline import Pipeline
 from application.outbound.ports.usage_ports import UsageReporterPort
 from flow_trace import FULL_FLOW
 from test_flow_golden import ScriptedLLM, _ACTION_ID, _action, _plan
@@ -124,7 +124,7 @@ class TestTiming:
         assert max((d.ended_ns - d.started_ns) for d in seen) >= DELAY * 1e9 * 0.9      # the slow worker calls
 
     def test_langfuse_gets_the_real_start_and_end(self):
-        from application.engine.support.metrics import SessionMetrics as M
+        from application.support.metrics import SessionMetrics as M
         from application.outbound.ports.usage_ports import CallDetails
         from infrastructure.outbound.usage.langfuse import LangfuseUsageReporter
         r = LangfuseUsageReporter("pk", "sk", prices={}, background=False)

@@ -9,11 +9,11 @@ import uuid
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from application.inbound.dto.message import TextRequestDTO
-from application.engine.support.failure import UNKNOWN_SESSION_APOLOGY, apology_for_unexpected, classify
-from application.engine.assemble import DEFAULT_PROFILE, Agent, AssembledProfile
-from application.engine.profile_access import check_access
-from application.engine.profile_inputs import InputsError, read_inputs
-from application.engine.state.response_json import response_to_json
+from application.support.llm.failure import UNKNOWN_SESSION_APOLOGY, apology_for_unexpected, classify
+from application.assembly.model import DEFAULT_PROFILE, Agent, AssembledProfile
+from application.runtime.profile.access import check_access
+from application.runtime.profile.inputs import InputsError, read_inputs
+from application.runtime.state.response_json import response_to_json
 from application.inbound.dto.session import (
     EndSessionRequestDTO,
     EndSessionResponseDTO,

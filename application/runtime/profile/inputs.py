@@ -8,8 +8,8 @@
 
 from typing import Any, Callable, Dict, Optional
 
-from application.engine.assemble import AssembledProfile
-from application.engine.state.response_json import INTERNAL
+from application.assembly.model import AssembledProfile
+from application.runtime.state.response_json import INTERNAL
 from domain.entities.llm_response.response import Response
 
 MISSING_INPUT = "MISSING_INPUT"

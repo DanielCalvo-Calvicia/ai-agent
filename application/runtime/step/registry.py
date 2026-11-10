@@ -13,8 +13,8 @@ from dataclasses import dataclass
 from types import ModuleType
 from typing import Dict, List, Tuple
 
-PACKAGE = "application.steps"
-PHASES_DIR = os.path.dirname(os.path.abspath(__file__))
+PACKAGE = "application.runtime.step.library"
+PHASES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "library")
 
 LLM = "llm"                          # one LLM call
 LLM_PER_ACTION = "llm_per_action"    # one LLM call for every planned action
@@ -90,7 +90,7 @@ def load_all() -> None:
 
 def _register_declared() -> None:
     """The LLM steps of step_defs/ of this repository: each one a catalog entry whose constants are its declaration's."""
-    from application.steps.declared import declaration_module, repository_declarations
+    from application.runtime.step.declared import declaration_module, repository_declarations
     for name, declaration in repository_declarations().items():
         kind = declaration.get("kind")
         if kind not in (LLM, LLM_PER_ACTION) or name in _STEPS:

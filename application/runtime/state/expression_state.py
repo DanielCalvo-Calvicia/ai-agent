@@ -7,7 +7,7 @@
 from dataclasses import dataclass, field
 from typing import List
 
-from application.engine.state.flow_state import FlowState
+from application.runtime.state.flow_state import FlowState
 from domain.operations.gesture import DEFAULT_EMOTION, DEFAULT_INTENSITY
 from domain.value_objects.movement.movement import Movement
 

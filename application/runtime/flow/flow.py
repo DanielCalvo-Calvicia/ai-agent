@@ -8,11 +8,11 @@
 from dataclasses import dataclass, field
 from typing import Callable, Dict, List, Optional
 
-from application.engine.state.flow_state import FlowState
-from application.engine.state.paused_run import FlowResult
-from application.steps.hooks import ANSWER_CHECKER, USER_CLARIFICATION
-from application.steps.phase import Step
-from application.engine.phase_runner import PhaseRunner
+from application.runtime.state.flow_state import FlowState
+from application.runtime.state.paused_run import FlowResult
+from application.runtime.flow.hooks import ANSWER_CHECKER, USER_CLARIFICATION
+from application.runtime.step.spec import Step
+from application.runtime.step.runner import PhaseRunner
 from application.outbound.ports.mcp_ports import McpToolsPort, ToolScope
 from domain.value_objects.llm_request.message import Message
 
@@ -37,7 +37,7 @@ class Flow:
     # The state a new message starts with: the user message and the earlier turns. A flow that keeps more
     # than the shared FlowState holds gives its own (a subclass).
     new_state: Callable[[str, List[Message]], FlowState] = lambda message, history: FlowState(message=message, history=history)
-    # The hooks that run when a step asks the user and when the user answers (steps/hooks.py). None: the flow cannot ask.
+    # The hooks that run when a step asks the user and when the user answers (runtime/flow/hooks.py). None: the flow cannot ask.
     on_pause: Optional[str] = USER_CLARIFICATION
     on_resume: Optional[str] = ANSWER_CHECKER
     # The tool limits of the flow file: for the whole flow and for single steps (a `tools` object each; None sets no limit).

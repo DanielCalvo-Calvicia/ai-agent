@@ -11,11 +11,11 @@ from typing import Callable, Dict, Optional
 from domain.operations.gesture import DEFAULT_EMOTION, DEFAULT_INTENSITY, EMOTIONS, INTENSITIES
 from domain.value_objects.movement.movement import Movement
 
-from application.engine.state.expression_state import as_expression
-from application.engine.state.flow_state import FlowState
-from application.engine.state.motion_state import as_motion
-from application.engine.support.action_tree import with_outputs
-from application.engine.support.mcp_servers import describe_servers
+from application.runtime.state.expression_state import as_expression
+from application.runtime.state.flow_state import FlowState
+from application.runtime.state.motion_state import as_motion
+from application.support.tools.action_tree import with_outputs
+from application.support.tools.mcp_servers import describe_servers
 from application.outbound.ports.mcp_ports import McpToolsPort
 
 MAX_IMPROVISED = 3          # movements the emotion reader may improvise

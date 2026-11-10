@@ -7,11 +7,11 @@ from typing import List, Optional
 
 from application.inbound.dto.message import TextRequestDTO, TextResponseDTO
 from application.inbound.ports.message_flow_ports import MessageInboundPort
-from application.engine.assemble import DEFAULT_PROFILE, Agent
-from application.engine.state.history import response_of
-from application.engine.profile_runner import ProfileRunner
-from application.engine.support.metrics import SessionMetrics
-from application.engine.state.paused_run import PausedRun
+from application.assembly.model import DEFAULT_PROFILE, Agent
+from application.runtime.state.history import response_of
+from application.runtime.profile.runner import ProfileRunner
+from application.support.metrics import SessionMetrics
+from application.runtime.state.paused_run import PausedRun
 from application.outbound.ports.llm_ports import LLMOutboundPort
 from application.outbound.ports.mcp_ports import McpToolsPort
 from application.outbound.ports.usage_ports import UsageReporterPort

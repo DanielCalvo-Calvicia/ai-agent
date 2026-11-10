@@ -1,15 +1,15 @@
 # ===============================================
 #  BUILD A STEP
-#  The function a flow runs for a step. An `llm` step is built from its declaration (step_defs/<name>.json, steps/declared.py); a
-#  `code` step is the function of its Python file (steps/registry.py): its `run(state)`, or `build_step(...)` when it needs more
+#  The function a flow runs for a step. An `llm` step is built from its declaration (step_defs/<name>.json, runtime/step/declared.py); a
+#  `code` step is the function of its Python file (runtime/step/registry.py): its `run(state)`, or `build_step(...)` when it needs more
 #  than the state (the action executor). The runner is the engine's PhaseRunner (not imported here: a step never imports the engine).
 # ===============================================
 
 from typing import Callable, Dict, Optional
 
-from application.engine.state.flow_state import FlowState
-from application.steps.declared import repository_declarations, step_function
-from application.steps.registry import LLM, step as registered_step
+from application.runtime.state.flow_state import FlowState
+from application.runtime.step.declared import repository_declarations, step_function
+from application.runtime.step.registry import LLM, step as registered_step
 
 
 def build_step_function(name: str, runner, mcp_list: list, mcp_tools: Optional[object] = None,

@@ -3,13 +3,13 @@
 # movements are random, shaped by the emotion (domain/operations/gesture.py). The motion validator checks the result
 # as a safety net; a gesture it refuses is dropped, never sent (the reply is spoken anyway).
 
-from application.steps.movement import motion_validator
-from application.engine.state.expression_state import as_expression
-from application.engine.state.flow_state import FlowState
-from application.engine.support.expression_settings import new_rng
+from application.runtime.step.library.movement import motion_validator
+from application.runtime.state.expression_state import as_expression
+from application.runtime.state.flow_state import FlowState
+from application.support.expression_settings import new_rng
 from domain.operations.gesture import build_gesture
 from shared_logging import get_logger
-from application.steps.registry import register_step
+from application.runtime.step.registry import register_step
 
 logger = get_logger(__name__)
 

@@ -29,10 +29,10 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.engine.state.flow_state import FlowState
-from application.engine.support.metrics import SessionMetrics
-from application.engine.pipeline import Pipeline
-from application.engine.flow import Flow
+from application.runtime.state.flow_state import FlowState
+from application.support.metrics import SessionMetrics
+from application.runtime.flow.pipeline import Pipeline
+from application.runtime.flow.flow import Flow
 from flow_files import IDENTIFICATION_FLOW
 from flow_files import SPECIAL_FLOW
 from domain.entities.llm_response.response import Response
@@ -718,8 +718,8 @@ def run_with_stops(
     Returns the FlowResult of the pipeline.
     """
     from unittest.mock import patch
-    from application.steps.special.action_executor import ActionExecutor
-    from application.engine.phase_runner import PhaseRunner
+    from application.runtime.step.library.special.action_executor import ActionExecutor
+    from application.runtime.step.runner import PhaseRunner
 
     stop = stop or _pause
     unknown = set(at) - set(STOP_POINTS)

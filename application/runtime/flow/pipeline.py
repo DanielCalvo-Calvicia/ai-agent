@@ -10,19 +10,19 @@
 
 from typing import Dict, List, Mapping, Optional, Sequence
 
-from application.engine.answer_check import ANSWERED, CONFIRMED, DECLINED, STOP, AnswerChecker
-from application.engine.clarification import Clarifier
-from application.engine.support.failure import AgentFailure, max_attempts
-from application.engine.flow import Flow, FlowContext
-from application.engine.state.flow_state import FlowState
-from application.engine.support.mcp_servers import server_names
-from application.engine.support.metrics import SessionMetrics
-from application.engine.support.model_selection import ModelResolver
-from application.engine.support.prompt_overrides import PromptOverride
-from application.engine.state.paused_run import CONFIRMATION, INPUT, FlowResult, PausedRun
-from application.steps.hooks import ANSWER_CHECKER, USER_CLARIFICATION
-from application.steps.phase import Step
-from application.engine.phase_runner import PhaseRunner
+from application.runtime.flow.pause.answer_check import ANSWERED, CONFIRMED, DECLINED, STOP, AnswerChecker
+from application.runtime.flow.pause.clarification import Clarifier
+from application.support.llm.failure import AgentFailure, max_attempts
+from application.runtime.flow.flow import Flow, FlowContext
+from application.runtime.state.flow_state import FlowState
+from application.support.tools.mcp_servers import server_names
+from application.support.metrics import SessionMetrics
+from application.support.llm.model_selection import ModelResolver
+from application.support.llm.prompt_overrides import PromptOverride
+from application.runtime.state.paused_run import CONFIRMATION, INPUT, FlowResult, PausedRun
+from application.runtime.flow.hooks import ANSWER_CHECKER, USER_CLARIFICATION
+from application.runtime.step.spec import Step
+from application.runtime.step.runner import PhaseRunner
 from application.outbound.ports.llm_ports import LLMOutboundPort
 from application.outbound.ports.mcp_ports import McpToolsPort, ToolScope, scoped
 from domain.value_objects.llm_request.message import Message

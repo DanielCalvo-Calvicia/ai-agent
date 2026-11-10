@@ -7,7 +7,7 @@ import os
 
 import pytest
 
-from application.engine.config_snapshot import KINDS, SUPPORTED_SCHEMA_VERSIONS, build_snapshot
+from application.assembly.config_snapshot import KINDS, SUPPORTED_SCHEMA_VERSIONS, build_snapshot
 from application.outbound.ports.config_ports import ConfigError, ConfigSourcePort, Loaded
 from infrastructure.outbound.config.file_source import FileConfigSource
 
@@ -141,7 +141,7 @@ class TestAnotherSource:
 
 
 class TestLayering:
-    @pytest.mark.parametrize("path", ["application/outbound/ports/config_ports.py", "application/engine/config_snapshot.py"])
+    @pytest.mark.parametrize("path", ["application/outbound/ports/config_ports.py", "application/assembly/config_snapshot.py"])
     def test_the_application_does_not_import_the_infrastructure(self, path):
         with open(os.path.join(PROJECT_ROOT, *path.split("/")), encoding="utf-8") as f:
             tree = ast.parse(f.read())

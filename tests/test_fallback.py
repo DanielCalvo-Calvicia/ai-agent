@@ -6,16 +6,16 @@ import os
 
 import pytest
 
-from application.engine.phase_runner import PhaseRunner
-from application.steps.catalog import PHASES
+from application.runtime.step.runner import PhaseRunner
+from application.runtime.step.catalog import PHASES
 from step_specs import TRIAGE
-from application.engine.state.flow_state import FlowState
-from application.engine.support import failure as failure_module
-from application.engine.support.failure import (
+from application.runtime.state.flow_state import FlowState
+from application.support.llm import failure as failure_module
+from application.support.llm.failure import (
     AgentFailure, capacity_problem, daily_quota_used_up, retry_wait_seconds, wait_before_retry,
 )
-from application.engine.support.metrics import SessionMetrics
-from application.engine.support.model_selection import ModelResolver
+from application.support.metrics import SessionMetrics
+from application.support.llm.model_selection import ModelResolver
 from application.outbound.ports.llm_ports import LLMOutboundPort
 from domain.entities.llm_response.response import Response
 from domain.entities.llm_response.tokens_usage import TokensUsage
