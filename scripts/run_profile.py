@@ -27,10 +27,11 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__fi
 sys.path.insert(0, PROJECT_ROOT)
 sys.path.insert(0, os.path.join(PROJECT_ROOT, "tests"))
 
-from application.engine.assemble import Agent, assemble
-from application.engine.config_snapshot import build_snapshot
-from application.engine.profile_inputs import read_inputs
-from application.engine.state.response_json import response_to_json
+from application.assembly.assemble import assemble
+from application.assembly.model import Agent
+from application.assembly.config_snapshot import build_snapshot
+from application.runtime.profile.inputs import read_inputs
+from application.runtime.state.response_json import response_to_json
 from application.inbound.dto.message import TextRequestDTO
 from application.service.message_flow_service import MessageFlowService
 from infrastructure.outbound.config.file_source import FileConfigSource

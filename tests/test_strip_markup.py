@@ -2,7 +2,7 @@
 # The tags are built from pieces so that this file holds no literal markup.
 import pytest
 
-from application.engine.state.flow_state import FlowState, strip_markup
+from application.runtime.state.flow_state import FlowState, strip_markup
 from domain.value_objects.llm_response.user_goal.user_goal import create_user_goal
 
 OPEN, CLOSE = "<", "</"

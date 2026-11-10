@@ -5,9 +5,10 @@ import os
 
 import pytest
 
-from application.engine.assemble import Agent, assemble
-from application.engine.config_snapshot import build_snapshot
-from application.engine.profile_access import sha256_hex
+from application.assembly.assemble import assemble
+from application.assembly.model import Agent
+from application.assembly.config_snapshot import build_snapshot
+from application.runtime.profile.access import sha256_hex
 from application.inbound.dto.message import TextRequestDTO
 from application.inbound.dto.session import MessageReceivedRequestDTO, StartSessionRequestDTO
 from application.service.message_flow_service import MessageFlowService

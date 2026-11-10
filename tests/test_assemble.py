@@ -11,11 +11,12 @@ import typing
 
 import pytest
 
-from application.engine.assemble import DEFAULT_PROFILE, assemble
-from application.engine.config_snapshot import build_snapshot
-from application.engine.state.expression_state import ExpressionFlowState
-from application.engine.state.flow_state import FlowState
-from application.engine.state.motion_state import MotionFlowState
+from application.assembly.assemble import assemble
+from application.assembly.model import DEFAULT_PROFILE
+from application.assembly.config_snapshot import build_snapshot
+from application.runtime.state.expression_state import ExpressionFlowState
+from application.runtime.state.flow_state import FlowState
+from application.runtime.state.motion_state import MotionFlowState
 from application.outbound.ports.config_ports import ConfigError, ConfigSourcePort, Loaded
 from infrastructure.outbound.config.file_source import FileConfigSource
 from infrastructure.outbound.llm.anthropic_schema import anthropic_schema_problems
@@ -304,7 +305,7 @@ class TestModels:
         assert len(anthropic_schema_problems(NODE)) == 1
 
     def test_the_action_recursion_of_the_phases_is_unrolled_on_purpose_so_the_rule_would_flag_it(self):
-        from application.engine.support.schemas import ACTIONS_SCHEMA_FILE, load_schema_file
+        from application.support.llm.schemas import ACTIONS_SCHEMA_FILE, load_schema_file
         assert anthropic_schema_problems(load_schema_file(ACTIONS_SCHEMA_FILE)) != []      # why built-in steps are not checked with it
 
 

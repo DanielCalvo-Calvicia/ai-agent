@@ -112,3 +112,4 @@ Starts only after T-05 is done and the maintainer has written the specification 
 | 61 | [T-06.5](T-06_redesign/T-06.5_new-flows-and-profiles.md) | The new flows and profiles | code | Done | no new flow or profile needed | T-06.1, T-06.3, T-06.4 | 2026-11-02 |
 | 62 | [T-06.6](T-06_redesign/T-06.6_real-run-and-comparison.md) | Real run and comparison | manual | Awaiting user | runs done; the maintainer ticks the points | T-06.5 | 2026-11-02 |
 | 63 | [T-06.7](T-06_redesign/T-06.7_documentation.md) | Documentation | docs | Done | the final read is the maintainer's | T-06.6 | 2026-11-02 |
+| 64 | [T-06.8](T-06_redesign/T-06.8_runtime-folder-layout.md) | Runtime folder layout | code | Done | ADR-016; 1379 tests, golden untouched | T-06.7 | 2026-11-09 |

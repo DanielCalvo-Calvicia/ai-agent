@@ -16,9 +16,9 @@ from typing import Any, Dict, List, Optional, Tuple
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from application.engine.assemble import Agent
-from application.engine.profile_runner import ProfileRunner
-from application.engine.support.metrics import SessionMetrics
+from application.assembly.model import Agent
+from application.runtime.profile.runner import ProfileRunner
+from application.support.metrics import SessionMetrics
 from application.outbound.ports.llm_ports import LLMOutboundPort
 from budget_table import combined
 from cost_estimate import usage as plan_usage, price

@@ -6,13 +6,13 @@ import shutil
 
 import pytest
 
-from application.engine.assemble import assemble
-from application.engine.config_snapshot import build_snapshot
-from application.engine.profile_inputs import read_inputs
+from application.assembly.assemble import assemble
+from application.assembly.config_snapshot import build_snapshot
+from application.runtime.profile.inputs import read_inputs
 from application.inbound.dto.message import TextRequestDTO
 from application.service.message_flow_service import MessageFlowService
-from application.steps import functions
-from application.steps.declared import parse_reads, repository_declarations
+from application.runtime.step import functions
+from application.runtime.step.declared import parse_reads, repository_declarations
 from infrastructure.outbound.config.file_source import FileConfigSource
 from infrastructure.outbound.llm.response_mapper import read_response_json
 from test_flow_golden import ScriptedLLM, _sha
@@ -167,7 +167,7 @@ class TestWhatAssemblyRefuses:
          "has no key 'nothing'"),
         ({"answer": {"pieces": [{"name": "user_goal", "file": "general/user_goal/user_goal.schema.json", "key": "user_goal"}], "required": ["other"]}},
          "answer.required must name pieces of the answer"),
-        ({"functions": {"input": "no_such_function"}}, "is not a function of application/steps/functions.py"),
+        ({"functions": {"input": "no_such_function"}}, "is not a function of application/runtime/step/functions.py"),
         ({"functions": {"output": "message_with_history"}}, "unknown key 'output'"),
         ({"for_each": "actions", "kind": "llm_per_action"}, "answer.schema_file must be"),
     ])
@@ -179,7 +179,7 @@ class TestWhatAssemblyRefuses:
         data = json.loads(path.read_text(encoding="utf-8"))
         data["function"] = "nope"
         path.write_text(json.dumps(data), encoding="utf-8")
-        assert "is not a code step of application/steps/" in assembled(config).problems["step_defs/motion_validator"][0]
+        assert "is not a code step of application/runtime/step/library/" in assembled(config).problems["step_defs/motion_validator"][0]
 
     def test_a_step_that_reads_what_nobody_writes_is_refused_for_the_profile_that_runs_it(self, config):
         path = config / "step_defs" / "editor_in_chief.json"
@@ -194,8 +194,8 @@ class TestWhatAssemblyRefuses:
         write(config, "flows/bad.json", {"schema_version": 1, "steps": [{"step": "cognitive_worker"}], "result_from": "cognitive_worker"})
         agent = assembled(config)
         assert "flows/bad" not in agent.flows or True
-        from application.engine.flow_file import flow_from_file
-        from application.engine.pipeline import Pipeline
-        from application.engine.support.metrics import SessionMetrics
+        from application.assembly.flow_file import flow_from_file
+        from application.runtime.flow.pipeline import Pipeline
+        from application.support.metrics import SessionMetrics
         with pytest.raises(ValueError, match="run once per action by the action executor"):
             Pipeline(ScriptedLLM(), [], SessionMetrics(), flow=flow_from_file("bad", {"steps": [{"step": "cognitive_worker"}], "result_from": "cognitive_worker"}))

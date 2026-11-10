@@ -1,6 +1,6 @@
 # model_sets/
 
-One JSON file per **model set**: a named table that says which LLM answers each step. A profile picks one by name (`"models": "claude_mixed"`) at any level (PR-005 section 5). Every entry is an **ordered list**: the first model answers, the next ones are tried **only when the first is out of capacity** (429, 503, daily quota; ADR-014). Read by `application/engine/support/model_selection.py`.
+One JSON file per **model set**: a named table that says which LLM answers each step. A profile picks one by name (`"models": "claude_mixed"`) at any level (PR-005 section 5). Every entry is an **ordered list**: the first model answers, the next ones are tried **only when the first is out of capacity** (429, 503, daily quota; ADR-014). Read by `application/support/llm/model_selection.py`.
 
 ## 1. File format
 
@@ -44,8 +44,8 @@ Rules checked by `scripts/check_agent.py` (and at start, where a set with a prob
 | `data_engineer` | special | cleans a tool result |
 | `draft_writer` | common | first text of the reply |
 | `editor_in_chief` | common | final text |
-| `answer_checker` | engine | decides if the next message answers a question |
-| `user_clarification` | engine | turns missing data into a question |
+| `answer_checker` | runtime | decides if the next message answers a question |
+| `user_clarification` | runtime | turns missing data into a question |
 | `motion_planner` | movement | arm movements |
 | `emotion_reader` | expression | emotion of an exchange |
 

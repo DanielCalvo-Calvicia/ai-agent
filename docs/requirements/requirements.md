@@ -35,7 +35,7 @@ Status as of 2026-11-04, taken from `CLAUDE.md`, `README.md` and the code after 
 
 | ID | Requirement | Status | Record |
 |---|---|---|---|
-| NFR-1 | Layers: `domain` imports nothing of the application, `application` never imports `infrastructure`, `composition_root` is the only place that knows every layer; inside `application` (flows, steps, engine) the dependencies go one way | Done, enforced by `tests/test_orchestration_layout.py` | architecture 3 | Done, enforced by `tests/test_orchestration_layout.py` | architecture 2 and 3 |
+| NFR-1 | Layers: `domain` imports nothing of the application, `application` never imports `infrastructure`, `composition_root` is the only place that knows every layer; inside `application` (`runtime/` profile -> flow -> step -> state, `assembly/`, `support/`; ADR-016) the dependencies go one way | Done, enforced by `tests/test_orchestration_layout.py` | architecture 2 and 3 |
 | NFR-2 | An LLM step is one declaration (`step_defs/`), a code step one Python file with its constants first; every referenced prompt and schema exists | Done, enforced by `tests/test_phase_structure.py` and `assemble()` | architecture 5 |
 | NFR-3 | The schema tree is generated from `full.schema.json`; nothing else is edited by hand | Done, enforced by `tests/test_schema_tree.py` | ADR-005 |
 | NFR-4 | Every LLM call (model, prompts, messages, schema, sampling, tools) is pinned by a golden file, for the client's chain and for each profile; a change is read and regenerated on purpose (`UPDATE_GOLDEN=1`) | Done | `tests/test_flow_golden.py` |
@@ -66,7 +66,7 @@ Status as of 2026-11-04, taken from `CLAUDE.md`, `README.md` and the code after 
 15. A model out of capacity (429, 5xx, timeout, no connection) is waited for and then replaced by the next model of the ordered list of its step (the sets `proven` and `google_free`: `gemini-3.5-flash-lite`, `gemini-3-flash-preview`; ADR-014, T-05.5). Tested with scripted errors only; no real 503 was provoked. The Claude model sets have no fallback on purpose. Not done: a circuit breaker, `Retry-After`, and a fallback for the MCP tools.
 
 16. Found by the real runs of T-06 (2026-11-09; `docs/tasks/T-06_redesign/T-06.4_refine-prompts.md` and `T-06.6_real-run-and-comparison.md`), not fixed:
-    - **The question the service asks the user** (the clarification step, phase 99, a prompt inside `application/steps/common/user_clarification.py`) can start with a markdown heading and be in English for a message in Spanish ("# Order Information Request").
+    - **The question the service asks the user** (the clarification step, phase 99, a prompt inside `application/runtime/step/library/common/user_clarification.py`) can start with a markdown heading and be in English for a message in Spanish ("# Order Information Request").
     - **`document`** ("create a document with a plan") is classified `writing` and the triage sometimes asks the user for details; the robot cannot make files and no profile says so.
     - **`default`, after the user answers a question** (the family table): about 1 run in 5 invents the values or asks again, before and after the T-06 changes (model `proven`).
     - The triage varies between runs (a message can be `movement` once and `communication` the next); a change to its prompt is judged with several runs of the same message.

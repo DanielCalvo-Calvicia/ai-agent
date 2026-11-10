@@ -13,7 +13,7 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.engine.support.mcp_servers import describe_servers, server_names
+from application.support.tools.mcp_servers import describe_servers, server_names
 from application.outbound.ports.mcp_ports import McpToolsPort
 from brain_chain import ChainedSessionService as SessionService
 from domain.value_objects.llm_request.tool import ToolDefinition

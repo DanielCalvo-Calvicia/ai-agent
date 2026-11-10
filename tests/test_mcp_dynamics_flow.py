@@ -28,8 +28,8 @@ if PROJECT_ROOT not in sys.path:
 
 from application.inbound.dto.session import MessageReceivedRequestDTO, StartSessionRequestDTO
 from brain_chain import AgentRouter
-from application.engine.support.mcp_servers import describe_servers, server_names
-from application.engine.support.metrics import SessionMetrics
+from application.support.tools.mcp_servers import describe_servers, server_names
+from application.support.metrics import SessionMetrics
 from brain_chain import ChainedSessionService as SessionService
 from application.system_prompts.general import LoadCapabilities, LoadSystemPrompt
 from infrastructure.outbound.mcp.client_manager import MCPClientManager
@@ -403,7 +403,7 @@ def test_the_writer_is_told_to_speak_short_and_to_summarise_long_data():
 
 def test_the_writer_receives_the_users_own_words():
     from step_specs import DRAFT_WRITER
-    from application.engine.state.flow_state import FlowState
+    from application.runtime.state.flow_state import FlowState
     assert DRAFT_WRITER.build_input(FlowState(message="How many orders does CL-1001 have?"))["user_message"] == "How many orders does CL-1001 have?"
 
 

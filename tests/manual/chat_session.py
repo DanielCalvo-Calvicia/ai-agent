@@ -26,7 +26,7 @@ os.chdir(PROJECT_ROOT)
 load_dotenv(os.path.join(PROJECT_ROOT, ".env"), override=False)
 
 from application.inbound.dto.session import MessageReceivedRequestDTO, StartSessionRequestDTO
-from application.engine.support.model_selection import effective_models
+from application.support.llm.model_selection import effective_models
 from model_table import manual_resolver, manual_service
 from application.service.session_service import SessionService
 from budget_run import Collector, usd

@@ -8,9 +8,9 @@ import shutil
 
 import pytest
 
-from application.engine.assemble import assemble
-from application.engine.config_snapshot import build_snapshot
-from application.engine.support.metrics import RECORD_KEYS, SessionMetrics
+from application.assembly.assemble import assemble
+from application.assembly.config_snapshot import build_snapshot
+from application.support.metrics import RECORD_KEYS, SessionMetrics
 from application.inbound.dto.message import TextRequestDTO
 from application.outbound.ports.usage_ports import CallDetails
 from application.service.message_flow_service import MessageFlowService
@@ -108,7 +108,7 @@ class TestEveryKeyIsInTheMetrics:
 class TestTheLogLine:
     def test_one_line_per_call_with_the_run_and_never_a_text_or_a_token(self, agent, monkeypatch):
         recorder = Recorder()
-        monkeypatch.setattr("application.engine.support.metrics.logger", recorder)
+        monkeypatch.setattr("application.support.metrics.logger", recorder)
         metrics = run_special(agent)
         calls = [fields for message, fields in recorder.records if message == "LLM call"]
         assert len(calls) == len(metrics.request_log)
@@ -119,7 +119,7 @@ class TestTheLogLine:
 
     def test_no_input_value_reaches_a_record_or_the_log(self, agent, monkeypatch):
         recorder = Recorder()
-        monkeypatch.setattr("application.engine.support.metrics.logger", recorder)
+        monkeypatch.setattr("application.support.metrics.logger", recorder)
         metrics = run_special(agent, client="web-chat", message=f"my code is {SECRET_INPUT}")
         assert SECRET_INPUT not in json.dumps(metrics.summary(), default=str) and SECRET_INPUT not in repr(recorder.records)
 

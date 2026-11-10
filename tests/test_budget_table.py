@@ -8,7 +8,7 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.engine.support.model_selection import STEP_NAMES
+from application.support.llm.model_selection import STEP_NAMES
 from budget_table import (DOC_PATH, MEASURED_PATH, OTHER_PATH, WORKS_TEXT, budget_usd_per_message, combined, eur,
                           load_budget, markdown, measured_cost, profile_choice, read)
 from domain.value_objects.llm_request.model import get_selected_model

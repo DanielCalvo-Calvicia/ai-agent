@@ -34,6 +34,7 @@ Redo the flows, the steps, the prompts and the profiles on the structure T-05 bu
 | 5 | [T-06.5 The new flows and profiles](T-06.5_new-flows-and-profiles.md) | code | done, no change |
 | 6 | [T-06.6 Real run and comparison](T-06.6_real-run-and-comparison.md) | manual | awaiting-user (runs done 2026-11-09) |
 | 7 | [T-06.7 Documentation](T-06.7_documentation.md) | docs | done (2026-11-09) |
+| 8 | [T-06.8 Runtime folder layout](T-06.8_runtime-folder-layout.md) | code | done (2026-11-09, ADR-016) |
 
 ## Exit criteria
 

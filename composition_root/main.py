@@ -39,8 +39,8 @@ from infrastructure.outbound.usage.prices import cost_usd, load_prices
 #  APPLICATION SERVICES
 # -----------------------------------------------
 
-from application.engine.assemble import assemble
-from application.engine.config_snapshot import build_snapshot
+from application.assembly.assemble import assemble
+from application.assembly.config_snapshot import build_snapshot
 from application.service.session_service import SessionService
 
 # -----------------------------------------------

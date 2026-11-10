@@ -4,12 +4,13 @@ import os
 
 import pytest
 
-from application.engine.assemble import DEFAULT_PROFILE, assemble
-from application.engine.config_snapshot import build_snapshot
-from application.engine.state.expression_state import ExpressionFlowState
-from application.engine.state.paused_run import PausedRun
-from application.engine.support.metrics import SessionMetrics
-from application.engine.profile_runner import ProfileMismatch, ProfileRunner
+from application.assembly.assemble import assemble
+from application.assembly.model import DEFAULT_PROFILE
+from application.assembly.config_snapshot import build_snapshot
+from application.runtime.state.expression_state import ExpressionFlowState
+from application.runtime.state.paused_run import PausedRun
+from application.support.metrics import SessionMetrics
+from application.runtime.profile.runner import ProfileMismatch, ProfileRunner
 from application.service.message_flow_service import MessageFlowService
 from infrastructure.outbound.config.file_source import FileConfigSource
 from infrastructure.outbound.llm.anthropic_schema import anthropic_schema_problems

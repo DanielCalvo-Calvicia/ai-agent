@@ -391,10 +391,10 @@ def test_flow_matches_golden(name: str):
 #  ONE BLOCK PER PROFILE (T-05.10)
 # ===============================================
 
-from application.engine.assemble import assemble
-from application.engine.config_snapshot import build_snapshot
-from application.engine.profile_inputs import read_inputs
-from application.engine.state.response_json import response_to_json
+from application.assembly.assemble import assemble
+from application.assembly.config_snapshot import build_snapshot
+from application.runtime.profile.inputs import read_inputs
+from application.runtime.state.response_json import response_to_json
 from application.service.message_flow_service import MessageFlowService as OneProfileService
 from infrastructure.outbound.config.file_source import FileConfigSource
 from infrastructure.outbound.llm.response_mapper import read_response_json

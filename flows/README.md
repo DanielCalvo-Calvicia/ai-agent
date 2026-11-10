@@ -2,7 +2,7 @@
 
 One JSON file per **flow**: an ordered list of steps with named pause and retry rules (PR-005 section 3.3; ADR-015). A profile names one flow (`"flow": "special"`). A flow says **what runs and in what order**; it does not say which models (profile), which tools at the profile level (profile), or what a step does (`step_defs/`). **No branches and no sub-flows**: the steps run top to bottom.
 
-Read at start by `infrastructure/outbound/config/file_source.py`, checked by `application/engine/assemble.py` and built into a `Flow` by `application/engine/flow_file.py`. `python scripts/check_agent.py` checks every file.
+Read at start by `infrastructure/outbound/config/file_source.py`, checked by `application/assembly/assemble.py` and built into a `Flow` by `application/assembly/flow_file.py`. `python scripts/check_agent.py` checks every file.
 
 ## 1. File rules
 
@@ -18,8 +18,8 @@ Read at start by `infrastructure/outbound/config/file_source.py`, checked by `ap
 | `name` | yes (always write it) | text, equal to the file name | Public name of the flow. |
 | `about` | no | text | Documentation only. |
 | `steps` | yes | non-empty list | The steps in order. Each entry is a **step name** or an **object** (section 3). |
-| `on_pause` | see rule | `"user_clarification"` | What the engine does when a step asks the user: turn the missing data into one question. |
-| `on_resume` | see rule | `"answer_checker"` | What the engine does with the next message of the user: decide whether it answers the question, confirms, declines, or stops. |
+| `on_pause` | see rule | `"user_clarification"` | What the runtime does when a step asks the user: turn the missing data into one question. |
+| `on_resume` | see rule | `"answer_checker"` | What the runtime does with the next message of the user: decide whether it answers the question, confirms, declines, or stops. |
 | `result_from` | yes | the name of **a step in this flow** | The step whose result is the flow's result. It also decides *what kind* of result (section 5). |
 | `tools` | no | `{"servers": [...], "tools": [...]}` | Tool limit for the whole flow (same format and intersection rule as in [profiles/README.md](../profiles/README.md) section 5). |
 | `models` | no | a model set name or a list of ids | **Checked but not applied**: models are chosen by the profile (`flows.<flow>.models` in the profile). Do not rely on it. |
@@ -36,7 +36,7 @@ A plain name (`"draft_writer"`) is a step with no rules. An object has these key
 | `pause_if` | `"needs_user_input"` | After the step, if the condition is true the flow **stops and asks the user** instead of going on. The condition is true when the step's `next_step.status` is `awaiting_user_input` (a detail is missing) or `awaiting_confirmation` (a yes/no is needed; a yes resumes **after** the step, the answer checker decides). The next message of the same profile resumes **at the same step**, now with the answer. |
 | `retry_on_status` | `true` / `false` (default `false`) | Run the step again while its answer says `retry` or `error` in `next_step.status`, up to `AI_AGENT_MAX_ATTEMPTS` (3, first try included). After that the request fails (`reported_error`). |
 | `tools` | `{"servers": [...], "tools": [...]}` | Tool limit for **this step only**. Can only narrow the profile's and the flow's limit. |
-| `optional` | any | Accepted by the check, **ignored** by the engine. Do not use it. |
+| `optional` | any | Accepted by the check, **ignored** by the runtime. Do not use it. |
 
 ## 4. Names a flow may use: they are written in Python
 
@@ -44,16 +44,16 @@ A flow cannot invent a step, a condition or a hook; it can only **combine** the 
 
 | What | Allowed values today | Where they live |
 |---|---|---|
-| step | the names in section 6 | `step_defs/*.json` (LLM steps) and `application/steps/**` (code steps) |
-| `pause_if` | `needs_user_input` | `application/steps/conditions.py` |
-| `on_pause` | `user_clarification` | `application/steps/hooks.py` |
-| `on_resume` | `answer_checker` | `application/steps/hooks.py` |
+| step | the names in section 6 | `step_defs/*.json` (LLM steps) and `application/runtime/step/library/**` (code steps) |
+| `pause_if` | `needs_user_input` | `application/runtime/flow/conditions.py` |
+| `on_pause` | `user_clarification` | `application/runtime/flow/hooks.py` |
+| `on_resume` | `answer_checker` | `application/runtime/flow/hooks.py` |
 
 A wrong name is reported with the list of valid ones (`unknown condition 'x'. Conditions: needs_user_input`).
 
 ## 5. What `result_from` decides
 
-The step named in `result_from` also picks how the answer is built (`application/steps/hooks.py`, `RESULT_BUILDERS`):
+The step named in `result_from` also picks how the answer is built (`application/runtime/flow/hooks.py`, `RESULT_BUILDERS`):
 
 | `result_from` | The flow returns |
 |---|---|

@@ -1,6 +1,6 @@
 # The specs of the LLM steps of this repository, built from their declarations (step_defs/*.json). The tests that used the
 # Python constants of the step files (before T-05.16) take them from here: the same objects of the same kind.
-from application.steps.declared import action_spec, phase_spec, repository_declarations
+from application.runtime.step.declared import action_spec, phase_spec, repository_declarations
 
 TRIAGE = phase_spec("triage_specialist")
 SAFETY_GATE = phase_spec("safety_quality_gatekeeper")

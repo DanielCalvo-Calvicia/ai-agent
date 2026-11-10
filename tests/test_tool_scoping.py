@@ -6,13 +6,14 @@ from types import SimpleNamespace
 
 import pytest
 
-from application.engine.assemble import Agent, assemble
-from application.engine.config_snapshot import build_snapshot
-from application.engine.flow_file import flow_from_file
-from application.engine.pipeline import Pipeline
-from application.engine.profile_runner import ProfileRunner
-from application.engine.support.mcp_servers import describe_servers, server_names
-from application.engine.support.metrics import SessionMetrics
+from application.assembly.assemble import assemble
+from application.assembly.model import Agent
+from application.assembly.config_snapshot import build_snapshot
+from application.assembly.flow_file import flow_from_file
+from application.runtime.flow.pipeline import Pipeline
+from application.runtime.profile.runner import ProfileRunner
+from application.support.tools.mcp_servers import describe_servers, server_names
+from application.support.metrics import SessionMetrics
 from application.outbound.ports.mcp_ports import McpToolsPort, ScopedTools, ToolScope, scoped
 from domain.value_objects.llm_request.tool import ToolDefinition
 from flow_files import FLOWS
