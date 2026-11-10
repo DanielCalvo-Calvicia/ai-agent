@@ -18,13 +18,13 @@ if PROJECT_ROOT not in sys.path:
 from application.inbound.dto.session import MessageReceivedResponseDTO
 from flow_files import EXPRESSION_FLOW
 from brain_chain import EXPRESSIVE_FLOWS, AgentRouter
-from application.steps.expression import gesture_builder
+from application.runtime.step.library.expression import gesture_builder
 from step_specs import EMOTION_READER, prompt_file
-from application.steps.movement import motion_validator as validator
-from application.engine.state.expression_state import ExpressionFlowState
-from application.engine.state.paused_run import FlowResult
-from application.engine.support import expression_settings
-from application.engine.support.metrics import SessionMetrics
+from application.runtime.step.library.movement import motion_validator as validator
+from application.runtime.state.expression_state import ExpressionFlowState
+from application.runtime.state.paused_run import FlowResult
+from application.support import expression_settings
+from application.support.metrics import SessionMetrics
 from domain.operations import gesture
 from domain.operations.gesture import EMOTIONS, build_gesture, gesture_seconds, net_rotation
 from domain.value_objects.movement.movement import Movement
@@ -317,7 +317,7 @@ class TestTheReplyIsNeverHeldBack:
         assert EXPRESSIVE_FLOWS == ("conversation", "special")
 
     def test_the_expression_flow_is_two_steps_the_reader_and_the_builder(self, on):
-        from application.engine.pipeline import Pipeline
+        from application.runtime.flow.pipeline import Pipeline
         pipeline = Pipeline(ScriptedLLM(overrides=feeling()), [], SessionMetrics(), flow=EXPRESSION_FLOW)
         assert [step.name for step in pipeline.steps] == ["emotion_reader", "gesture_builder"]
 

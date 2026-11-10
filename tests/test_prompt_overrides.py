@@ -6,12 +6,12 @@ import shutil
 
 import pytest
 
-from application.engine.assemble import assemble
-from application.engine.config_snapshot import build_snapshot
-from application.engine.profile_runner import ProfileRunner
-from application.engine.state.paused_run import FlowResult
-from application.engine.support.metrics import SessionMetrics
-from application.engine.support.prompt_overrides import PromptOverride
+from application.assembly.assemble import assemble
+from application.assembly.config_snapshot import build_snapshot
+from application.runtime.profile.runner import ProfileRunner
+from application.runtime.state.paused_run import FlowResult
+from application.support.metrics import SessionMetrics
+from application.support.llm.prompt_overrides import PromptOverride
 from application.system_prompts.general import GENERIC_PROMPT_FILE, build_system_prompt_from_file
 from infrastructure.outbound.config.file_source import FileConfigSource
 from test_flow_golden import SCENARIOS, ScriptedLLM, _sha

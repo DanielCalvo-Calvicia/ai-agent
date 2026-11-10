@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
 
-from application.engine.state.history import HistoryEntry, messages_of
-from application.engine.state.paused_run import PausedRun
+from application.runtime.state.history import HistoryEntry, messages_of
+from application.runtime.state.paused_run import PausedRun
 
 from domain.entities.llm_response.response import Response
 from domain.value_objects.llm_request.message import Message

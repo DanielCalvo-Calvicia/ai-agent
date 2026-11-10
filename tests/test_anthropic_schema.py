@@ -20,7 +20,7 @@ from step_specs import DATA_ENGINEER
 from step_specs import MCP_OPERATOR
 from step_specs import make_project_manager
 from step_specs import SAFETY_GATE
-from application.engine.support.schemas import actions_schema, object_schema
+from application.support.llm.schemas import actions_schema, object_schema
 from domain.entities.llm_request.payload import Payload
 from domain.value_objects.llm_request.message import Role, create_message
 from domain.value_objects.llm_request.model import get_selected_model

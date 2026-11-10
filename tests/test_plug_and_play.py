@@ -7,11 +7,11 @@ import shutil
 
 import pytest
 
-from application.engine.assemble import assemble
-from application.engine.config_snapshot import build_snapshot
-from application.engine.profile_access import sha256_hex
-from application.engine.profile_inputs import read_inputs
-from application.engine.state.response_json import response_to_json
+from application.assembly.assemble import assemble
+from application.assembly.config_snapshot import build_snapshot
+from application.runtime.profile.access import sha256_hex
+from application.runtime.profile.inputs import read_inputs
+from application.runtime.state.response_json import response_to_json
 from application.inbound.dto.session import MessageReceivedRequestDTO, StartSessionRequestDTO
 from application.service.message_flow_service import MessageFlowService
 from application.inbound.dto.message import TextRequestDTO

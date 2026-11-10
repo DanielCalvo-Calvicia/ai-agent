@@ -1,12 +1,17 @@
 """
-The layout of application/ says what each folder is for, and the dependencies go one way:
+The layout of application/ says what each folder is for, and the dependencies go one way. The runtime is the path of a message,
+top to bottom: profile -> flow -> step -> state, and `support` is the base under all of it.
 
-    engine  ->  steps (the shape of a step, the shared steps), state, support        (a flow is a file: flows/<name>.json, T-05.12)
-    steps   ->  state, support                                                       (never a flow or the engine)
-    engine/state, engine/support -> nothing of the above (support only reads the step catalog)
+    runtime/profile   runs one profile (its token, its inputs, its flow)           uses flow, step, state, support and assembly.model
+    runtime/flow      runs the steps of one flow, its pauses and resumes           uses step, state, support (never a profile)
+    runtime/step      runs one step: its spec, its runner, the registry, library/  uses state, support (never a flow or a profile)
+    runtime/state     the data a run carries                                      uses support
+    support           helpers with no business rules                              uses only the step catalog (the tables of metrics and model selection)
+    assembly          start-up only: reads the JSON files, refuses what cannot work; it may use everything
+                      (the runtime reads only assembly/model.py: the assembled Agent, plain data)
 
-`state` and `support` are the base and live inside engine/ (application/engine/state, application/engine/support).
-These tests keep it so. A new flow is a file in flows/ and its steps are in steps/<group>/; the engine never has to know it.
+A flow is a file (flows/<name>.json) and its steps are declarations (step_defs/<name>.json) or code in runtime/step/library/<group>/;
+the runtime never has to know a particular one. These tests keep it so.
 """
 import ast
 import os
@@ -16,24 +21,11 @@ import pytest
 APPLICATION = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "application")
 PREFIX = "application."
 
-# folder (below application/) -> whether its subfolders belong to it. The engine's own files are the ones
-# directly in engine/; state/ and support/ below it are their own layers.
-LAYERS = {
-    "engine": False,
-    "engine/state": True,
-    "engine/support": True,
-    "steps": True,
-    "flows": True,
-}
 
-
-def _imports(folder: str, recursive: bool):
-    """(file, imported module) for every `application...` import under the folder."""
+def _imports(folder: str):
+    """(file, imported module) for every `application...` import under the folder, subfolders included."""
     found = []
-    base_dir = os.path.join(APPLICATION, *folder.split("/"))
-    for base, dirs, files in os.walk(base_dir):
-        if not recursive:
-            dirs[:] = []
+    for base, _dirs, files in os.walk(os.path.join(APPLICATION, *folder.split("/"))):
         for name in files:
             if not name.endswith(".py"):
                 continue
@@ -48,39 +40,59 @@ def _imports(folder: str, recursive: bool):
 
 def _offenders(layer: str, forbidden: tuple, allowed: tuple = ()):
     return [
-        (file, module) for file, module in _imports(layer, LAYERS[layer])
+        (file, module) for file, module in _imports(layer)
         if module.startswith(forbidden) and not module.startswith(allowed)
     ]
 
 
 class TestLayout:
-    def test_the_old_orchestration_folder_is_gone(self):
-        assert not os.path.exists(os.path.join(APPLICATION, "orchestration"))
+    def test_the_old_folders_are_gone(self):
+        for old in ("orchestration", "engine", "steps"):
+            assert not os.path.exists(os.path.join(APPLICATION, old)), old
 
-    def test_there_are_no_loose_files_in_application(self):
-        loose = [n for n in os.listdir(APPLICATION) if n.endswith(".py") and n != "__init__.py"]
-        assert loose == []
+    def test_there_are_no_loose_files_in_application_or_runtime(self):
+        for folder in (APPLICATION, os.path.join(APPLICATION, "runtime")):
+            loose = [n for n in os.listdir(folder) if n.endswith(".py") and n != "__init__.py"]
+            assert loose == [], folder
 
-    @pytest.mark.parametrize("layer", ["engine", "engine/state", "engine/support", "steps"])
-    def test_nothing_below_the_flows_imports_a_flow(self, layer):
+    @pytest.mark.parametrize("layer", ["runtime", "support", "assembly"])
+    def test_nothing_imports_a_flow_file(self, layer):
+        # a flow is a JSON file; there is no Python package of flows any more (T-05.12)
         assert _offenders(layer, ("flows",)) == []
 
-    def test_the_engine_uses_only_the_shared_steps(self):
-        # steps.phase (the shape of a step), steps.registry, steps.catalog and steps.common (answer checker,
-        # clarification, and the writer and editor the conversation and special flows share); never the steps of
-        # one particular flow
-        assert _offenders("engine", ("steps.identification", "steps.special", "steps.movement", "steps.expression")) == []
+    def test_the_profile_uses_the_flows_and_steps_but_only_the_assembled_agent_of_assembly(self):
+        assert _offenders("runtime/profile", ("assembly",), allowed=("assembly.model",)) == []
 
-    def test_state_depends_on_nothing_else_of_the_application(self):
-        assert _offenders("engine/state", ("steps", "flows", "engine.support", "engine.pipeline", "engine.flow",
-                                           "engine.phase_runner", "engine.answer_check", "engine.clarification")) == []
+    def test_a_flow_never_uses_a_profile_or_assembly(self):
+        assert _offenders("runtime/flow", ("runtime.profile", "assembly")) == []
+
+    def test_a_step_never_uses_a_flow_a_profile_or_assembly(self):
+        assert _offenders("runtime/step", ("runtime.flow", "runtime.profile", "assembly")) == []
+
+    def test_the_step_library_uses_only_the_state_the_support_and_the_shape_of_a_step(self):
+        # the steps that are code: the spec, the registry, the state, the support; never the runner or anything above it
+        assert _offenders("runtime/step/library", ("runtime.flow", "runtime.profile", "assembly", "runtime.step.runner")) == []
+
+    def test_the_shared_machinery_uses_no_step_of_one_particular_flow(self):
+        # the runtime reaches the steps through the registry; only the shared steps (common/) are named
+        particular = ("runtime.step.library.special", "runtime.step.library.movement", "runtime.step.library.expression")
+        for layer in ("runtime/profile", "runtime/flow", "runtime/state", "support", "assembly"):
+            assert _offenders(layer, particular) == [], layer
+        for module in ("runner", "spec", "build", "declared", "functions", "registry", "catalog"):
+            path = os.path.join(APPLICATION, "runtime", "step", f"{module}.py")
+            with open(path, encoding="utf-8") as f:
+                tree = ast.parse(f.read())
+            names = [n.module for n in ast.walk(tree) if isinstance(n, ast.ImportFrom) and n.module]
+            assert [m for m in names if m.startswith(tuple(PREFIX + p for p in particular))] == [], module
+
+    def test_state_uses_only_the_support(self):
+        assert _offenders("runtime/state", ("runtime.profile", "runtime.flow", "runtime.step", "assembly")) == []
 
     def test_support_only_reads_the_step_catalog(self):
-        # metrics and model selection take their tables from it; nothing else of steps, nothing of the engine
-        assert _offenders("engine/support", ("engine.pipeline", "engine.flow", "engine.phase_runner",
-                                             "engine.answer_check", "engine.clarification", "engine.state")) == []
-        assert _offenders("engine/support", ("steps",), allowed=("steps.catalog",)) == []
+        # metrics and model selection take their tables from it; nothing else of the runtime, nothing of assembly
+        assert _offenders("support", ("assembly", "runtime.profile", "runtime.flow", "runtime.state")) == []
+        assert _offenders("support", ("runtime.step",), allowed=("runtime.step.catalog",)) == []
 
-    def test_steps_do_not_use_the_engine(self):
-        # only its base: state and support
-        assert _offenders("steps", ("engine",), allowed=("engine.state", "engine.support")) == []
+    def test_the_runtime_and_support_never_read_the_assembler_itself(self):
+        for layer in ("runtime", "support"):
+            assert _offenders(layer, ("assembly.assemble", "assembly.config_snapshot", "assembly.flow_file")) == [], layer

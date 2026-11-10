@@ -32,7 +32,7 @@ docs/tasks/
 │   └── T-05.1_decisions.md ... T-05.18_documentation.md          leaves
 └── T-06_redesign/                              epic
     ├── T-06_redesign.md
-    └── T-06.1_specification.md ... T-06.7_documentation.md       leaves
+    └── T-06.1_specification.md ... T-06.8_runtime-folder-layout.md       leaves
 ```
 
 ## 2. Execution protocol
@@ -152,3 +152,4 @@ Verified on 2026-10-27 against both projects.
 | [T-06.5](T-06_redesign/T-06.5_new-flows-and-profiles.md) | The new flows and profiles | code | done, no change |
 | [T-06.6](T-06_redesign/T-06.6_real-run-and-comparison.md) | Real run and comparison | manual | awaiting-user (runs done 2026-11-09; the maintainer ticks the points) |
 | [T-06.7](T-06_redesign/T-06.7_documentation.md) | Documentation | docs | done (2026-11-09) |
+| [T-06.8](T-06_redesign/T-06.8_runtime-folder-layout.md) | Runtime folder layout | code | done (2026-11-09) |

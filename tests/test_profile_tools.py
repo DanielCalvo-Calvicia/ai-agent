@@ -8,8 +8,8 @@ import sys
 
 import pytest
 
-from application.engine.assemble import assemble
-from application.engine.config_snapshot import build_snapshot
+from application.assembly.assemble import assemble
+from application.assembly.config_snapshot import build_snapshot
 from infrastructure.outbound.config.file_source import FileConfigSource
 from infrastructure.outbound.mcp.config import SUPPORTED_TYPES, load_mcp_configs
 from profile_tables import DOC_PATH, explain, explain_text, profiles_markdown, steps_of
@@ -61,7 +61,7 @@ class TestExplain:
 
     def test_the_prompt_of_each_step_and_the_override_of_a_profile(self, agent):
         import dataclasses
-        from application.engine.support.prompt_overrides import PromptOverride
+        from application.support.llm.prompt_overrides import PromptOverride
         profile = agent.profile("chat")
         changed = type(agent)({**agent.profiles, "chat": dataclasses.replace(profile, prompts={"draft_writer": PromptOverride(append="x")})},
                               agent.problems, agent.flows, agent.step_defs, agent.step_prompts)

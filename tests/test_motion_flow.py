@@ -17,10 +17,10 @@ if PROJECT_ROOT not in sys.path:
 
 from flow_files import FLOWS, MOVEMENT_FLOW
 from brain_chain import AgentRouter
-from application.engine.support.metrics import SessionMetrics
-from application.engine.support.model_selection import ModelResolver
-from application.steps.movement import motion_validator as validator
-from application.engine.pipeline import Pipeline
+from application.support.metrics import SessionMetrics
+from application.support.llm.model_selection import ModelResolver
+from application.runtime.step.library.movement import motion_validator as validator
+from application.runtime.flow.pipeline import Pipeline
 from brain_chain import ChainedSessionService as SessionService
 from application.system_prompts.general import build_system_prompt
 from domain.value_objects.llm_request.model import GoogleModels

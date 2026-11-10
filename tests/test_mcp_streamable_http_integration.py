@@ -20,7 +20,7 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.engine.support.mcp_servers import describe_servers, server_names
+from application.support.tools.mcp_servers import describe_servers, server_names
 from application.outbound.ports.mcp_ports import remaining_tool_wait, tool_wait_budget, watch_tool_failures
 from infrastructure.outbound.mcp.client_manager import MCPClientManager
 from infrastructure.outbound.mcp.tool_catalog import LIST_TIMEOUT_SECONDS, call_timeout_seconds

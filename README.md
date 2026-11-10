@@ -26,13 +26,13 @@ POST /session/message
 ```
 
 - The flows never call each other and the service does not choose between them: a request runs the flow of ONE profile
-  (`application/engine/profile_runner.py`); the client asks `identification` and then the profile that answers (T-05.7).
+  (`application/runtime/profile/runner.py`); the client asks `identification` and then the profile that answers (T-05.7).
 - A flow that asks the user a question is **resumed by the next message** (the answer), without identifying it again.
 - A greeting costs 3 LLM calls, a movement 2, a task 5 or more (one per action, plus one per tool result).
 - Only the movement flow returns movements. Whether a movement that goes ahead is announced out loud is Brain's setting,
   sent with every message as `speak_movements` (a refusal or a question is always said).
 
-The full explanation (folders, phases, engine, state, domain, extension recipes) is in
+The full explanation (folders, phases, runtime, state, domain, extension recipes) is in
 [`docs/architecture/architecture.md`](docs/architecture/architecture.md).
 
 ## Quick start
@@ -86,7 +86,7 @@ exactly "this session no longer exists here": open a new one and, for a message,
 
 ```text
 composition_root/   app wiring (main.py)
-application/        ports, DTOs, services, steps/ (the phases), engine/ (with state/ and support/), system prompts
+application/        ports, DTOs, services, runtime/ (profile, flow, step, state), assembly/ (start-up), support/, system prompts
 domain/             entities/ and value_objects/, each grouped in llm_request / llm_response / movement
 infrastructure/     FastAPI inbound adapter, LLM adapter (ai_sdk), MCP client, Langfuse reporter
 profiles/ flows/ step_defs/ model_sets/   data folders of PR-005 (each has a README); `flows/` holds the five flows as JSON (T-05.12), `step_defs/` holds the declaration of every step (T-05.16)
@@ -116,7 +116,7 @@ tests/              pytest (all mock-based); tests/manual has scripts that call 
 
 ## Tests
 
-All run without keys, network or cost (about 880 tests, a few minutes).
+All run without keys, network or cost (about 1,380 tests, 3 to 7 minutes).
 
 | File | Covers |
 |---|---|
@@ -127,6 +127,9 @@ All run without keys, network or cost (about 880 tests, a few minutes).
 | `test_flow_objects.py` (with `flow_trace.py`) | the real steps traced to files; which step writes which field |
 | `test_parallel_actions.py`, `test_failures.py` | the action executor and the apologies for each kind of failure |
 | `test_schema_tree.py`, `test_phase_structure.py`, `test_orchestration_layout.py` | the structure: schema tree, one phase per file, one-way dependencies |
+| `test_assemble.py`, `test_config_source.py`, `test_step_declarations.py` | `assemble()` (one test for each problem it names), the configuration read through its port, the step declarations (`step_defs/`) |
+| `test_profiles.py`, `test_profile_api.py`, `test_profile_tools.py`, `test_tool_scoping.py`, `test_prompt_overrides.py`, `test_metrics_and_hash.py`, `test_history.py` | the seven profiles and the request fields (`profile`, `token`, `inputs`, `return`, `pause_id`), `check_agent.py --explain` and the profile tables, tools per step, prompt overrides, the LLM-call metrics and the profile hash, the session history |
+| `test_fallback.py`, `test_anthropic_schema.py`, `test_strip_markup.py`, `test_expression.py` | fallback models after a lack of capacity, the schema Claude receives, stray model markup, the gesture of the `gesture` profile |
 | `test_model_config.py`, `test_budget_table.py`, `test_cost_estimate.py`, `test_usage_report.py` | model choice, cost tables, Langfuse reporting |
 | `test_agent_behavior.py`, `test_units.py`, `test_session_fastapi.py`, `test_tracing.py`, `test_mcp_*` | settings, providers, tools, the mapper, the HTTP layer, tracing, a real local MCP server, and `test_mcp_dynamics_flow.py`: the Dynamics scenarios with a fake of the Go service |
 

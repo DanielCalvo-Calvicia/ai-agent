@@ -13,14 +13,14 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.engine.flow import Flow
+from application.runtime.flow.flow import Flow
 from flow_files import CONVERSATION_FLOW, FLOWS
 from flow_files import IDENTIFICATION_FLOW
 from flow_files import MOVEMENT_FLOW
 from flow_files import SPECIAL_FLOW
-from application.engine.support.metrics import SessionMetrics
-from application.engine.pipeline import Pipeline
-from application.steps.phase import Step
+from application.support.metrics import SessionMetrics
+from application.runtime.flow.pipeline import Pipeline
+from application.runtime.step.spec import Step
 from brain_chain import ChainedSessionService as SessionService
 from infrastructure.inbound.http.fastapi import SessionFastAPI
 
@@ -99,7 +99,7 @@ class TestGenericPipeline:
         assert ran == ["a", "c"]
 
     def test_the_flow_builds_its_own_result(self):
-        from application.engine.state.paused_run import FlowResult
+        from application.runtime.state.paused_run import FlowResult
         flow = Flow(
             name="result-flow",
             build_steps=lambda context: [],

@@ -18,9 +18,9 @@ from flow_files import CONVERSATION_FLOW
 from flow_files import MOVEMENT_FLOW
 from brain_chain import AgentRouter, DEFAULT_FLOW, FLOW_BY_DOMAIN, flow_for
 from flow_files import SPECIAL_FLOW
-from application.engine.state.flow_state import FlowState
-from application.engine.support.metrics import SessionMetrics
-from application.engine.support.schemas import load_schema_file
+from application.runtime.state.flow_state import FlowState
+from application.support.metrics import SessionMetrics
+from application.support.llm.schemas import load_schema_file
 from application.system_prompts.general import LoadCapabilities, LoadSystemPrompt
 from domain.value_objects.llm_response.intent.intent import create_intent
 from domain.value_objects.llm_response.task_category.domain import Domains

@@ -52,7 +52,7 @@ whether the key is valid or the provider reachable.
 
 A step has an **ordered list** of model ids: the first one answers and the next ones are tried, once each, when it is out of capacity (ADR-014). The list comes
 from a **model set** (`model_sets/<name>.json`, a table with `default` and one entry per step) or from a profile, and the most specific value wins and replaces the broader
-one as a whole (PR-005 section 5). For a step of a flow, in the profile that is asked, first match wins (`engine/support/model_selection.py`, `ModelResolver`):
+one as a whole (PR-005 section 5). For a step of a flow, in the profile that is asked, first match wins (`support/llm/model_selection.py`, `ModelResolver`):
 
 1. `flows.<flow>.steps.<step>.models`: that step, in that flow;
 2. `overrides.<step>.models`: that step, in every flow;

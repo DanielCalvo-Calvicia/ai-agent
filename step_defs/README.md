@@ -1,14 +1,14 @@
 # step_defs/
 
-One JSON **declaration** per step: what a step is, which prompt it uses, what it reads from and writes to the state, and the shape of the answer the model must give (PR-005 section 3.2; ADR-015). Named `step_defs` so it does not share a name with `application/steps/`, which holds the Python of the **code** steps. A flow ([flows/README.md](../flows/README.md)) lists steps by the name of the file here.
+One JSON **declaration** per step: what a step is, which prompt it uses, what it reads from and writes to the state, and the shape of the answer the model must give (PR-005 section 3.2; ADR-015). Named `step_defs` so it does not share a name with `application/runtime/step/library/`, which holds the Python of the **code** steps. A flow ([flows/README.md](../flows/README.md)) lists steps by the name of the file here.
 
 **Adding an LLM step = one JSON file here + one prompt file in `prompts/`** (no Python), as long as its input and result fit what is described below. A step that needs real code (a new calculation, a new way to build the input) needs a Python function; see section 7.
 
-Read at start by `application/steps/declared.py` and checked by `application/engine/assemble.py`; `python scripts/check_agent.py` checks every file (it reads files only: no model is called).
+Read at start by `application/runtime/step/declared.py` and checked by `application/assembly/assemble.py`; `python scripts/check_agent.py` checks every file (it reads files only: no model is called).
 
 ## 1. File rules
 
-- File name = step name = `name` inside. **Always write `name`**: the engine reads it. A mismatch refuses the file.
+- File name = step name = `name` inside. **Always write `name`**: the runtime reads it. A mismatch refuses the file.
 - `schema_version` must be `1`. An unknown key is an error. Keys that start with `_` are ignored; a file that starts with `_` is not loaded.
 - A step with a problem makes **every flow that uses it unusable**, and so every profile on those flows.
 - Changing a declaration changes how every profile behaves; run the tests and read the golden-file diff on purpose.
@@ -42,8 +42,8 @@ Today the `llm_per_action` steps are exactly `cognitive_worker` (an action that 
 | `writes` | all | recommended | list of state fields | Where the answer goes. The check for a step with no `reads`/`writes` lists is skipped, so always write both. |
 | `write_always` | llm | no | `true` / `false` | `false` (default): a field is written only if the answer's value is not empty. `true`: it is written even when empty (used by the planner and the gate, so an empty plan replaces an old one). |
 | `for_each` | `llm_per_action` | yes | `"actions"` | Run once per action. |
-| `function` | `code` | yes | name of a Python code step | Which code runs (`action_executor`, `motion_validator`, `gesture_builder`). Must exist in `application/steps/` as a code step. |
-| `functions` | llm kinds | no | `{"input": name, "apply": name, "extra": name}` | Named Python functions of `application/steps/functions.py`, for when plain `reads`/`writes` are not enough (section 7). Unknown slot or name is an error. |
+| `function` | `code` | yes | name of a Python code step | Which code runs (`action_executor`, `motion_validator`, `gesture_builder`). Must exist in `application/runtime/step/library/` as a code step. |
+| `functions` | llm kinds | no | `{"input": name, "apply": name, "extra": name}` | Named Python functions of `application/runtime/step/functions.py`, for when plain `reads`/`writes` are not enough (section 7). Unknown slot or name is an error. |
 | `tools` | all | no | `{"servers": [...], "tools": [...]}` | **Checked against `mcps/` but not applied**: the scope of a step is built from the profile, the flow file and `overrides.<step>.tools`, not from this key. Put limits there instead. |
 | `data` | all | no | `{"reads": [text]}` | **Reserved** for a future data policy (Q07-16). Only its shape is checked; nothing reads it. Do not rely on it. |
 
@@ -101,7 +101,7 @@ With plain `writes`, each field is read from the parsed answer under the **same 
 
 ## 7. `functions`: when a list is not enough
 
-A declaration cannot contain code. When what the model is told, or how its answer is stored, is more than a list of fields, it **points to a function that a developer wrote** in `application/steps/functions.py`. The names today:
+A declaration cannot contain code. When what the model is told, or how its answer is stored, is more than a list of fields, it **points to a function that a developer wrote** in `application/runtime/step/functions.py`. The names today:
 
 | Slot | Names | Used by |
 |---|---|---|
@@ -109,7 +109,7 @@ A declaration cannot contain code. When what the model is told, or how its answe
 | `apply` (stores the answer) | `load_from_response`, `motion_plan_result`, `emotion_result` | `triage_specialist`; `motion_planner`; `emotion_reader` |
 | `extra` (what a per-action step is told besides the action) | `worker_extra`, `operator_extra` | `cognitive_worker`; `mcp_operator` |
 
-Any other name is refused. A **new** function is a code change (and a test) in `application/steps/functions.py`. Do not copy a name onto a step it was not written for: `planner_input`, for example, adds the available MCP servers.
+Any other name is refused. A **new** function is a code change (and a test) in `application/runtime/step/functions.py`. Do not copy a name onto a step it was not written for: `planner_input`, for example, adds the available MCP servers.
 
 ## 8. Make a new LLM step (checklist)
 
@@ -121,7 +121,7 @@ Any other name is refused. A **new** function is a code change (and a test) in `
 6. `python scripts/check_agent.py`, then `python -m pytest tests` (`tests/test_step_declarations.py`, `tests/test_phase_structure.py`, golden file), then `python scripts/run_profile.py <profile> --mock`.
 7. Update `docs/architecture/architecture.md`, `docs/rules/schemas-and-prompts.md`, `README.md` (layout), and `docs/models/*` (`python scripts/model_tables.py --write`; generated, do not edit).
 
-A `code` step additionally needs `application/steps/<group>/<name>.py` with the constants at its top (`PHASE_ID`, `STEP_NAME`, `LLM = False`) and `register_step(__name__, "code")`, plus its declaration here.
+A `code` step additionally needs `application/runtime/step/library/<group>/<name>.py` with the constants at its top (`PHASE_ID`, `STEP_NAME`, `LLM = False`) and `register_step(__name__, "code")`, plus its declaration here.
 
 ## 9. Limits to know
 
@@ -149,4 +149,4 @@ A `code` step additionally needs `application/steps/<group>/<name>.py` with the 
 | `gesture_builder` | code | expression | 31 | none | `emotion`, `intensity`, `improvised`, `speech_seconds?` | `movements` |
 | `action_executor` | code | special | 40 | none | `actions`, `user_goal`, `safety_and_validation`, `answers` | `actions` |
 
-The two prompts the engine runs itself (`answer_checker`, phase 9, and `user_clarification`, phase 99) are **not** declared here: they are Python (`application/steps/common/`), run through the flow's `on_pause` / `on_resume` hooks, and they can be given a model in a model set or profile but their prompt cannot be overridden by a profile.
+The two prompts the runtime runs itself (`answer_checker`, phase 9, and `user_clarification`, phase 99) are **not** declared here: they are Python (`application/runtime/step/library/common/`), run through the flow's `on_pause` / `on_resume` hooks, and they can be given a model in a model set or profile but their prompt cannot be overridden by a profile.

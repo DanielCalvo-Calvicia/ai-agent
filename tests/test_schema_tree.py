@@ -8,7 +8,7 @@ import os
 import pytest
 
 from step_specs import MOTION_PLANNER
-from application.engine.support.schemas import (
+from application.support.llm.schemas import (
     SCHEMAS_ROOT, actions_schema, load_schema, load_schema_file, property_schema)
 from domain.value_objects.movement.movement import ARMS, DIRECTIONS
 from application.system_prompts.general import PROJECT_ROOT

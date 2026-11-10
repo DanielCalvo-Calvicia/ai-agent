@@ -24,9 +24,9 @@ from dotenv import load_dotenv
 
 load_dotenv(os.path.join(ROOT, ".env"), override=False)
 
-from application.engine.assemble import assemble
-from application.engine.config_snapshot import build_snapshot
-from application.engine.support.model_selection import STEP_NAMES
+from application.assembly.assemble import assemble
+from application.assembly.config_snapshot import build_snapshot
+from application.support.llm.model_selection import STEP_NAMES
 from budget_table import DOC_PATH as BUDGET_DOC_PATH
 from budget_table import combined, load_budget, markdown as budget_markdown, read as read_json, MEASURED_PATH
 from infrastructure.outbound.config.file_source import FileConfigSource

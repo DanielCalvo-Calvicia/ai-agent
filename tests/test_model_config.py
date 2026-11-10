@@ -10,9 +10,9 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.engine.config_snapshot import build_snapshot
-from application.engine.support.metrics import PHASE_NAMES
-from application.engine.support.model_selection import (
+from application.assembly.config_snapshot import build_snapshot
+from application.support.metrics import PHASE_NAMES
+from application.support.llm.model_selection import (
     ALL_STEP_NAMES, DEFAULT_MODEL_SET, STEP_NAMES, ModelResolver, check_model_set, effective_models,
 )
 from domain.value_objects.llm_request.model import GoogleModels, get_selected_model
@@ -38,7 +38,7 @@ def ids(resolver, step, flow=FLOW, default=DEFAULT):
 
 class TestCodeDefaults:
     def test_every_phase_falls_back_to_a_google_model_with_a_free_tier(self):
-        from application.steps.catalog import PHASES
+        from application.runtime.step.catalog import PHASES
         free = {m["id"] for m in load_models()["models"] if m["free_tier"]}
         assert PHASES
         for phase_id, info in PHASES.items():
@@ -47,7 +47,7 @@ class TestCodeDefaults:
                 assert info.default_model.value in free, phase_id
 
     def test_the_small_steps_use_the_lite_model_and_the_others_the_flash_model(self):
-        from application.steps.catalog import PHASES
+        from application.runtime.step.catalog import PHASES
         small = {"triage_specialist", "data_engineer", "answer_checker", "user_clarification", "emotion_reader"}
         for info in PHASES.values():
             if info.default_model is not None:

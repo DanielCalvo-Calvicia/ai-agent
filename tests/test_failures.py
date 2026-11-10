@@ -10,7 +10,7 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.engine.support.failure import (
+from application.support.llm.failure import (
     AgentFailure,
     apology,
     apology_for_unexpected,
@@ -18,8 +18,8 @@ from application.engine.support.failure import (
     max_attempts,
     worth_retrying,
 )
-from application.engine.support.metrics import SessionMetrics
-from application.engine.phase_runner import PhaseRunner
+from application.support.metrics import SessionMetrics
+from application.runtime.step.runner import PhaseRunner
 from brain_chain import ChainedSessionService as SessionService
 from domain.entities.llm_request.payload import Payload
 from infrastructure.outbound.llm.response_mapper import build_response
@@ -141,7 +141,7 @@ class FlakyLLM(ScriptedLLM):
 
 def _send(llm):
     from step_specs import TRIAGE
-    from application.engine.state.flow_state import FlowState
+    from application.runtime.state.flow_state import FlowState
     runner = PhaseRunner(llm, SessionMetrics())
     return runner.run_phase(TRIAGE, FlowState(message="hi"))
 
@@ -176,7 +176,7 @@ class TestCallRetries:
         llm = FlakyLLM(2, APIConnectionError("x"))
         runner = PhaseRunner(llm, SessionMetrics())
         from step_specs import TRIAGE
-        from application.engine.state.flow_state import FlowState
+        from application.runtime.state.flow_state import FlowState
         runner.run_phase(TRIAGE, FlowState(message="hi"))
         assert runner.metrics.totals.requests == 1
 

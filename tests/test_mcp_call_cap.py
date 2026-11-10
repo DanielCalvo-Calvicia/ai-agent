@@ -9,11 +9,11 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.engine.pipeline import Pipeline
-from application.steps.special.action_executor import MCP_CAP_REACHED
-from application.engine.support import failure
-from application.engine.support.failure import max_mcp_calls
-from application.engine.support.metrics import SessionMetrics
+from application.runtime.flow.pipeline import Pipeline
+from application.runtime.step.library.special.action_executor import MCP_CAP_REACHED
+from application.support.llm import failure
+from application.support.llm.failure import max_mcp_calls
+from application.support.metrics import SessionMetrics
 from flow_trace import FULL_FLOW
 from test_flow_golden import PM, ScriptedLLM, _action, _no_result, _plan
 

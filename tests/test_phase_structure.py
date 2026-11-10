@@ -10,12 +10,12 @@ import types
 
 import pytest
 
-from application.steps import registry as step_registry
-from application.steps.declared import repository_declarations
-from application.engine.support.schemas import SCHEMAS_ROOT
+from application.runtime.step import registry as step_registry
+from application.runtime.step.declared import repository_declarations
+from application.support.llm.schemas import SCHEMAS_ROOT
 from application.system_prompts.general import CAPABILITIES_FILE, GENERIC_PROMPT_FILE, PROJECT_ROOT
 
-PHASES_DIR = os.path.join(PROJECT_ROOT, "application", "steps")
+PHASES_DIR = os.path.join(PROJECT_ROOT, "application", "runtime", "step", "library")
 REQUIRED_CONSTANTS = ("PHASE_ID", "STEP_NAME", "DEFAULT_MODEL")
 NAME_CONSTANTS = ("PHASE_ID", "STEP_NAME")      # a step that runs no LLM (LLM = False) has only these
 
@@ -35,7 +35,7 @@ PHASE_FILES = _phase_files()
 
 
 def _module(folder: str, name: str):
-    return importlib.import_module(f"application.steps.{folder}.{name}")
+    return importlib.import_module(f"application.runtime.step.library.{folder}.{name}")
 
 
 def _top_level_assignments(folder: str, name: str, constant: str) -> int:
@@ -133,7 +133,7 @@ class TestCatalog:
             "motion_validator", "gesture_builder", "action_executor"}
 
     def test_conversation_flow_keeps_its_own_table_for_the_cost_tools(self):
-        from application.engine.support.metrics import ALL_PHASE_NAMES, PHASE_NAMES
+        from application.support.metrics import ALL_PHASE_NAMES, PHASE_NAMES
         assert set(PHASE_NAMES) < set(ALL_PHASE_NAMES)
         assert "motion_planner" in ALL_PHASE_NAMES.values() and "motion_planner" not in PHASE_NAMES.values()
 
@@ -161,19 +161,19 @@ class TestRegisterStep:
 
     def test_a_name_registered_twice_fails(self, fake):
         with pytest.raises(ValueError, match="already registered"):
-            step_registry.register_step(fake("application.steps.special.copy", "draft_writer", 700), "llm")
+            step_registry.register_step(fake("application.runtime.step.library.special.copy", "draft_writer", 700), "llm")
 
     def test_a_phase_id_used_twice_fails(self, fake):
         with pytest.raises(ValueError, match="phase id 7 is already used"):
-            step_registry.register_step(fake("application.steps.special.copy", "another_step", 7), "llm")
+            step_registry.register_step(fake("application.runtime.step.library.special.copy", "another_step", 7), "llm")
 
     def test_an_unknown_kind_fails(self, fake):
         with pytest.raises(ValueError, match="unknown step kind"):
-            step_registry.register_step(fake("application.steps.special.copy", "another_step", 701), "other")
+            step_registry.register_step(fake("application.runtime.step.library.special.copy", "another_step", 701), "other")
 
     def test_a_kind_that_does_not_match_the_llm_flag_fails(self, fake):
         with pytest.raises(ValueError, match="does not match"):
-            step_registry.register_step(fake("application.steps.special.copy", "another_step", 702), "code")
+            step_registry.register_step(fake("application.runtime.step.library.special.copy", "another_step", 702), "code")
 
     def test_the_same_file_imported_again_replaces_its_entry(self):
         entry = step_registry.step("answer_checker")          # a step defined in Python (the LLM steps are declarations)
