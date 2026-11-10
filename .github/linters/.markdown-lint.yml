@@ -22,6 +22,10 @@ MD029: false
 # ADRs and the task files, not a heading.
 MD036: false
 
+# Spaces inside emphasis markers: a historic questionnaire (docs/setup/questionnaires/Q05)
+# has a bold question that ends with a stray space, and it is cited as it was written.
+MD037: false
+
 # A code span may carry a significant space.
 MD038: false
 
