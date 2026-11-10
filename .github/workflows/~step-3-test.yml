@@ -1,0 +1,76 @@
+# ==============================================================================
+# STEP 3 - Unit Tests
+# ==============================================================================
+# Installs the Python dependencies and runs the checks the project already
+# defines (CLAUDE.md, section Commands), in the order of cost:
+#
+#   1. scripts/split_schemas.py   the schema tree equals full.schema.json (no drift)
+#   2. scripts/check_agent.py     assembles every profile, flow, step and model set,
+#                                 strict, files only (no key, no network)
+#   3. pytest tests               about 1,400 mock-based tests, no key, no cost
+#
+# None of them calls an LLM or a Business Central service: the tests are
+# mock-based and tests/manual/ is not collected by pytest. Real runs on the real
+# models cost money and are done by hand (scripts/run_profile.py).
+#
+# Called by: ~flow-verify.yml (workflow_call only — never runs on its own)
+# ==============================================================================
+
+name: Step 3 - Unit Tests
+
+on:
+  workflow_call:
+
+jobs:
+  test:
+    name: "🧪 Run Unit Tests"
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      # --------------------------------------------------------------------------
+      # 1. Source
+      # --------------------------------------------------------------------------
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # --------------------------------------------------------------------------
+      # 2. Setup Python
+      #    cache: pip keeps the downloaded wheels between runs, keyed on
+      #    requirements.txt. The version is the one of the venv the pins were
+      #    taken from (requirements.txt, first line); override it with the
+      #    repository Variable PYTHON_VERSION (the same one the Docker image uses).
+      # --------------------------------------------------------------------------
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ vars.PYTHON_VERSION || '3.14' }}
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      # --------------------------------------------------------------------------
+      # 3. Install dependencies
+      #    contracts and shared-logging come from the wheels in vendor/ (the
+      #    service builds on its own, without the sibling checkouts).
+      #    No --no-cache-dir here: the pip cache of Setup Python (cache: pip)
+      #    is saved from ~/.cache/pip, and its post step fails the job with
+      #    "Cache folder path is retrieved for pip but doesn't exist" when that
+      #    folder was never written.
+      # --------------------------------------------------------------------------
+      - name: Install Dependencies
+        run: python -m pip install -r requirements.txt
+
+      # --------------------------------------------------------------------------
+      # 4. Static checks of the project
+      # --------------------------------------------------------------------------
+      - name: Check the schema tree
+        run: python scripts/split_schemas.py
+
+      - name: Check the agent (profiles, flows, steps, model sets)
+        run: python scripts/check_agent.py
+
+      # --------------------------------------------------------------------------
+      # 5. Run Tests
+      # --------------------------------------------------------------------------
+      - name: Run Tests
+        run: python -m pytest tests -q

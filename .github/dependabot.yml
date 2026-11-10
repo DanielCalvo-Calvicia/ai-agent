@@ -1,0 +1,17 @@
+version: 2
+updates:
+  # requirements.txt: every version is pinned on purpose (the pins are the ones the tests ran on),
+  # so a pull request here is a proposal to read and test, never to merge blindly.
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+  # The base image of the Dockerfile (python:<version>-slim).
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"

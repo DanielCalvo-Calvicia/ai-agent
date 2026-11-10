@@ -4,8 +4,8 @@ The "mind" of OBLIVION. It receives what the user said (text), **decides**, and 
 run and whether it is waiting for an answer. It **never controls hardware**: `brain_microservice` calls it once per utterance
 and acts on the answer (speaks it, moves the arms through the stepper).
 
-- Port `7998` (`AI_AGENT_PORT`). Python, FastAPI, hexagonal layout, LLM access through `ai_sdk`, MCP client.
-- Logging and tracing: `shared-logging`. Contracts: the bundled `contracts` wheel (`vendor/`, version in `requirements.txt`).
+- Port `7998` (`HTTP_ADDR`, default `:7998`). Python, FastAPI, hexagonal layout, LLM access through `ai_sdk`, MCP client.
+- Logging and tracing: `shared-logging`. Contracts: the bundled `contracts` wheel. Both are wheels in `vendor/` (versions in `requirements.txt`).
 - Status: **prototype**. Everything is tested with scripted LLMs; nothing has run against a real LLM since the four-flow
   redesign of 2026-10-05 (see [Known problems](#known-problems-and-decisions)).
 
@@ -96,6 +96,7 @@ config/             models per step, prices, budget
 mcps/               MCP server configs (has a README: fields, limits, how a profile reaches a server)
 scripts/            split_schemas.py (builds the schema tree), check_agent.py (assembles everything; `--explain <profile>`), model_tables.py (the model tables and `docs/models/profiles.md`), run_profile.py (the fixed messages on a profile, `tests/manual/README.md`; asks first)
 docs/               documentation (index: docs/README.md)
+Dockerfile k8s/ .github/ .env.github   delivery: the image, the Kubernetes manifests, the GitHub Actions workflows and the names of the repository Variables and Secrets (docs/deployment/deployment.md)
 tests/              pytest (all mock-based); tests/manual has scripts that call real services and cost money
 ```
 

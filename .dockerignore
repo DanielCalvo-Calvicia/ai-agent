@@ -1,0 +1,17 @@
+# The image holds the code and the files the service reads (see the Dockerfile),
+# never a secret. .env and every .env.* are excluded on purpose.
+.git
+.github
+.vscode
+.claude
+.pytest_cache
+.env
+.env.*
+windows
+__pycache__
+*.pyc
+tests
+docs
+scripts
+k8s
+*.md

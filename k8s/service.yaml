@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ${PROJECTNAME}
+  namespace: ${K8S_NAMESPACE}
+  labels:
+    app: ${PROJECTNAME}
+spec:
+  # NodePort, as in dynamics_microservice: the client of ai-agent (Brain, a web chat) reaches the
+  # node's address, and this node's 80/443 are owned by Rancher with no Ingress resource in this
+  # repository, so a ClusterIP Service would be unreachable from outside the cluster. Another
+  # workload in the same cluster can still reach it by its service name.
+  #
+  # ${PORT} is one single number, identical across every port field below, the container's
+  # containerPort in deployment.yaml and the HTTP_ADDR of the Secret: 30000-30999 for
+  # development and 31000-31999 for production (inside the default NodePort range 30000-32767),
+  # computed by the deploy step as (30000 or 31000) + vars.PORT_OFFSET.
+  #
+  # A NodePort is open on the node's external IP: the network in front of the node decides who
+  # can reach it (ai-agent has no authentication of its own; docs/security/security.md).
+  type: NodePort
+  ports:
+    - port: ${PORT}
+      targetPort: ${PORT}
+      nodePort: ${PORT}
+      protocol: TCP
+      name: http
+  selector:
+    app: ${PROJECTNAME}
+  sessionAffinity: None

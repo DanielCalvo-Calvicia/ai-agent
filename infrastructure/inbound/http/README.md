@@ -1,6 +1,6 @@
 # infrastructure/inbound/http/
 
-The HTTP API of ai-agent (port `AI_AGENT_PORT`, 7998).
+The HTTP API of ai-agent (address `HTTP_ADDR`, default `:7998`; parsed by `address.py`).
 
 | File | Contents |
 |---|---|

@@ -47,6 +47,7 @@ from application.service.session_service import SessionService
 #  INBOUND ADAPTERS
 # -----------------------------------------------
 
+from infrastructure.inbound.http.address import parse_http_addr
 from infrastructure.inbound.http.fastapi import SessionFastAPI
 
 
@@ -141,10 +142,12 @@ def CreateApp() -> FastAPI:
 app = CreateApp()
 
 if __name__ == "__main__":
+    # HTTP_ADDR is `host:port` or `:port` (the name and the format of dynamics_microservice; the deploy sets it)
+    listen_host, listen_port = parse_http_addr(os.environ.get("HTTP_ADDR", ""))
     uvicorn.run(
         "composition_root.main:app",
-        host=os.environ.get("AI_AGENT_HOST", "0.0.0.0"),
-        port=int(os.environ.get("AI_AGENT_PORT", "7998")),
+        host=listen_host,
+        port=listen_port,
         reload=os.environ.get("AI_AGENT_RELOAD", "1") == "1",
         log_config=None,
     )

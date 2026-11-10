@@ -1,0 +1,65 @@
+# ==============================================================================
+# STEP 7 - Notify (Pipeline Status)
+# ==============================================================================
+# Always runs at the end of the pipeline regardless of success or failure.
+# Summarizes the pipeline outcome and posts a rich summary to the GitHub
+# Actions run page (visible in the Summary tab).
+# Extend this later with Slack / Teams / Email notifications.
+#
+# Called by: ~flow-verify.yml and ~flow-deploy.yml (workflow_call only)
+# ==============================================================================
+
+name: Step 7 - Notify
+
+on:
+  workflow_call:
+    inputs:
+      pipeline_status:
+        description: "Overall pipeline result: success or failure"
+        required: true
+        type: string
+      env_name:
+        description: "Runtime environment name or context label for this run (e.g. 'development', 'production', 'pr-to-main', 'topic-feature_x')."
+        required: true
+        type: string
+
+jobs:
+  notify:
+    name: "📣 Pipeline Status Report"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      # --------------------------------------------------------------------------
+      # 1. Build a rich GitHub Actions job summary
+      # --------------------------------------------------------------------------
+      - name: Write Pipeline Summary
+        run: |
+          STATUS="${{ inputs.pipeline_status }}"
+          ENV="${{ inputs.env_name }}"
+          BRANCH="${{ github.ref_name }}"
+          SHA="${GITHUB_SHA::8}"
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          if [ "$STATUS" = "success" ]; then
+            ICON="✅"
+            LABEL="SUCCESS"
+          else
+            ICON="❌"
+            LABEL="FAILURE"
+          fi
+
+          cat >> "$GITHUB_STEP_SUMMARY" << EOF
+          # ${ICON} Pipeline ${LABEL}
+
+          | Field        | Value                        |
+          |--------------|------------------------------|
+          | **Status**   | ${LABEL}                     |
+          | **Branch**   | \`${BRANCH}\`                |
+          | **Commit**   | \`${SHA}\`                   |
+          | **Environment** | \`${ENV}\`               |
+          | **Triggered by** | @${{ github.actor }}    |
+          | **Run**      | [View Full Run](${RUN_URL})  |
+
+          > Pipeline completed at $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+          EOF

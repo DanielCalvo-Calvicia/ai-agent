@@ -1,0 +1,37 @@
+# ==============================================================================
+# PIPELINE: Deploy to Development
+# ==============================================================================
+# Runs POST-MERGE on `feature` (the integration branch). Assumes the PR gate
+# (verify-pr.yml) has already enforced the Verify flow.
+#
+# Delegates the real work to the Deploy flow targeting the 'development'
+# environment. The Deploy flow honours the repository Variable DEPLOY_ENABLED
+# (when it is 'false', nothing is deployed).
+# ==============================================================================
+
+name: Deploy - Development
+
+on:
+  push:
+    branches:
+      - feature
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
+  workflow_dispatch:
+
+# Cancel an in-progress dev deploy when a newer push lands.
+concurrency:
+  group: deploy-dev-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: "Deploy -> development"
+    uses: ./.github/workflows/~flow-deploy.yml
+    with:
+      env_name: development
+    secrets: inherit
+    permissions:
+      contents: read
+      packages: write

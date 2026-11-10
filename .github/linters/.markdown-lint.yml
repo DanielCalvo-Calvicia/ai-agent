@@ -1,0 +1,56 @@
+# Markdown lint rules of the Verify flow (Step 2, Super-Linter). Same approach as
+# dynamics_microservice: rules are relaxed instead of reformatting the
+# documentation, because this repository's documents are long-form technical
+# prose and its history (docs/proposals, docs/setup/questionnaires, docs/tasks,
+# the ADRs) is written once and kept as it was (CLAUDE.md: "use dated notes in
+# history"). Rewriting them only to please a layout rule would change documents
+# that other documents cite by their text. The generated files in docs/models/
+# are excluded in ~step-2-lint.yml (they are rebuilt by scripts/model_tables.py,
+# never edited by hand).
+#
+# What stays on: the structural rules (heading levels, duplicate headings,
+# link and image syntax, reversed links, ...).
+
+# Line length: long-form prose, intentionally not hard-wrapped.
+MD013: false
+
+# Numbered lists run on across sections (questionnaires and task files number
+# their questions continuously, and other documents cite "question 7").
+MD029: false
+
+# A line of bold text that labels the paragraphs that follow is the style of the
+# ADRs and the task files, not a heading.
+MD036: false
+
+# Spaces inside emphasis markers: a historic questionnaire (docs/setup/questionnaires/Q05)
+# has a bold question that ends with a stray space, and it is cited as it was written.
+MD037: false
+
+# A code span may carry a significant space.
+MD038: false
+
+# Spacing and layout rules (blank lines around headings, lists and fences, list
+# indentation, trailing spaces, several blank lines, the final newline, table
+# pipes). Cosmetic; the historic documents were never written against them.
+MD005: false
+MD007: false
+MD009: false
+MD012: false
+MD022: false
+MD031: false
+MD032: false
+MD047: false
+MD055: false
+MD056: false
+
+# A fenced block without a language and a blank line inside a blockquote: both
+# appear in the historic proposals and reference notes.
+MD028: false
+MD040: false
+
+# Bare URLs, inline HTML (<br>, <details>), the first line not being a heading
+# (the README of each folder starts with a sentence) and the emphasis style.
+MD033: false
+MD034: false
+MD041: false
+MD049: false

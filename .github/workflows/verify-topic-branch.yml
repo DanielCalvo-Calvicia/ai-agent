@@ -1,0 +1,37 @@
+# ==============================================================================
+# PIPELINE: Verify a Topic Branch
+# ==============================================================================
+# Runs on every push to any `feature_*` branch (topic / personal branches,
+# e.g. feature_github_actions). Gives developers fast feedback before they
+# open a PR — lint + secret scan only (run_tests: false), not the full
+# suite. Step 3 (Unit Tests) runs once, for real, at the PR gate
+# (verify-pr.yml) instead of being duplicated on every WIP push.
+#
+# Does NOT run for the integration branch `feature` — that has its own
+# delivery pipeline (deploy-to-dev.yml).
+# Does NOT build, scan or deploy — keeps the dev loop tight.
+# ==============================================================================
+
+name: Verify - Topic Branch
+
+on:
+  push:
+    branches:
+      - "feature_*"
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
+  workflow_dispatch:
+
+concurrency:
+  group: verify-topic-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: "Verify (topic: ${{ github.ref_name }})"
+    uses: ./.github/workflows/~flow-verify.yml
+    with:
+      context: topic-${{ github.ref_name }}
+      run_tests: false
+    secrets: inherit

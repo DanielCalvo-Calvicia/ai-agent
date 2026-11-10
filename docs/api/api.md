@@ -1,6 +1,6 @@
 # HTTP API of the service
 
-ai-agent answers over HTTP on port `7998` (`AI_AGENT_PORT`). Only **Brain** (`brain_microservice`) calls it, once per utterance. Everything below was checked against `infrastructure/inbound/http/fastapi.py` and `contracts.api.microservices.ai_agent.session`. Swagger UI is served at `/docs`.
+ai-agent answers over HTTP on port `7998` (`HTTP_ADDR`). Only **Brain** (`brain_microservice`) calls it, once per utterance. Everything below was checked against `infrastructure/inbound/http/fastapi.py` and `contracts.api.microservices.ai_agent.session`. Swagger UI is served at `/docs`.
 
 The service **decides and answers**; it never controls hardware (see [ADR-002](../decisions/ADR-002-agent-decides-brain-acts.md)). It is not an MCP server: it is an MCP **client** (see [architecture](../architecture/architecture.md), section 10).
 
