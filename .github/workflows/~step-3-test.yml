@@ -52,9 +52,13 @@ jobs:
       # 3. Install dependencies
       #    contracts and shared-logging come from the wheels in vendor/ (the
       #    service builds on its own, without the sibling checkouts).
+      #    No --no-cache-dir here: the pip cache of Setup Python (cache: pip)
+      #    is saved from ~/.cache/pip, and its post step fails the job with
+      #    "Cache folder path is retrieved for pip but doesn't exist" when that
+      #    folder was never written.
       # --------------------------------------------------------------------------
       - name: Install Dependencies
-        run: python -m pip install --no-cache-dir -r requirements.txt
+        run: python -m pip install -r requirements.txt
 
       # --------------------------------------------------------------------------
       # 4. Static checks of the project
