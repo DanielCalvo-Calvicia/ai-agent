@@ -2,7 +2,7 @@
   "schema_version": 1,
   "name": "chat",
   "about": "A plain reply: the draft writer and the editor. Reads the classification the `identification` profile made (inputs).",
-  "token_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "token_sha256": "5aa89b04c7467df5352c697d6bef9572fe0cbbe9bf6daecdd5e21c121d064ce3",
   "flow": "conversation",
   "models": "claude_haiku",
   "tools": {

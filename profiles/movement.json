@@ -2,7 +2,7 @@
   "schema_version": 1,
   "name": "movement",
   "about": "The arm movements the user asked for: the motion planner and the motion validator (plain code).",
-  "token_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "token_sha256": "d846585e17d163759bd4fb819b28cc74d573f27f90c7f002a1db35679f245905",
   "flow": "movement",
   "models": "proven",
   "tools": {

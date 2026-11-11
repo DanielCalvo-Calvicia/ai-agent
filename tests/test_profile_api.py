@@ -4,6 +4,7 @@ import json
 import os
 
 import pytest
+import copy
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -77,8 +78,8 @@ class TestProfileAccess:
         assert check_access(agent, "special", "bad").reason == "wrong_token"
 
     def test_a_placeholder_hash_opens_for_nobody_not_even_the_empty_token(self):
-        built = assemble(build_snapshot(FileConfigSource(PROJECT_ROOT)))
-        assert built.profile("special").definition["token_sha256"] == NO_HASH
+        built = copy.deepcopy(assemble(build_snapshot(FileConfigSource(PROJECT_ROOT))))
+        built.profile("special").definition["token_sha256"] = NO_HASH      # the placeholder a profile holds before its token is set
         for token in ("", "0", NO_HASH, "special-token"):
             assert not check_access(built, "special", token).allowed
 
