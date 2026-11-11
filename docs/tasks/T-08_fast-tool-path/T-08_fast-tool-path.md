@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | awaiting-user (planned 2026-11-11; T-08.1, the eight decisions of [ADR-019](../../decisions/ADR-019-fast-tool-path.md), stops the chain; T-08.2 does not wait for it) |
+| Status | in-progress (planned 2026-11-11; T-08.1 done the same day, [ADR-019](../../decisions/ADR-019-fast-tool-path.md) accepted; nothing built) |
 | Kind | epic |
 | Parent | project |
 | Depends on | T-07 (the MCP adapter that follows the jobs) |
@@ -22,25 +22,27 @@ A request that needs at most one read-only tool call is answered by a flow of th
 | The operator and the data engineer copy the tool table (917 and 780 output tokens) | The tool answer goes through as it is; the LLM operator and engineer are only a fallback |
 | An LLM call has no duration in the log | `duration_ms` in the record and the log line |
 | `ToolDefinition` has no read-only information | `read_only`, from the MCP `readOnlyHint` |
-| A profile can only reuse a full-plan flow | A profile can use `fast`, or any other flow file |
+| A profile can only reuse a flow file; its own `steps` are refused by the runner | A profile can use `fast`, any other flow file, or list its own steps (T-08.10) |
 
 ## Subtasks
 
 | Order | Task | Kind | Status |
 |---|---|---|---|
-| 1 | [T-08.1 Decisions](T-08.1_decisions.md) | decision | awaiting-user |
-| 2 | [T-08.2 `duration_ms` in the LLM call record](T-08.2_duration-ms.md) | code | todo (does not wait for T-08.1) |
-| 3 | [T-08.3 The direct tool call and the executor](T-08.3_direct-tool-call.md) | code | blocked (T-08.1, T-08.2) |
-| 4 | [T-08.4 Read-only tools](T-08.4_read-only-tools.md) | code | blocked (T-08.1) |
-| 5 | [T-08.5 The fast flow, its steps and the profile](T-08.5_fast-flow-and-profile.md) | code | blocked (T-08.1, T-08.3, T-08.4) |
-| 6 | [T-08.6 Tests and the golden file](T-08.6_tests-and-golden.md) | test | blocked (T-08.5) |
-| 7 | [T-08.7 Tuning on the real models](T-08.7_tuning-on-real-models.md) | manual | blocked (T-08.6) |
-| 8 | [T-08.8 Documentation](T-08.8_documentation.md) | docs | blocked (T-08.7) |
-| 9 | [T-08.9 First real run of the profile](T-08.9_first-real-run.md) | manual | blocked (T-08.8) |
+| 1 | [T-08.1 Decisions](T-08.1_decisions.md) | decision | done (2026-11-11) |
+| 2 | [T-08.2 `duration_ms` in the LLM call record](T-08.2_duration-ms.md) | code | todo |
+| 3 | [T-08.3 The direct tool call and the executor](T-08.3_direct-tool-call.md) | code | blocked (T-08.2) |
+| 4 | [T-08.4 Read-only tools](T-08.4_read-only-tools.md) | code | todo |
+| 5 | [T-08.10 A profile's own steps run](T-08.10_profile-own-steps.md) | code | todo |
+| 6 | [T-08.5 The fast flow, its steps and the profile](T-08.5_fast-flow-and-profile.md) | code | blocked (T-08.3, T-08.4) |
+| 7 | [T-08.11 The profile with the triage](T-08.11_triage-profile.md) | code | blocked (T-08.5, T-08.10) |
+| 8 | [T-08.6 Tests and the golden file](T-08.6_tests-and-golden.md) | test | blocked (T-08.5) |
+| 9 | [T-08.7 Tuning on the real models](T-08.7_tuning-on-real-models.md) | manual | blocked (T-08.6) |
+| 10 | [T-08.8 Documentation](T-08.8_documentation.md) | docs | blocked (T-08.7, T-08.11) |
+| 11 | [T-08.9 First real run of the profile](T-08.9_first-real-run.md) | manual | blocked (T-08.8) |
 
 ## Exit criteria
 
-The median of 5 real runs of the simple message on the fast profile is 20 s or less; the fixed messages for the profile are answered right when the maintainer reads them; no server name appears in the module (a test); `check_agent.py` passes with the new profile; `dynamics` and `special` are no worse on their fixed messages; the documents are true.
+The median of 5 real runs of the simple message on the fast profile is 20 s or less; the fixed messages for the profile are answered right when the maintainer reads them; no server name appears in the module (a test); `check_agent.py` passes with the new profile; `dynamics` and `special` are no worse on their fixed messages; the two profiles (`dynamics_fast` and `dynamics_fast_triage`) assemble and answer; the documents are true.
 
 ## Rules that bind every task of this epic
 
@@ -55,6 +57,6 @@ The median of 5 real runs of the simple message on the fast profile is 20 s or l
 
 ## Open points
 
-- The eight decisions of ADR-019 (T-08.1): names, triage inside the flow, how the read-only check works, what a request that needs more than one tool gets, how steps are switched per profile, the models, the direct call in `special` and `dynamics`, the branch.
+- **Which client uses the fast profiles today** was not said (Q11-4): the client is one thing and uses one profile. Brain sends no profile yet, so until it chains `identification`, the profile that works for it is `dynamics_fast_triage`.
 - Whether two model calls are enough for 20 s: the estimate (8 to 14 s) is **not measured**; T-08.2 gives the seconds.
 - Reading more than the first page of a result, and a request that needs two tools, stay out of scope.

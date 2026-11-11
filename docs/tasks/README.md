@@ -38,7 +38,7 @@ docs/tasks/
 │   └── T-07.1_decisions.md ... T-07.11_recall-tools.md                  leaves
 └── T-08_fast-tool-path/                        epic (planned 2026-11-11)
     ├── T-08_fast-tool-path.md
-    └── T-08.1_decisions.md ... T-08.9_first-real-run.md                  leaves
+    └── T-08.1_decisions.md ... T-08.11_triage-profile.md                  leaves
 ```
 
 ## 2. Execution protocol
@@ -171,13 +171,15 @@ Verified on 2026-10-27 against both projects.
 | [T-07.11](T-07_mcp-job-follow-up/T-07.11_recall-tools.md) | Tools that are called again, not read as a job | code | done (2026-11-11) |
 | [T-07.8](T-07_mcp-job-follow-up/T-07.8_documentation.md) | Documentation | docs | done (2026-11-11) |
 | [T-07.9](T-07_mcp-job-follow-up/T-07.9_first-real-run.md) | First real run | manual | done (2026-11-11) with a gap: no job occurred |
-| [T-08](T-08_fast-tool-path/T-08_fast-tool-path.md) | **A fast tool path as a common module; profiles choose its MCP servers and steps** (epic) | epic | awaiting-user (planned 2026-11-11; T-08.1, the eight decisions of [ADR-019](../decisions/ADR-019-fast-tool-path.md), stops the chain; T-08.2 does not wait for it) |
-| [T-08.1](T-08_fast-tool-path/T-08.1_decisions.md) | Decisions | decision | awaiting-user |
-| [T-08.2](T-08_fast-tool-path/T-08.2_duration-ms.md) | `duration_ms` in the LLM call record | code | todo (does not wait for T-08.1) |
-| [T-08.3](T-08_fast-tool-path/T-08.3_direct-tool-call.md) | The direct tool call and the executor | code | blocked (T-08.1, T-08.2) |
-| [T-08.4](T-08_fast-tool-path/T-08.4_read-only-tools.md) | Read-only tools | code | blocked (T-08.1) |
-| [T-08.5](T-08_fast-tool-path/T-08.5_fast-flow-and-profile.md) | The fast flow, its steps and the profile | code | blocked (T-08.1, T-08.3, T-08.4) |
+| [T-08](T-08_fast-tool-path/T-08_fast-tool-path.md) | **A fast tool path as a common module; profiles choose its MCP servers and steps** (epic) | epic | in-progress (planned 2026-11-11; T-08.1 done the same day, [ADR-019](../decisions/ADR-019-fast-tool-path.md) accepted; nothing built) |
+| [T-08.1](T-08_fast-tool-path/T-08.1_decisions.md) | Decisions | decision | done (2026-11-11) |
+| [T-08.2](T-08_fast-tool-path/T-08.2_duration-ms.md) | `duration_ms` in the LLM call record | code | todo |
+| [T-08.3](T-08_fast-tool-path/T-08.3_direct-tool-call.md) | The direct tool call and the executor | code | blocked (T-08.2) |
+| [T-08.4](T-08_fast-tool-path/T-08.4_read-only-tools.md) | Read-only tools | code | todo |
+| [T-08.5](T-08_fast-tool-path/T-08.5_fast-flow-and-profile.md) | The fast flow, its steps and the profile | code | blocked (T-08.3, T-08.4) |
 | [T-08.6](T-08_fast-tool-path/T-08.6_tests-and-golden.md) | Tests and the golden file | test | blocked (T-08.5) |
 | [T-08.7](T-08_fast-tool-path/T-08.7_tuning-on-real-models.md) | Tuning on the real models | manual | blocked (T-08.6) |
-| [T-08.8](T-08_fast-tool-path/T-08.8_documentation.md) | Documentation | docs | blocked (T-08.7) |
+| [T-08.8](T-08_fast-tool-path/T-08.8_documentation.md) | Documentation | docs | blocked (T-08.7, T-08.11) |
 | [T-08.9](T-08_fast-tool-path/T-08.9_first-real-run.md) | First real run of the profile | manual | blocked (T-08.8) |
+| [T-08.10](T-08_fast-tool-path/T-08.10_profile-own-steps.md) | A profile's own steps run | code | todo |
+| [T-08.11](T-08_fast-tool-path/T-08.11_triage-profile.md) | The profile with the triage (`dynamics_fast_triage`) | code | blocked (T-08.5, T-08.10) |

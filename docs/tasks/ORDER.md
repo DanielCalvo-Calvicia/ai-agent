@@ -135,17 +135,19 @@ Plan and reasons: [ADR-018](../decisions/ADR-018-mcp-job-follow-up-per-server.md
 
 ## H. T-08 A fast tool path as a common module (added 2026-11-11)
 
-Plan and reasons: [ADR-019](../decisions/ADR-019-fast-tool-path.md) (proposed). T-08.1 (the eight decisions) stops the chain; T-08.2 does not wait for it and is the first task to pick.
+Plan and reasons: [ADR-019](../decisions/ADR-019-fast-tool-path.md) (proposed). T-08.1 is done (Q11 answered); the tasks to pick are T-08.2, T-08.4 and T-08.10.
 
 | # | Task | Name | Kind | State | Detail | Depends on | Last updated |
 |---|---|---|---|---|---|---|---|
-| 77 | [T-08](T-08_fast-tool-path/T-08_fast-tool-path.md) | A fast tool path as a common module; profiles choose its MCP servers and steps (epic) | epic | Awaiting user | the decisions of ADR-019 are the maintainer's; the target is 20 s at most | T-07 | 2026-11-11 |
-| 78 | [T-08.1](T-08_fast-tool-path/T-08.1_decisions.md) | Decisions | decision | Awaiting user | eight questions, each with a default | — | 2026-11-11 |
+| 77 | [T-08](T-08_fast-tool-path/T-08_fast-tool-path.md) | A fast tool path as a common module; profiles choose its MCP servers and steps (epic) | epic | In progress | T-08.1 done, ADR-019 accepted; nothing built; the target is 20 s at most | T-07 | 2026-11-11 |
+| 78 | [T-08.1](T-08_fast-tool-path/T-08.1_decisions.md) | Decisions | decision | Done | Q11: defaults, except two profiles (`dynamics_fast`, `dynamics_fast_triage`) and a profile's own steps | — | 2026-11-11 |
 | 79 | [T-08.2](T-08_fast-tool-path/T-08.2_duration-ms.md) | `duration_ms` in the LLM call record | code | Todo | `duration_ms` first, so the before is measured and not estimated | — | 2026-11-11 |
-| 80 | [T-08.3](T-08_fast-tool-path/T-08.3_direct-tool-call.md) | The direct tool call and the executor | code | Blocked | the direct call, also in the executor of `special` and `dynamics`; the golden loses `phase5` and `phase6` calls | T-08.1, T-08.2 | 2026-11-11 |
-| 81 | [T-08.4](T-08_fast-tool-path/T-08.4_read-only-tools.md) | Read-only tools | code | Blocked | `readOnlyHint` into `ToolDefinition`; the check is at run time | T-08.1 | 2026-11-11 |
-| 82 | [T-08.5](T-08_fast-tool-path/T-08.5_fast-flow-and-profile.md) | The fast flow, its steps and the profile | code | Blocked | the flow `fast`, three steps, the profile `dynamics_fast` | T-08.1, T-08.3, T-08.4 | 2026-11-11 |
+| 80 | [T-08.3](T-08_fast-tool-path/T-08.3_direct-tool-call.md) | The direct tool call and the executor | code | Blocked | the direct call, also in the executor of `special` and `dynamics`; the golden loses `phase5` and `phase6` calls | T-08.2 | 2026-11-11 |
+| 81 | [T-08.4](T-08_fast-tool-path/T-08.4_read-only-tools.md) | Read-only tools | code | Todo | `readOnlyHint` into `ToolDefinition`; the check is at run time | T-08.1 | 2026-11-11 |
+| 82 | [T-08.5](T-08_fast-tool-path/T-08.5_fast-flow-and-profile.md) | The fast flow, its steps and the profile | code | Blocked | the flow `fast`, three steps, the profile `dynamics_fast` | T-08.3, T-08.4 | 2026-11-11 |
 | 83 | [T-08.6](T-08_fast-tool-path/T-08.6_tests-and-golden.md) | Tests and the golden file | test | Blocked | scripted tests, the module has no server name, the golden file | T-08.5 | 2026-11-11 |
 | 84 | [T-08.7](T-08_fast-tool-path/T-08.7_tuning-on-real-models.md) | Tuning on the real models | manual | Blocked | real models, ask first, one change at a time | T-08.6 | 2026-11-11 |
-| 85 | [T-08.8](T-08_fast-tool-path/T-08.8_documentation.md) | Documentation | docs | Blocked | ADR-019 says what was built; the documents true | T-08.7 | 2026-11-11 |
+| 85 | [T-08.8](T-08_fast-tool-path/T-08.8_documentation.md) | Documentation | docs | Blocked | ADR-019 says what was built; the documents true | T-08.7, T-08.11 | 2026-11-11 |
 | 86 | [T-08.9](T-08_fast-tool-path/T-08.9_first-real-run.md) | First real run of the profile | manual | Blocked | real run of the fixed messages, compared with `dynamics`; ask first | T-08.8 | 2026-11-11 |
+| 87 | [T-08.10](T-08_fast-tool-path/T-08.10_profile-own-steps.md) | A profile's own steps run | code | Todo | the runner refuses a profile's `steps` today; Q11-7 asks for it | T-08.1 | 2026-11-11 |
+| 88 | [T-08.11](T-08_fast-tool-path/T-08.11_triage-profile.md) | The profile with the triage (`dynamics_fast_triage`) | code | Blocked | for a client that sends only the message; its own steps | T-08.5, T-08.10 | 2026-11-11 |

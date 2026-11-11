@@ -1,6 +1,6 @@
 # ADR-019 — A fast tool path as a common module; profiles choose its MCP servers and steps
 
-**Status:** Proposed (2026-11-11, branch `feature_fast_profile`). The maintainer confirmed the understanding below on 2026-11-11; the eight decisions at the end are still to be answered (T-08.1). **Nothing in this ADR is built.**
+**Status:** Accepted (2026-11-11, the maintainer's answers to [Q11](../setup/questionnaires/Q11_fast-tool-path.md), recorded in [T-08.1](../tasks/T-08_fast-tool-path/T-08.1_decisions.md)). Branch `feature_fast_profile`. **Nothing in this ADR is built.** Two changes from the first proposal: there are **two profiles** (with and without the triage, decision 3) and **a profile can list its own steps** (decision 3, task T-08.10).
 
 ## What was understood (confirmed by the maintainer)
 
@@ -37,7 +37,7 @@
    - `tool_caller` (**code**) calls the tool through the adapter. Jobs are already handled there (ADR-018).
    - `answer_writer` (LLM, one call) is the draft writer and the editor in one.
 2. **The module knows no server.** Nothing in `runtime/step/library/fast/` or in `support/tools/direct_call.py` names a server or a tool, and a test enforces it. What one MCP means (how to pick its tools, how to read its answers) lives in the profile's prompt appends under `prompts/profiles/`, as `dynamics` does today.
-3. **The profile switches MCP servers and steps.** `profiles/dynamics_fast.json` carries `flow: fast`, `models`, `tools.servers`, `overrides.<step>.prompt_append` and `inputs.requires: [user_goal, task_category]`. A profile for another server is the same file with other `tools` and other appends. A different set of steps is another flow file (for example `flows/fast_checked.json` with a gate) chosen by `flow`. A different model or prompt for one step is an override. None of these needs code.
+3. **The profile switches MCP servers and steps, and there are two profiles.** `profiles/dynamics_fast.json` carries `flow: fast`, `models`, `tools.servers`, `overrides.<step>.prompt_append` and `inputs.requires: [user_goal, task_category]`: for a client that chains `identification` (Brain). `profiles/dynamics_fast_triage.json` (named `<server>_fast_triage`) lists **its own `steps`**: the triage, then the three steps of `fast`; it needs no `inputs`, for a client that sends only the message (a web chat, the portal). A profile for another server is the same file with other `tools` and other appends. **A profile can list its own steps with no flow file** (a profile's `steps`: the check accepts it today and the runner refuses it, so it is made to run in T-08.10); a shared list of steps is still a flow file. A different model or prompt for one step is an override. None of these needs code.
 4. **`tool_selector` contract.** It reads `message`, `history`, `answers`, `user_goal`, `task_category` and the tools its scope offers. It writes **one** action (`mcp_tool_call` with a complete `mcp_context`), or `required_inputs` for a missing value (the pause and resume of the special flow are reused as they are), or one `generation` action when no tool fits. It reuses the existing `actions` and `next_step` schema pieces, so there is no new schema and no new `domain/` object. Its prompt is short; the tool descriptions are its main input.
 5. **`tool_caller` contract.** It calls the action's tool with its parameters through the new port method `call_tool`, inside the tool scope of the step. The result goes to `action.output` untouched; a tool error goes to `action.error`. Each call is still recorded (`record_tool_call`). No model rewrites the answer: it already follows the contract.
 6. **`answer_writer` contract.** It reads `message`, `user_goal`, `task_category` and `actions`. It writes the reply (`user_goal.expected_outcome`, as the editor does) and `next_step`. The rules of language, plain text, one honest sentence per error and `Pendiente` stay in the profile's appended prompt, so they are not Dynamics rules in the common prompt.
@@ -58,9 +58,9 @@
 
 ## Files
 
-**New:** `flows/fast.json`; `step_defs/{tool_selector,tool_caller,answer_writer}.json`; `prompts/50_tool_selector.txt` and `prompts/51_answer_writer.txt`; `runtime/step/library/fast/tool_caller.py`; `support/tools/direct_call.py`; `profiles/dynamics_fast.json` (with a real token hash); a model set for the profile (name to decide); this ADR; the epic folder `docs/tasks/T-08_fast-tool-path/`.
+**New:** `flows/fast.json`; `profiles/dynamics_fast_triage.json` (with its own token hash); `step_defs/{tool_selector,tool_caller,answer_writer}.json`; `prompts/50_tool_selector.txt` and `prompts/51_answer_writer.txt`; `runtime/step/library/fast/tool_caller.py`; `support/tools/direct_call.py`; `profiles/dynamics_fast.json` (with a real token hash); a model set for the profile (name to decide); this ADR; the epic folder `docs/tasks/T-08_fast-tool-path/`.
 
-**Changed:** `application/outbound/ports/mcp_ports.py` (`call_tool`; `ScopedTools` forwards it with its scope); `infrastructure/outbound/mcp/tool_executor.py` and `tool_catalog.py`; `domain/value_objects/llm_request/tool.py` (`read_only`); `runtime/step/library/special/action_executor.py`; `runtime/step/build.py` and `functions.py` (the builders and the input function of the new steps); `support/metrics.py` and `runtime/step/runner.py` (`duration_ms`).
+**Changed:** `application/assembly/assemble.py`, `application/assembly/model.py` and `application/runtime/profile/runner.py` (a profile's own steps run); `application/outbound/ports/mcp_ports.py` (`call_tool`; `ScopedTools` forwards it with its scope); `infrastructure/outbound/mcp/tool_executor.py` and `tool_catalog.py`; `domain/value_objects/llm_request/tool.py` (`read_only`); `runtime/step/library/special/action_executor.py`; `runtime/step/build.py` and `functions.py` (the builders and the input function of the new steps); `support/metrics.py` and `runtime/step/runner.py` (`duration_ms`).
 
 **Tests and generated files:** new tests for the direct call, the three steps, the read-only check, the "no server name in the module" check and the assembly of the new profile. The golden file changes **on purpose**: a new profile block, and the scenarios that run an MCP action lose their `phase5` and `phase6` calls. `docs/models/profiles.md` is regenerated.
 
@@ -77,7 +77,7 @@
 - **A flow written only for Dynamics.** Rejected by the maintainer.
 - **Only trimming `special`.** Removing the operator, engineer and worker copies reaches about 18 s but leaves no margin. Its useful part is kept (decision 7).
 - **One model call that uses the tools itself** (one agentic step doing selector, caller and writer). Fewer files, but it gives up the tool allow-list check, the read-only check and the per-step metrics. Revisit if two calls are still too slow.
-- **Making the profile's inline `steps` runnable.** It would let a profile list steps without a flow file, but it needs work in the flow loader. One flow file per variation works today.
+- **One flow file per variation only.** It works today, but the maintainer wants a profile to set its own steps (Q11-7), so a profile's `steps` are made runnable (T-08.10); the flow `fast` stays a file because two profiles share its steps.
 
 ## Plan of work (epic T-08, not created yet)
 
@@ -89,18 +89,22 @@
 6. **T-08.6** Tests and the golden file.
 7. **T-08.7** Tuning on the real models, one change at a time (the T-06 rule).
 8. **T-08.8** Documents.
-9. **T-08.9** Real run of the fixed messages for `dynamics_fast`, compared with `dynamics`.
+9. **T-08.9** Real run of the fixed messages for `dynamics_fast` and `dynamics_fast_triage`, compared with `dynamics`.
+10. **T-08.10** A profile's own steps run (before T-08.11).
+11. **T-08.11** The profile with the triage, `dynamics_fast_triage`.
 
-## Decisions still to answer (the default first)
+## Decisions taken (Q11, 2026-11-11)
 
 1. **Names:** profile `dynamics_fast`, flow `fast`.
-2. **Triage inside the fast flow:** no. The profile requires the `identification` result as `inputs`. Alternative: add the cheap triage (about 3 s) for clients that cannot chain.
-3. **Read-only check:** by the `readOnlyHint` annotation. Alternative: the profile's tool list alone.
-4. **A request that needs more than one tool:** the reply says so plainly and the client picks `dynamics`. A structured signal in `output` can come later.
-5. **Different steps per profile:** one flow file per variation. Alternative: make inline `steps` runnable.
-6. **Models:** Haiku on the selector and the writer, Sonnet only if quality fails.
-7. **Also use the direct call in `special` and `dynamics`:** yes.
-8. **Branch:** `feature_fast_profile`, with commits only when the maintainer asks.
+2. **Triage inside the flow:** two profiles. `dynamics_fast` has none and requires `identification` as `inputs`; **`dynamics_fast_triage`** has it and needs no `inputs`.
+3. **Read-only check:** by the `readOnlyHint` annotation, at run time.
+4. **A request that needs more than one tool:** the reply says it plainly; the client picks `dynamics`.
+5. **Different steps per profile:** a profile lists its own steps (T-08.10); a shared list stays a flow file.
+6. **Models:** Haiku on the selector and the writer, Sonnet only if the quality fails.
+7. **The direct call also in `special` and `dynamics`:** yes.
+8. **Branch:** `feature_fast_profile`, commits only when the maintainer asks.
+
+Also: the client is one thing today and uses one profile (which one was not said; the choice between the fast and the full profile is not needed yet); only `dynamics_microservice` uses the module for now; the 20 s are the request to the fast profile, the median of 5 runs; every real run is asked first; if 20 s is not reached the maintainer is asked; the planner's extra action is not fixed in this epic; the token of a new profile is shown once in chat and only its hash is written; whether the deployed environments point at the new Dynamics service is unknown.
 
 ## Acceptance
 
