@@ -16,6 +16,8 @@ from application.outbound.ports.mcp_ports import (
 )
 from domain.value_objects.llm_request.tool import ToolDefinition
 from infrastructure.outbound.mcp.client_manager import MCPClientManager
+from infrastructure.outbound.mcp.job_follow_up import JOB_UNKNOWN_SHAPE, FollowUp, follow_up
+from infrastructure.outbound.mcp.job_protocol import NO_JOBS, JobProtocol, JobRef, get_protocol, protocol_name_of
 from infrastructure.outbound.mcp.masking import mask_personal_columns, masking_enabled
 from infrastructure.outbound.mcp.tool_catalog import MCPToolCatalog, call_timeout_seconds
 from shared_logging import get_logger
@@ -41,6 +43,8 @@ class MCPToolExecutor(McpToolsPort):
     def __init__(self, client_manager: MCPClientManager, catalog: Optional[MCPToolCatalog] = None):
         self.client_manager = client_manager
         self.catalog = catalog or MCPToolCatalog(client_manager)
+        self._clock = time.monotonic       # the follow-up of a job reads these two, so a test can run it with no real time
+        self._sleep = anyio.sleep
 
     def list_tools(self, server_name: str) -> List[ToolDefinition]:
         return self.catalog.list_tools(server_name)
@@ -76,13 +80,54 @@ class MCPToolExecutor(McpToolsPort):
         if limit <= 0:
             return {"error": "No wait is left for tool calls in this message, so the tool was not called.", "is_error": True}, "timeout", 0
         answer, retry_reason, outcome = await self._call(server_name, tool_name, args, limit)
+        attempts = 1
         if retry_reason:
             limit = self._limit(left, begun)
             if limit > 0:
                 logger.warning("MCP call failed, trying once more", tool_name=tool_name, reason=retry_reason)
                 answer, _, outcome = await self._call(server_name, tool_name, args, limit)
-                return answer, outcome, 2
-        return answer, outcome, 1
+                attempts = 2
+        if not answer["is_error"]:
+            protocol, read_tool, cancel_tool = self._job_settings(server_name)
+            jobs = protocol.detect(answer["result"])
+            if jobs and read_tool:
+                followed = await self._follow_jobs(server_name, protocol, answer["result"], jobs, read_tool, cancel_tool, left, begun)
+                return followed.answer, followed.outcome, attempts + followed.reads
+        return answer, outcome, attempts
+
+    def _job_settings(self, server_name: str) -> Tuple[JobProtocol, Optional[str], Optional[str]]:
+        """The job protocol the server file declares and its read and cancel tools (`none` without the field; the config loader
+        refuses a name it does not know, so an unknown one here is treated as `none`)."""
+        configs = getattr(self.client_manager, "configs", {}) or {}
+        server_config = (configs.get(server_name) or {}).get("config") or {}
+        try:
+            protocol = get_protocol(protocol_name_of(server_config))
+        except ValueError:
+            protocol = get_protocol(NO_JOBS)
+        return protocol, server_config.get("job_read_tool"), server_config.get("job_cancel_tool")
+
+    async def _follow_jobs(self, server_name: str, protocol: JobProtocol, answer_text: str, jobs: List[JobRef], read_tool: str,
+                           cancel_tool: Optional[str], left: Optional[float], begun: float) -> FollowUp:
+        """Reads the jobs of an answer to their result (job_follow_up.py), inside what the message may still wait. Only the read
+        tool and the cancel tool the server file names are called, only with the ids the protocol found in the answer."""
+        left_now = None if left is None else left - (time.monotonic() - begun)     # what is left after the first call
+        started = self._clock()
+
+        def time_left() -> Optional[float]:
+            return None if left_now is None else left_now - (self._clock() - started)
+
+        async def read(arguments: Dict[str, Any], remaining: Optional[float]) -> Tuple[Dict[str, Any], str]:
+            limit = call_timeout_seconds() if remaining is None else min(call_timeout_seconds(), remaining)
+            result, _, outcome = await self._call(server_name, read_tool, arguments, limit)
+            return result, outcome
+
+        async def cancel(arguments: Dict[str, Any], limit: float) -> None:
+            await self._call(server_name, cancel_tool, arguments, limit)
+
+        followed = await follow_up(protocol, answer_text, jobs, read, cancel if cancel_tool else None, time_left, self._sleep)
+        if followed.outcome == JOB_UNKNOWN_SHAPE:
+            logger.warning("MCP job answer not understood", server_name=server_name, protocol=protocol.name)
+        return followed
 
     @staticmethod
     def _limit(left: Optional[float], begun: float) -> float:

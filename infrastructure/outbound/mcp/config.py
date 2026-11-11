@@ -3,6 +3,7 @@ import os
 import re
 from typing import Any, Dict, List, Optional
 
+from infrastructure.outbound.mcp.job_protocol import job_protocol_problem
 from shared_logging import get_logger
 
 logger = get_logger(__name__)
@@ -44,6 +45,10 @@ def load_supported_mcp_configs(mcps_dir: Optional[str] = None) -> List[Dict[str,
             unset = _unset_variables(server["config"].get("url"))
             if unset:
                 logger.warning("MCP server url is not set, ignoring the server", server_name=server["name"], variables=unset)
+                continue
+            problem = job_protocol_problem(server["config"])
+            if problem:
+                logger.warning("MCP server job settings are not valid, ignoring the server", server_name=server["name"], problem=problem)
                 continue
             supported.append(server)
         else:

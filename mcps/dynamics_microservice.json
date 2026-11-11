@@ -2,6 +2,9 @@
     "dynamics_microservice": {
         "type": "streamable_http",
         "url": "${DYNAMICS_MCP_URL}",
+        "job_protocol": "dynamics_pending",
+        "job_read_tool": "get_job_result",
+        "job_cancel_tool": "cancel_job",
         "allowed_tools": [
             "customer_orders",
             "order_status",

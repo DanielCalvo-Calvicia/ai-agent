@@ -82,7 +82,7 @@ class LangfuseUsageReporter(UsageReporterPort):
             "langfuse.observation.metadata.duration_ms": str(call.duration_ms),
             "langfuse.observation.metadata.attempts": str(call.attempts),
         }
-        if call.outcome != "ok":
+        if call.outcome not in ("ok", "job_done"):
             attributes["langfuse.observation.level"] = "ERROR"
         spans.append(_span(otel_trace, _hex_id(uuid.uuid4().hex, 16), self.root_spans[trace_id], call.tool, started, ended, attributes))
         return {"resourceSpans": [{

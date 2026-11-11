@@ -1,0 +1,7 @@
+coverage: the order headers of one customer, newest first; steps: open_orders (pending), archived_orders (pending); customer_no=C-100
+
+## open_orders (open)
+note: pending: the query is still running as job pend-open (running): read it with get_job_result
+
+## archived_orders (archived)
+note: pending: the query is still running as job pend-arch (running): read it with get_job_result
