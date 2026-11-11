@@ -1,6 +1,6 @@
 # Tasks
 
-Hierarchical task plan, same format as `dynamics_microservice/docs/tasks`. Epics so far: **T-01 use the `dynamics_microservice` MCP tools from ai-agent** (done: T-01.9, the first real run, on 2026-10-29) and **T-03 Claude as a provider** (done on 2026-10-30; `docs/decisions/ADR-013-claude-through-sanitized-structured-outputs.md`) and **T-02 refresh the model catalog: no GitHub Models, Google free tier by default** (done on 2026-10-30; created 2026-10-27, plan in `docs/proposals/PR-004-model-catalog-gemini-free-tier.md`). **T-07 the follow-up of an MCP job is code, chosen per server** was planned on 2026-11-11 (`docs/decisions/ADR-018-mcp-job-follow-up-per-server.md`, accepted the same day; nothing built). Two epics were added on 2026-11-02: **T-05 structure: profiles, flows and steps as three pluggable layers** (plan in `docs/proposals/PR-005-flows-steps-profiles.md`, `docs/decisions/ADR-015-profiles-flows-steps.md`) and **T-06 redesign: the new flows, steps, prompts and profiles**, which starts after T-05 and after the maintainer's specification (T-06.1). It is written to be executed step by step: every leaf task states what to create or change, what it must not do and how to prove it is done.
+Hierarchical task plan, same format as `dynamics_microservice/docs/tasks`. Epics so far: **T-01 use the `dynamics_microservice` MCP tools from ai-agent** (done: T-01.9, the first real run, on 2026-10-29) and **T-03 Claude as a provider** (done on 2026-10-30; `docs/decisions/ADR-013-claude-through-sanitized-structured-outputs.md`) and **T-02 refresh the model catalog: no GitHub Models, Google free tier by default** (done on 2026-10-30; created 2026-10-27, plan in `docs/proposals/PR-004-model-catalog-gemini-free-tier.md`). **T-08 a fast tool path as a common module, profiles choose its MCP servers and steps** was planned on 2026-11-11 (`docs/decisions/ADR-019-fast-tool-path.md`, proposed; nothing built). **T-07 the follow-up of an MCP job is code, chosen per server** was planned on 2026-11-11 (`docs/decisions/ADR-018-mcp-job-follow-up-per-server.md`, accepted the same day; nothing built). Two epics were added on 2026-11-02: **T-05 structure: profiles, flows and steps as three pluggable layers** (plan in `docs/proposals/PR-005-flows-steps-profiles.md`, `docs/decisions/ADR-015-profiles-flows-steps.md`) and **T-06 redesign: the new flows, steps, prompts and profiles**, which starts after T-05 and after the maintainer's specification (T-06.1). It is written to be executed step by step: every leaf task states what to create or change, what it must not do and how to prove it is done.
 
 The order, with the state and date of each task, is in [ORDER.md](ORDER.md). The board is in section 5. The prompts to start or resume the build in another session are in [PROMPTS.md](PROMPTS.md).
 
@@ -33,9 +33,12 @@ docs/tasks/
 ├── T-06_redesign/                              epic
 │   ├── T-06_redesign.md
 │   └── T-06.1_specification.md ... T-06.8_runtime-folder-layout.md       leaves
-└── T-07_mcp-job-follow-up/                     epic (planned 2026-11-11)
-    ├── T-07_mcp-job-follow-up.md
-    └── T-07.1_decisions.md ... T-07.11_recall-tools.md                  leaves
+├── T-07_mcp-job-follow-up/                     epic (planned 2026-11-11)
+│   ├── T-07_mcp-job-follow-up.md
+│   └── T-07.1_decisions.md ... T-07.11_recall-tools.md                  leaves
+└── T-08_fast-tool-path/                        epic (planned 2026-11-11)
+    ├── T-08_fast-tool-path.md
+    └── T-08.1_decisions.md ... T-08.9_first-real-run.md                  leaves
 ```
 
 ## 2. Execution protocol
@@ -168,3 +171,13 @@ Verified on 2026-10-27 against both projects.
 | [T-07.11](T-07_mcp-job-follow-up/T-07.11_recall-tools.md) | Tools that are called again, not read as a job | code | done (2026-11-11) |
 | [T-07.8](T-07_mcp-job-follow-up/T-07.8_documentation.md) | Documentation | docs | done (2026-11-11) |
 | [T-07.9](T-07_mcp-job-follow-up/T-07.9_first-real-run.md) | First real run | manual | done (2026-11-11) with a gap: no job occurred |
+| [T-08](T-08_fast-tool-path/T-08_fast-tool-path.md) | **A fast tool path as a common module; profiles choose its MCP servers and steps** (epic) | epic | awaiting-user (planned 2026-11-11; T-08.1, the eight decisions of [ADR-019](../decisions/ADR-019-fast-tool-path.md), stops the chain; T-08.2 does not wait for it) |
+| [T-08.1](T-08_fast-tool-path/T-08.1_decisions.md) | Decisions | decision | awaiting-user |
+| [T-08.2](T-08_fast-tool-path/T-08.2_duration-ms.md) | `duration_ms` in the LLM call record | code | todo (does not wait for T-08.1) |
+| [T-08.3](T-08_fast-tool-path/T-08.3_direct-tool-call.md) | The direct tool call and the executor | code | blocked (T-08.1, T-08.2) |
+| [T-08.4](T-08_fast-tool-path/T-08.4_read-only-tools.md) | Read-only tools | code | blocked (T-08.1) |
+| [T-08.5](T-08_fast-tool-path/T-08.5_fast-flow-and-profile.md) | The fast flow, its steps and the profile | code | blocked (T-08.1, T-08.3, T-08.4) |
+| [T-08.6](T-08_fast-tool-path/T-08.6_tests-and-golden.md) | Tests and the golden file | test | blocked (T-08.5) |
+| [T-08.7](T-08_fast-tool-path/T-08.7_tuning-on-real-models.md) | Tuning on the real models | manual | blocked (T-08.6) |
+| [T-08.8](T-08_fast-tool-path/T-08.8_documentation.md) | Documentation | docs | blocked (T-08.7) |
+| [T-08.9](T-08_fast-tool-path/T-08.9_first-real-run.md) | First real run of the profile | manual | blocked (T-08.8) |
