@@ -139,7 +139,7 @@ class TestRunProfile:
         with open(run.DEFAULT_MESSAGES, encoding="utf-8") as f:
             messages = json.load(f)["messages"]
         assert [m["id"] for m in messages] == ["greeting", "greeting_es", "question", "spanish", "impossible", "document", "plan", "movement",
-                                               "movement_es", "movement_ask", "ask_family", "dynamics", "dynamics_ask"]
+                                               "movement_es", "movement_ask", "ask_family", "dynamics", "dynamics_ask", "dynamics_shipments"]
         assert len({m["id"] for m in messages}) == len(messages)
         assert all(m["message"] and m["points"] for m in messages)
         assert all(m["then"]["message"] and m["then"]["points"] for m in messages if "then" in m)           # every question has its answer
@@ -163,8 +163,8 @@ class TestRunProfile:
         ids = lambda name: [m["id"] for m in run.messages_for(name)]
         text = ["greeting", "greeting_es", "question", "spanish", "impossible"]
         assert ids("movement") == text + ["movement", "movement_es", "movement_ask"]
-        assert ids("dynamics") == text + ["document", "plan", "dynamics", "dynamics_ask"]
-        assert ids("special") == text + ["document", "plan", "ask_family", "dynamics", "dynamics_ask"]
+        assert ids("dynamics") == text + ["document", "plan", "dynamics", "dynamics_ask", "dynamics_shipments"]
+        assert ids("special") == text + ["document", "plan", "ask_family", "dynamics", "dynamics_ask", "dynamics_shipments"]
         assert ids("default") == text + ["document", "plan", "ask_family"]
         assert ids("chat") == ids("gesture") == text
 

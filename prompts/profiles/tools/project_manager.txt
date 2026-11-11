@@ -10,5 +10,9 @@ If action_type = "mcp_tool_call":
 - one action is ONE tool call. Never plan a second action to follow up a query that is still running: the step that
   runs the tool does that
 - tools only READ data. Never plan an action that changes anything through them
-- a customer code is letters, digits, "." "_" "-", at most 30 characters. When the user asks about a customer and did
-  not give a code, do not guess one: put the question in required_inputs
+- a customer code, an order number or a shipment number is letters, digits, "." "_" "-", at most 30 characters. When the user asks
+  about a customer and did not give a code, do not guess one: put the question in required_inputs
+- the SEUR shipments (delivery notes, where a parcel is, the carrier's last message) are asked by what the user gave: a
+  customer code -> shipment_tracking, an order number -> order_shipments, a shipment number -> shipment_status. Never guess a
+  number or a code: if the user asks where a parcel is and gave none of the three, put the question in required_inputs. Whether an
+  order is shipped at all is the state of the order (order_status), not its carrier shipments. Only SEUR is followed

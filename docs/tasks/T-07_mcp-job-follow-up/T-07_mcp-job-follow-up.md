@@ -29,14 +29,14 @@ A tool answer that carries a job is followed up to its result by the MCP adapter
 | Order | Task | Kind | Status |
 |---|---|---|---|
 | 1 | [T-07.1 Decisions](T-07.1_decisions.md) | decision | done (2026-11-11) |
-| 2 | [T-07.2 Ask the Dynamics service for its contract](T-07.2_dynamics-contract.md) | manual | todo (the maintainer is changing that service in another session) |
+| 2 | [T-07.2 Ask the Dynamics service for its contract](T-07.2_dynamics-contract.md) | manual | in-progress (sent 2026-11-11 to the Dynamics session; waiting for the answer) |
 | 3 | [T-07.3 The protocol interface, `none` and the `job_protocol` field](T-07.3_protocol-interface.md) | code | done (2026-11-11) |
 | 4 | [T-07.4 The follow-up engine](T-07.4_follow-up-engine.md) | code | done (2026-11-11) |
 | 5 | [T-07.5 The protocols `dynamics_pending` and `dynamics_v1`](T-07.5_dynamics-protocols.md) | code | done (2026-11-11) |
 | 6 | [T-07.6 The operator prompt without job rules](T-07.6_operator-prompt.md) | code | done (2026-11-11) |
 | 7 | [T-07.7 Tests with a fake server per protocol](T-07.7_tests.md) | test | done (2026-11-11) |
-| 8 | [T-07.10 Offer the shipment tools](T-07.10_shipment-tools.md) | code | blocked (T-07.2, T-07.5) |
-| 9 | [T-07.8 Documentation](T-07.8_documentation.md) | docs | blocked (T-07.6, T-07.7, T-07.10) |
+| 8 | [T-07.10 Offer the shipment tools](T-07.10_shipment-tools.md) | code | done (2026-11-11) |
+| 9 | [T-07.8 Documentation](T-07.8_documentation.md) | docs | done (2026-11-11) |
 | 10 | [T-07.9 First real run](T-07.9_first-real-run.md) | manual | blocked (T-07.8) |
 
 ## Exit criteria
@@ -54,7 +54,7 @@ A job of each declared protocol is followed to its result, an answer with severa
 
 ## Open points
 
-- Whether the `pending` shape is final in the Go service, or only on `Dynamics-Development` (T-07.2).
+- Whether the `pending` shape is final in the Go service, or only on `Dynamics-Development` (T-07.2). **Settled on 2026-11-11:** `Dynamics-Development` is an older version; `local-dynamics` has the jobs contract (`status: ok | running | error`, `job_id`, `retry_after_seconds`, a status per table), documented in the Go service and read into `dynamics_v1` (T-07.5), which the server file declares. `dynamics_pending` is the legacy shape, until at least 2027-01-11.
 - The short wait between two reads of a job: a constant, measured in T-07.9.
 - `custom` (a pattern for the id, the read tool, the offset parameter, the signs of "done" and "still running") is **not scheduled**: it is built when a server needs it.
 - The tools `order_shipments`, `shipment_status` and `shipment_tracking` are in this epic since Q10-11 (T-07.10). Open: their parameters and answers (T-07.2), and whether a shipment answer can carry a job.

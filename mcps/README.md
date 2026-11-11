@@ -24,6 +24,9 @@ A file is an object whose **keys are server names** and whose values are the ser
 | `type` | no | `"sse"`, `"streamable_http"` | The transport. **Missing means `stdio`, which this agent does not support**: the server is ignored with a warning. Only these two work (`SUPPORTED_TYPES`). |
 | `url` | yes for the two types | text; may contain `${NAME}` | Where the server is. `${NAME}` is replaced by the environment variable `NAME` in **every string of the file**; a variable that is not set stays as written. If the `url` still holds a `${...}` after the replacement, the server is **skipped with a warning** (this is how `DYNAMICS_MCP_URL` unset turns the server off). |
 | `allowed_tools` | no | list of tool names | A whitelist. Without it the server offers **every** tool it lists. With it, only these tools reach the model; the others are hidden and logged at WARNING. It also lets `scripts/check_agent.py` check a profile's `server.tool` names (see section 3). |
+| `job_protocol` | no | `"none"` (the default), `"dynamics_v1"`, `"dynamics_pending"` | How an answer that is a job still running is found and followed to its result (ADR-018, T-07). `none`: the server has no jobs, an answer is the result whatever it says. `dynamics_v1`: the jobs contract of `dynamics_microservice` since 2026-11-11 (`status: running` with a `job_id`, per table). `dynamics_pending`: the older shape (`note: pending: … job <id> …`), legacy. A name that is not one of these skips the server with a warning. |
+| `job_read_tool` | with a `job_protocol` other than `none` | tool name | The tool that reads a job (`get_job_result`). Must be in `allowed_tools` if the file has the list. Only this tool is called to read a job, only with the id the protocol found in the answer. |
+| `job_cancel_tool` | no | tool name | The tool that stops a job whose time ran out (`cancel_job`). Must be in `allowed_tools` if the file has the list. Without it a job that does not end is left running and the answer says it is still running. |
 
 Any other key (`command`, `args`, `env`, `headers`, ...) is read but **not used** for `sse` and `streamable_http`. In particular **there is no way to send an authentication header**: the only header sent is the trace context (`traceparent`). A server that needs a key cannot be added without a code change.
 
@@ -31,7 +34,7 @@ Any other key (`command`, `args`, `env`, `headers`, ...) is read but **not used*
 
 | File | Type | State |
 |---|---|---|
-| `dynamics_microservice.json` | `streamable_http`, `${DYNAMICS_MCP_URL}` | **In use.** Read-only Business Central tools (ADR-011). `allowed_tools` is the list of what the agent may call. |
+| `dynamics_microservice.json` | `streamable_http`, `${DYNAMICS_MCP_URL}` | **In use.** Read-only Business Central tools (ADR-011): orders, customer card, SEUR shipments. `allowed_tools` is the list of what the agent may call; `job_protocol` is `dynamics_v1`. |
 | `aws_microservice.json` | `sse`, a fixed local URL | Loaded, but no profile has tools that reach it and nothing uses it. |
 | `fetch.json`, `filesystem.json` | `stdio` (Docker) | **Ignored at run time** (unsupported type). They still count as existing servers for the check of a profile, which would pass and then offer no tools. `filesystem.json` also needs `MCP_FILESYSTEM_DIR`. |
 

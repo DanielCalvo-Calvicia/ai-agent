@@ -81,7 +81,8 @@ def test_shipped_dynamics_file_holds_no_host_and_allows_only_the_workflows():
     assert server["type"] == "streamable_http"
     assert "://" not in text and "${DYNAMICS_MCP_URL}" in text
     assert server["config"]["allowed_tools"] == [
-        "customer_orders", "order_status", "customer_card", "get_guidance", "list_workflows", "get_job_result", "cancel_job",
+        "customer_orders", "order_status", "customer_card", "order_shipments", "shipment_status", "shipment_tracking",
+        "get_guidance", "list_workflows", "get_job_result", "cancel_job",
     ]
 
 

@@ -53,17 +53,22 @@ def test_each_protocol_reads_the_fixture_files_of_its_own_shape():
     assert pending.state(fixture("dynamics_pending/read_done_open.txt")) == DONE
     assert pending.state(fixture("dynamics_pending/read_done_archived.txt")) == DONE
     assert pending.state(fixture("dynamics_pending/read_running.txt")) == RUNNING
-    assert v1.detect(fixture("dynamics_v1/first_running.txt")) == [JobRef("job-1", 0)]
-    assert v1.state(fixture("dynamics_v1/read_done.txt")) == DONE
-    assert v1.state(fixture("dynamics_v1/read_running.txt")) == RUNNING
+    assert v1.detect(fixture("dynamics_v1/running.txt")) == [JobRef("job-1")]
+    assert v1.detect(fixture("dynamics_v1/two_tables_one_job.txt")) == [JobRef("job-1")]
+    assert v1.detect(fixture("dynamics_v1/two_tables_two_jobs.txt")) == [JobRef("job-2"), JobRef("job-1")]
+    for name in ("ok", "finished_job_first_page", "finished_job_last_page", "job_not_found"):
+        assert v1.detect(fixture(f"dynamics_v1/{name}.txt")) == [], name                # no job in an answer that is not running
+    assert [v1.state(fixture(f"dynamics_v1/{name}.txt")) for name in ("ok", "finished_job_first_page", "finished_job_last_page")] == [DONE] * 3
+    assert v1.state(fixture("dynamics_v1/running.txt")) == RUNNING
+    assert v1.state(fixture("dynamics_v1/job_not_found.txt")) == UNKNOWN                  # a tool error is not a result and not a job
 
 
 def test_a_protocol_finds_no_job_in_the_files_of_the_other_one():
     pending, v1 = get_protocol("dynamics_pending"), get_protocol("dynamics_v1")
 
     assert v1.detect(fixture("dynamics_pending/first_one_table.txt")) == []
-    assert pending.detect(fixture("dynamics_v1/first_running.txt")) == []
-    assert pending.detect(fixture("dynamics_v1/read_done.txt")) == [] and v1.detect(fixture("dynamics_pending/read_done_open.txt")) == []
+    assert pending.detect(fixture("dynamics_v1/running.txt")) == []                    # a single job has no `pending` note
+    assert pending.detect(fixture("dynamics_v1/ok.txt")) == [] and v1.detect(fixture("dynamics_pending/read_done_open.txt")) == []
 
 
 def test_the_fixture_files_hold_no_real_data_only_placeholders():
@@ -141,19 +146,29 @@ def test_merge_keeps_two_tables_each_with_its_own_result_in_order():
 # ------------------------------------------------------------------ dynamics_v1
 
 
-def test_v1_a_running_status_is_a_job_with_its_id_and_its_offset():
-    assert get_protocol("dynamics_v1").detect(V1_FIRST) == [JobRef("j9", 0)]
-    assert get_protocol("dynamics_v1").detect("status: running\njob_id: j9\nnext_offset: 40") == [JobRef("j9", 40)]
-    assert get_protocol("dynamics_v1").detect("status: running\njob_id: j9") == [JobRef("j9", None)]
+def test_v1_a_running_status_is_a_job_with_its_id_and_an_offset_only_if_the_answer_has_one():
+    v1 = get_protocol("dynamics_v1")
+
+    assert v1.detect(fixture("dynamics_v1/running.txt")) == [JobRef("job-1")]
+    assert v1.detect("status: running\njob_id: j9\nnext_offset: 40") == [JobRef("j9", 40)]
 
 
-@pytest.mark.parametrize("answer", ["", FINISHED, "status: ok\njob_id: x", PENDING_ONE])
+@pytest.mark.parametrize("answer", ["", FINISHED, "status: ok\njob_id: x", "status: error\nerror (not_found): no job", PENDING_ONE])
 def test_v1_anything_else_has_no_job(answer):
     assert get_protocol("dynamics_v1").detect(answer) == []
 
 
 def test_v1_a_running_status_without_an_id_is_still_a_job_so_that_it_fails():
-    assert get_protocol("dynamics_v1").detect("status: running\nnext_offset: 0") == [JobRef("", 0)]
+    assert get_protocol("dynamics_v1").detect("status: running\nretry_after_seconds: 3") == [JobRef("")]
+    section = "status: running\n\n## t (t)\nstatus: running\nretry_after_seconds: 3\n"
+    assert get_protocol("dynamics_v1").detect(section) == [JobRef("")]
+
+
+def test_v1_the_head_of_a_several_table_answer_does_not_make_a_job_the_ids_are_in_the_tables():
+    answer = fixture("dynamics_v1/two_tables_one_job.txt")
+
+    assert answer.startswith("status: running\n")                                      # the whole answer says running...
+    assert get_protocol("dynamics_v1").detect(answer) == [JobRef("job-1")]             # ...one job, the one of the table that runs
 
 
 def test_v1_the_offset_goes_as_offset_rows_only_when_there_is_one():
@@ -164,8 +179,31 @@ def test_v1_the_offset_goes_as_offset_rows_only_when_there_is_one():
     assert protocol.cancel_arguments(JobRef("j9", 3)) == {"job_id": "j9"}
 
 
-def test_v1_the_result_of_the_job_is_the_answer():
-    assert get_protocol("dynamics_v1").merge(V1_FIRST, [FINISHED]) == FINISHED
+def test_v1_the_result_of_a_single_job_is_the_answer():
+    assert get_protocol("dynamics_v1").merge(fixture("dynamics_v1/running.txt"), [FINISHED]) == FINISHED
+
+
+def test_v1_merge_puts_the_result_in_the_block_of_the_table_that_ran_and_leaves_the_others():
+    answer = fixture("dynamics_v1/two_tables_one_job.txt")
+    result = fixture("dynamics_v1/finished_job_last_page.txt")
+
+    merged = get_protocol("dynamics_v1").merge(answer, [result])
+
+    assert merged.startswith("status: ok\n")                                           # nothing runs now
+    assert "items: done" in merged and "steps: vendor (ran), items (ran)" in merged and "pending" not in merged
+    assert "## vendor (vendors)\nstatus: ok\nreturned: 1" in merged and "V1|Vendor one" in merged     # the table that ran is untouched
+    assert merged.index("## vendor (vendors)") < merged.index("## items (items)") < merged.index("3|three")
+    assert "retry_after_seconds" not in merged and "job_id: job-1\noffset: 2" in merged
+
+
+def test_v1_merge_gives_each_running_table_its_own_result_in_order():
+    answer = fixture("dynamics_v1/two_tables_two_jobs.txt")
+
+    merged = get_protocol("dynamics_v1").merge(answer, ["status: ok\nreturned: 1\ncomplete: yes\n\nno|name\nA|first",
+                                                        "status: ok\nreturned: 1\ncomplete: yes\n\nno|name\nB|second"])
+
+    assert merged.index("## vendor (vendors)") < merged.index("A|first") < merged.index("## items (items)") < merged.index("B|second")
+    assert "running" not in merged and "pending" not in merged
 
 
 # ------------------------------------------------------------------ the registry and the file
@@ -179,7 +217,7 @@ def test_the_dynamics_server_file_declares_a_protocol_its_tools_and_they_are_all
     [server] = [s for s in load_mcp_configs() if s["name"] == "dynamics_microservice"]
     config = server["config"]
 
-    assert config["job_protocol"] in ("dynamics_pending", "dynamics_v1")
+    assert config["job_protocol"] == "dynamics_v1"       # the contract of 2026-11-11; `dynamics_pending` is the legacy shape until 2027-01-11
     assert (config["job_read_tool"], config["job_cancel_tool"]) == (READ_TOOL, CANCEL_TOOL)
     assert job_protocol_problem(config) is None
 
@@ -291,13 +329,34 @@ def test_a_pending_note_without_an_id_fails_and_is_final():
     assert [name for name, _ in manager.calls] == ["customer_orders"]      # nothing was read: there was no id
 
 
-def test_v1_a_running_answer_is_read_with_the_next_offset_as_offset_rows():
-    manager = Manager("dynamics_v1", {"customer_orders": [V1_FIRST], READ_TOOL: [FINISHED]})
+def test_v1_a_running_answer_is_read_by_its_job_id_alone_when_it_has_no_offset():
+    manager = Manager("dynamics_v1", {"customer_orders": [fixture("dynamics_v1/running.txt")], READ_TOOL: [FINISHED]})
 
     answer, [record], _ = execute(manager)
 
     assert answer == {"result": FINISHED, "is_error": False} and record.outcome == "job_done"
-    assert manager.calls[1] == (READ_TOOL, {"job_id": "j9", "offset_rows": 0})
+    assert manager.calls[1] == (READ_TOOL, {"job_id": "job-1"})
+
+
+def test_v1_a_several_table_answer_with_one_job_is_read_and_merged_through_the_executor():
+    answer_text = fixture("dynamics_v1/two_tables_one_job.txt")
+    manager = Manager("dynamics_v1", {"customer_orders": [answer_text],
+                                      READ_TOOL: [fixture("dynamics_v1/running.txt"), fixture("dynamics_v1/finished_job_last_page.txt")]})
+
+    answer, [record], _ = execute(manager)
+
+    assert record.outcome == "job_done" and record.attempts == 3                          # the call and two reads
+    # the cells of a column called `name` are hidden before any model sees them (masking.py), also in the result of a job
+    assert answer["result"].startswith("status: ok\n") and "3|[hidden]" in answer["result"] and "V1|[hidden]" in answer["result"]
+
+
+def test_v1_a_job_that_the_service_lost_fails_visibly_and_is_never_a_result():
+    manager = Manager("dynamics_v1", {"customer_orders": [fixture("dynamics_v1/running.txt")],
+                                      READ_TOOL: [fixture("dynamics_v1/job_not_found.txt")]})
+
+    answer, [record], _ = execute(manager)
+
+    assert answer["is_error"] is True and record.outcome == "job_unknown_shape"
 
 
 def test_a_finished_answer_of_either_protocol_is_given_back_untouched():

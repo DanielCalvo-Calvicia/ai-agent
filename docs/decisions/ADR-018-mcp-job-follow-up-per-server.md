@@ -1,6 +1,6 @@
 # ADR-018 — The follow-up of an MCP job is code, chosen per server
 
-**Status:** Accepted (2026-11-11, the maintainer's answers to [Q10](../setup/questionnaires/Q10_mcp-job-follow-up.md), recorded in [T-07.1](../tasks/T-07_mcp-job-follow-up/T-07.1_decisions.md); two changes to the first proposal: decision 3 is all or nothing, decision 8 offers the shipment tools). Epic [T-07](../tasks/T-07_mcp-job-follow-up/T-07_mcp-job-follow-up.md). Not built: no code, test, prompt or golden has changed. It changes decision 3 of [ADR-011](ADR-011-mcp-streamable-http.md) (a `running` answer is followed up by the operator step) once it is accepted and built.
+**Status:** Accepted (2026-11-11, the maintainer's answers to [Q10](../setup/questionnaires/Q10_mcp-job-follow-up.md), recorded in [T-07.1](../tasks/T-07_mcp-job-follow-up/T-07.1_decisions.md); two changes to the first proposal: decision 3 is all or nothing, decision 8 offers the shipment tools). Epic [T-07](../tasks/T-07_mcp-job-follow-up/T-07_mcp-job-follow-up.md). **Built on 2026-11-11** (T-07.3 to T-07.7 and T-07.10: the interface, the loop, `dynamics_v1` and `dynamics_pending`, the operator prompt without job rules, the shipment tools; see "What was built" at the end); **not yet run against the real service** (T-07.9). It changes decision 3 of [ADR-011](ADR-011-mcp-streamable-http.md) (a `running` answer is followed up by the operator step) once it is accepted and built.
 
 ## Context
 
@@ -17,6 +17,8 @@ Two more facts shape the decision:
 
 - **The MCP servers differ and not all can be changed.** Some are ours (`dynamics_microservice`), others will not be. A fix that depends on one server changing its answer does not hold for the others.
 - It was not checked whether the shape seen on 2026-11-11 is a change of the Go service or a difference between that server and the one used in T-01.9. The fake server of `tests/test_mcp_dynamics_flow.py` and `tests/fixtures/dynamics_tools_snapshot.json` follow the older shape.
+
+> **Note, 2026-11-11 (later the same day):** the call described above was made on `Dynamics-Development`, an **older** version of the service. The current one (`local-dynamics`) already has the contract this ADR asks for in decision 6 (`status: ok | running | error`, `job_id`, `retry_after_seconds`, a status per table; `docs/api/mcp.md` of the Go service), so `dynamics_v1` is that contract and `dynamics_pending` is the legacy shape, kept until the Go service drops its `note: pending: …` lines (not before 2027-01-11). The decisions below stand.
 
 ## Decision
 
@@ -53,3 +55,12 @@ Two more facts shape the decision:
 - **Only change the server**: it does not help the servers that cannot be changed.
 - **A follow-up as a second planned action**: ruled out in ADR-011 and for the same reasons.
 - **One regular expression for every server**: it breaks with the first server that has another shape and hides which one it was.
+
+## What was built (2026-11-11)
+
+- `infrastructure/outbound/mcp/`: `job_protocol.py` (interface, `none`, registry, check of a server file's job settings), `job_follow_up.py` (the loop), `job_protocols/` (`dynamics_v1`, `dynamics_pending`) and the hook in `tool_executor.py`. The interface grew from the first proposal: `state` (done, running or unknown) replaced `is_done`, and `merge` was added. A job whose id cannot be read is detected as an empty id and fails as an unknown shape.
+- New outcomes `job_done`, `job_running`, `job_cancelled`, `job_unknown_shape` in `TOOL_OUTCOMES`; one warning, `MCP job answer not understood`, with the server name and the protocol only.
+- **`dynamics_v1` is the jobs contract of `dynamics_microservice` since 2026-11-11** (decision 6 asked for it and the Go service delivered it: `status: ok | running | error`, `job_id`, `retry_after_seconds`, a status per table). `dynamics_pending`, the shape first seen on an older server, is legacy: the Go service keeps its `note: pending: …` lines until at least 2027-01-11 and says ai-agent moves to `dynamics_v1` before then. `mcps/dynamics_microservice.json` declares `dynamics_v1`.
+- The operator prompt has no job rules (golden changed on purpose: only the phase 5 prompt). The shipment tools (decision 8) are offered: allowed tools, planner and writer rules, `capabilities.txt` (shared, so the golden changed in 76 calls: only the prompt length and hash).
+- Not built: `custom` (decision 2), reading the pages after the first of a result (`complete: no`), a spoken "one moment" (Q10-7). Tests: 1493 pass; scripted servers and the Go service's own contract snapshots as fixtures.
+- Open: the first real run (T-07.9) and the answer of the Go session about the shipment tools carrying a job (T-07.2).

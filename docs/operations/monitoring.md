@@ -36,7 +36,7 @@ Active when `LANGFUSE_PUBLIC_KEY` and `LANGFUSE_SECRET_KEY` are set (`LANGFUSE_H
 
 | What you see | What it means |
 |---|---|
-| `MCP tool call` with a large `duration_ms` | a slow query; the Go service answers `status: running` after its own 20 s wait and the operator follows up once; every call is also in `SessionMetrics.tool_calls` and in Langfuse |
+| `MCP tool call` with a large `duration_ms` | a slow query; the Go service answers `status: running` after its own wait (about 25 s) and the MCP adapter follows the job up inside the 60 s of the message (T-07, ADR-018); every call is also in `SessionMetrics.tool_calls` and in Langfuse. Its `outcome` says how a followed job ended: `job_done` (read to its result), `job_cancelled` (the time was spent and the job was stopped), `job_running` (spent, with no cancel sent) or `job_unknown_shape` (an answer the protocol does not understand: it also logs the warning `MCP job answer not understood` with `server_name` and `protocol` only); `attempts` counts the call and its reads. Langfuse marks every outcome but `ok` and `job_done` as an error |
 | outcome `timeout`, `attempts` 1 | the call hit `AI_AGENT_MCP_CALL_TIMEOUT_SECONDS` (30 s) or what was left of the 60 s of the message; never retried |
 | outcome `timeout`, `attempts` 0 | no wait was left for this message: the call was not made |
 | outcome `transport`, `attempts` 2 | the server could not be reached or the connection broke, once more tried |
@@ -64,8 +64,8 @@ See [debugging-the-flow.md](debugging-the-flow.md): follow one message step by s
 
 ## Known operational limits
 
-- The timeout of the **caller** of ai-agent (Brain, or a web chat) is `UNKNOWN` until it is measured at T-01.9; a message that follows up a slow query can take up to 60 s of tool waiting plus the model calls. Write the measured value here.
-- The Dynamics tools were run only with scripted LLMs and a local fake of the service: nothing says yet how long a real message takes, what it costs or whether a real model follows a `running` answer up.
+- The timeout of the **caller** of ai-agent (Brain, or a web chat) is `UNKNOWN` until it is measured at T-01.9; a message that follows up a slow query can take up to 60 s of tool waiting (plus a cancel of up to 3 s) plus the model calls. Write the measured value here.
+- The Dynamics tools were run only with scripted LLMs and a local fake of the service: nothing says yet how long a real message takes, what it costs or whether a job is followed to its result against the real service (the follow-up is code now and was tested with scripted servers only: T-07.9).
 
 - Sessions are lost on restart (see [api](../api/api.md)).
 - One real run since the four-flow redesign (2026-10-28, T-02.10): three messages on `gemini-3-flash-preview` through `tests/manual/chat_session.py`, 10 calls, 18,203 tokens, correct answers; the active profile could not finish that day (Google 503 "high demand" on `gemini-3.1-flash-lite`: a failing call is retried 3 times with no wait, and one failing message took minutes). The configured profile was never run on a whole message.

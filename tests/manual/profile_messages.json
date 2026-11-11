@@ -274,6 +274,20 @@
         "special",
         "dynamics"
       ]
+    },
+    {
+      "id": "dynamics_shipments",
+      "message": "¿Dónde están los envíos del cliente CL-1001?",
+      "points": [
+        "Answers in Spanish, short and speakable, with the SEUR shipments of CL-1001 (shipment, tracking number, the carrier's last message and its date)",
+        "Uses the shipments of a customer (`shipment_tracking`), not the orders of the customer",
+        "A shipment with no tracking number and the message Pendiente is told as: the carrier has not answered yet (not an error)",
+        "Does not ask for a code again"
+      ],
+      "profiles": [
+        "special",
+        "dynamics"
+      ]
     }
   ]
 }

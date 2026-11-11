@@ -107,7 +107,7 @@ that are unreachable offer no tools (listing times out after 10 s). A successful
 
 - `mcps/dynamics_microservice.json` is `streamable_http` and takes its URL from `DYNAMICS_MCP_URL`. No environment or company is configured or sent: the Go service uses its defaults (the sandbox).
 - A server whose `url` still holds a `${NAME}` (the variable is not set) is **skipped with a warning** naming the server and the variable; the other servers keep working.
-- `allowed_tools` (optional list in the server file): the catalog offers only those tools; any other tool the server lists is hidden, never callable, and logged as a warning with its name. A file without the list offers every tool. `mcps/dynamics_microservice.json` allows the three workflows and their helpers (`customer_orders`, `order_status`, `customer_card`, `get_guidance`, `list_workflows`, `get_job_result`, `cancel_job`).
+- `allowed_tools` (optional list in the server file): the catalog offers only those tools; any other tool the server lists is hidden, never callable, and logged as a warning with its name. A file without the list offers every tool. `mcps/dynamics_microservice.json` allows the workflows `customer_orders`, `order_status` and `customer_card`, the three SEUR shipment workflows (`shipment_tracking`, `order_shipments`, `shipment_status`; T-07.10) and the helpers (`get_guidance`, `list_workflows`, `get_job_result`, `cancel_job`). It also declares `job_protocol` (`dynamics_v1`), `job_read_tool` and `job_cancel_tool` (ADR-018): which protocol finds and follows a job in an answer; each of the three must name a tool of `allowed_tools`.
 
 ## 5. Retries, failures and what the user hears
 

@@ -1,8 +1,0 @@
-returned: 2
-total: 2
-job_id: job-1
-offset: 0
-
-No.|Document Date|Status|Amount
-SO-0001|2026-01-05|Open|120.00
-SO-0002|2026-01-06|Open|75.50

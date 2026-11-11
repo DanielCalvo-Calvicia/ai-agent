@@ -1,0 +1,2 @@
+status: error
+error (not_found): no job with that id for that environment and company (it never existed, expired or was cancelled)

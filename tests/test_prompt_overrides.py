@@ -146,7 +146,8 @@ class TestWhatIsSent:
         core = prompt_of("prompts/2_project_manager.txt")
         appended = agent.profile("special").prompts["project_manager"].append
         assert agent.profile("dynamics").prompts["project_manager"].append == appended
-        for marker in ("set mcp_context.tool_name", "Never set an environment or a company", "ONE tool call", "a customer code is letters"):
+        for marker in ("set mcp_context.tool_name", "Never set an environment or a company", "ONE tool call", "a customer code, an order number or a shipment number is letters",
+                       "customer code -> shipment_tracking", "order number -> order_shipments", "shipment number -> shipment_status"):
             assert marker in appended and marker not in core
         assert "available_mcp_servers is empty" in core and "Never invent a tool" in core    # default has no tools and still answers honestly
 

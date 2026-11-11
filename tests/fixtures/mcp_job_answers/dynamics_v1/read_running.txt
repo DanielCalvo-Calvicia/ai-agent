@@ -1,3 +1,0 @@
-status: running
-job_id: job-1
-next_offset: 0

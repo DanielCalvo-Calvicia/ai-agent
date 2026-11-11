@@ -1,0 +1,12 @@
+status: ok
+returned: 2
+total: 3
+job_id: job-1
+offset: 0
+next_offset: 2
+complete: no
+hint: more rows follow: call get_job_result again with offset_rows 2
+
+no|name
+1|one
+2|two

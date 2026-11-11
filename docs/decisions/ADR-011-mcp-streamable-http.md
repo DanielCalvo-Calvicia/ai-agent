@@ -27,7 +27,7 @@ The MCP client of ai-agent only spoke SSE, and `capabilities.txt` and the triage
 
 ## Notes
 
-- **2026-11-11:** a real call showed a job answer that is not `status: running` + `next_offset` (a `pending … job <id>` note). [ADR-018](ADR-018-mcp-job-follow-up-per-server.md) (accepted 2026-11-11, not built) moves the follow-up of decision 3 from the operator step to code, with a protocol chosen per server. Until it is built, decision 3 is what runs.
+- **2026-11-11:** a real call, on an older version of the service, showed a job answer that is not `status: running` + `next_offset` (a `pending … job <id>` note); the current service has a documented jobs contract (`status: ok | running | error`, `job_id`, a status per table). [ADR-018](ADR-018-mcp-job-follow-up-per-server.md) (accepted and built on 2026-11-11, not yet run against the real service) moves the follow-up of decision 3 from the operator step to code, with a protocol chosen per server: since T-07.6 the operator no longer follows a job, the MCP adapter does.
 
 ## Alternatives not taken
 

@@ -73,7 +73,7 @@ def job_answer(name):
         return f.read().rstrip("\n")
 
 
-RUNNING = job_answer("dynamics_v1/first_running.txt")                  # `status: running`, job-1
+RUNNING = job_answer("dynamics_v1/running.txt")                        # `status: running`, job-1 (the jobs contract of 2026-11-11)
 STUCK = RUNNING.replace("job-1", "job-stuck")                          # its read says running again, for ever
 PENDING_ONE = job_answer("dynamics_pending/first_one_table.txt")       # a `pending` note, job pend-1
 PENDING_TWO = job_answer("dynamics_pending/first_two_tables.txt")      # two tables: pend-open and pend-arch
@@ -88,6 +88,10 @@ SECRET_CODE, SECRET_CELL = "SECRET-CUSTOMER-77", "SECRET-CELL-VALUE"
 PERSON = "ANA PERSONA TEST"
 WITH_NAME = ("returned: 1\ntotal: 1\ncoverage: the order headers of one customer\n\n"
              f"No.|Status|Amount|Sell-to Customer Name\nSO-0001|Open|120.00|{PERSON}")
+SHIPMENT_HEAD = ("status: ok\nreturned: 2\ntotal: 2\ncomplete: yes\ncoverage: the SEUR shipments; only SEUR shipments, newest first; "
+                 "a shipment still pending shows Pendiente with no tracking number and no date\n\n")
+SHIPMENTS = (SHIPMENT_HEAD + "NumeroAlbaran|NumeroPedido|NumeroDocumentoExterno|NumeroSeguimiento|MensajeTransportista|FechaActualizacion\n"
+             "ALS-000001|PV-000001||TRK0001|Entregado|10:30 05-01-2026\nALS-000002|PV-000001|||Pendiente|")
 SERVER_CALLS = {}
 
 
@@ -146,6 +150,24 @@ def dynamics_url():
         return "cancelled"
 
     @mcp.tool()
+    def shipment_tracking(customer_no: str, page: int = 1, size: int = 25, environment: str = "", company: str = "") -> str:
+        """The SEUR shipments of one customer, one page, newest first."""
+        SERVER_CALLS["shipment_tracking"] = SERVER_CALLS.get("shipment_tracking", 0) + 1
+        return SHIPMENTS
+
+    @mcp.tool()
+    def order_shipments(order_no: str, customer_no: str = "", environment: str = "", company: str = "") -> str:
+        """The SEUR shipments of one order."""
+        SERVER_CALLS["order_shipments"] = SERVER_CALLS.get("order_shipments", 0) + 1
+        return SHIPMENTS
+
+    @mcp.tool()
+    def shipment_status(shipment_no: str, environment: str = "", company: str = "") -> str:
+        """One SEUR shipment by its number."""
+        SERVER_CALLS["shipment_status"] = SERVER_CALLS.get("shipment_status", 0) + 1
+        return SHIPMENTS
+
+    @mcp.tool()
     def list_workflows() -> str:
         """The routing catalogue of the workflows."""
         return "customer_orders: the order headers of one customer\norder_status: the state of one order"
@@ -201,24 +223,24 @@ class Clock:
         self.now += seconds
 
 
-def tool_action(code, action_id="1"):
+def tool_action(code, action_id="1", tool="customer_orders", parameters=None):
     return {**_action(action_id, "mcp_tool_call"),
-            "mcp_context": {"server_id": "dynamics_microservice", "tool_name": "customer_orders",
-                            "parameters": {"customer_no": code}}}
+            "mcp_context": {"server_id": "dynamics_microservice", "tool_name": tool,
+                            "parameters": parameters or {"customer_no": code}}}
 
 
 class World:
     """A scripted LLM, the real executor against the fake server, and the router that joins them."""
 
-    def __init__(self, url, code="C-100", plan=None, protocol="dynamics_v1", mcp_list=None, extra=None):
+    def __init__(self, url, code="C-100", plan=None, protocol="dynamics_v1", mcp_list=None, extra=None, tool="customer_orders", parameters=None):
         self.mcp_list = mcp_list if mcp_list is not None else [descriptor(url, protocol)]
         self.executor = MCPToolExecutor(MCPClientManager(self.mcp_list))
         self.clock = Clock()
         self.executor._clock, self.executor._sleep = self.clock, self.clock.sleep
         self.raw = {}
-        self.code = code
+        self.code, self.tool, self.parameters = code, tool, parameters
         overrides = {TRIAGE: triage("data", summary="the orders of a customer"),
-                     PM: plan or _plan(tool_action(code)), PHASE5: self.operator, PHASE6: self.engineer}
+                     PM: plan or _plan(tool_action(code, tool=tool, parameters=parameters)), PHASE5: self.operator, PHASE6: self.engineer}
         overrides.update(extra or {})
         self.llm = ScriptedLLM(overrides=overrides)
         self.metrics = SessionMetrics()
@@ -226,16 +248,19 @@ class World:
     def operator(self, payload):
         """What the prompt of phase 5 asks of the model."""
         action_id = _ACTION_ID.search(payload.message.content).group(1)
-        answer = self.executor.execute("customer_orders", {"customer_no": self.code})     # a job is read to its result in there
+        answer = self.executor.execute(self.tool, self.parameters or {"customer_no": self.code})     # a job is read to its result in there
         if answer["is_error"]:
-            return {"actions": [{**tool_action(self.code, action_id), "error": str(answer["error"])}]}
+            return {"actions": [{**self.action(action_id), "error": str(answer["error"])}]}
         self.raw[action_id] = answer["result"]
-        return {"actions": [{**tool_action(self.code, action_id), "output": answer["result"]}]}
+        return {"actions": [{**self.action(action_id), "output": answer["result"]}]}
+
+    def action(self, action_id):
+        return tool_action(self.code, action_id, self.tool, self.parameters)
 
     def engineer(self, payload):
         """What the prompt of phase 6 asks of the model: the data unchanged."""
         action_id = _ACTION_ID.search(payload.message.content).group(1)
-        return {"actions": [{**tool_action(self.code, action_id), "output": self.raw.get(action_id, "")}]}
+        return {"actions": [{**self.action(action_id), "output": self.raw.get(action_id, "")}]}
 
     def ask(self, message="what are the open orders of my main customer?"):
         router = AgentRouter(self.llm, self.mcp_list, self.metrics, self.executor)
@@ -390,6 +415,46 @@ def test_no_log_line_of_a_followed_job_holds_a_job_id_or_a_row(dynamics_url, cap
 
     assert "MCP tool call" in text and "job_done" in text
     assert "job-1" not in text and "SO-0001" not in text and "SLOW-1" not in text
+
+
+# ---------------------------------------------------------------- the SEUR shipment tools (T-07.10)
+
+def test_the_planner_is_shown_the_three_shipment_tools(dynamics_url):
+    world = World(dynamics_url)
+
+    world.ask()
+
+    shown = world.input_of("project_manager")
+    assert all(name in shown for name in ("shipment_tracking", "order_shipments", "shipment_status"))
+
+
+@pytest.mark.parametrize("tool,parameters", [
+    ("shipment_tracking", {"customer_no": "C-100"}),
+    ("order_shipments", {"order_no": "PV-000001"}),
+    ("shipment_status", {"shipment_no": "ALS-000001"}),
+])
+def test_a_shipment_answer_reaches_the_writer_whole_the_carrier_message_and_the_pending_one_are_kept(dynamics_url, tool, parameters):
+    world = World(dynamics_url, tool=tool, parameters=parameters)
+
+    world.ask("where is the parcel?")
+
+    [call] = world.metrics.tool_calls
+    assert (call.tool, call.outcome, call.attempts) == (tool, "ok", 1) and SERVER_CALLS[tool] == 1
+    writer = world.input_of("draft_writer")
+    assert "ALS-000001|PV-000001||TRK0001|Entregado|10:30 05-01-2026" in writer         # no column of a shipment is personal data
+    assert "ALS-000002|PV-000001|||Pendiente|" in writer and "[hidden]" not in writer
+
+
+def test_the_prompts_tell_the_planner_which_shipment_tool_and_the_writer_what_pending_means():
+    with open(os.path.join(PROJECT_ROOT, "prompts", "profiles", "tools", "project_manager.txt"), encoding="utf-8") as f:
+        planner = " ".join(f.read().split())
+    writer = writer_with_tools()
+    capabilities = " ".join(LoadCapabilities().split())
+
+    assert "customer code -> shipment_tracking" in planner and "order number -> order_shipments" in planner
+    assert "shipment number -> shipment_status" in planner and "order_status" in planner and "Only SEUR is followed" in planner
+    assert "Pendiente" in writer and "the carrier has not answered yet" in writer and "no SEUR shipment was found" in writer
+    assert "SEUR shipments" in capabilities
 
 
 # ---------------------------------------------------------------- every kind of tool error
@@ -644,7 +709,7 @@ def test_the_fake_server_has_the_parameters_the_snapshot_says_the_real_tools_hav
         assert set(tool.parameters.get("required", [])) == set(wanted["required"] or []), name
         compared += 1
 
-    assert compared == 4 and set(offered) <= set(snapshot())          # customer_orders, list_workflows, get_job_result and cancel_job (the fake server has the fourth since T-07.7)
+    assert compared == 7 and set(offered) <= set(snapshot())          # customer_orders, list_workflows, get_job_result, cancel_job (T-07.7) and the three shipment tools (T-07.10)
 
 
 # ---------------------------------------------------------------- personal data
