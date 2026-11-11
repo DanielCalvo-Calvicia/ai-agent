@@ -61,9 +61,11 @@ class TestTheProfiles:
         assert "token_sha256" not in agent.profile(DEFAULT_PROFILE).definition
         assert all(len(p.definition["token_sha256"]) == 64 for n, p in agent.profiles.items() if n != DEFAULT_PROFILE)
 
-    def test_no_profile_holds_a_real_token_hash_yet(self, agent):
-        # the files hold a placeholder (no token has this SHA-256) until the maintainer writes the hash of each token
-        assert {p.definition.get("token_sha256") for p in agent.profiles.values()} - {None} == {"0" * 64}
+    def test_every_profile_but_default_holds_its_own_real_token_hash(self, agent):
+        # development tokens were set on 2026-11-10; the 64 zeros placeholder opens for nobody and must not be left in a file
+        hashes = [p.definition["token_sha256"] for n, p in agent.profiles.items() if n != DEFAULT_PROFILE]
+        assert "0" * 64 not in hashes
+        assert len(set(hashes)) == len(hashes)
 
     @pytest.mark.parametrize("name, flow", [("identification", "identification"), ("chat", "conversation"), ("special", "special"),
                                             ("dynamics", "special"), ("default", "special"), ("movement", "movement"),

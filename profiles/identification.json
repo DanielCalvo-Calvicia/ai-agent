@@ -2,7 +2,7 @@
   "schema_version": 1,
   "name": "identification",
   "about": "Only the triage: what is this message? Answers with the classification and no text (the whole Response, default_return full).",
-  "token_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "token_sha256": "0e1825a748ffce6d202fbf15e66d275b1c51d4b532107b96ae66d025318909ad",
   "flow": "identification",
   "models": "proven",
   "default_return": "full",

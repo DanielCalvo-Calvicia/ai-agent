@@ -27,6 +27,7 @@ docs/
 | File | What it is |
 |---|---|
 | [`api/api.md`](api/api.md) | routes, the envelope, `/session/message`, sessions, `SESSION_NOT_FOUND`, the MCP tools it consumes |
+| [`api/web-chat-integration.md`](api/web-chat-integration.md) | how a web with a built-in chat uses the service: the three calls, profiles, errors, a backend example |
 | [`architecture/architecture.md`](architecture/architecture.md) | the request path, the profiles, flows and steps (three layers), the runtime (`runtime/`, `assembly/`, `support/`), the state, `domain/`, `infrastructure/`, how to extend it |
 | [`configuration/environment-variables.md`](configuration/environment-variables.md) | every variable, which model answers each step, MCP servers, retries, Langfuse |
 | [`rules/schemas-and-prompts.md`](rules/schemas-and-prompts.md) | the prompts, the two schema trees (`general`, `motion`), the generator, how to change an answer |

@@ -42,6 +42,8 @@ Read at start by `infrastructure/outbound/config/file_source.py` and checked by 
 python -c "import secrets,hashlib; t=secrets.token_hex(32); print('token (give it to the client):', t); print('token_sha256 (goes in the file):', hashlib.sha256(t.encode()).hexdigest())"
 ```
 
+- **State (2026-11-10, development):** the six profiles with a token (`identification`, `chat`, `special`, `dynamics`, `movement`, `gesture`) hold the real SHA-256 of a random development token, each its own; the placeholder is only what a new profile starts with. The plain tokens are not in the repository: whoever generated them gave them to the web's backend. Production needs its own tokens (change the hash, redeploy).
+
 - The token is a check against a mistake, **not access control** (Q08-8). Anyone who can reach the port and knows the token can use the profile; do not rely on it to protect customer data.
 - Changing a token does **not** change `profile_hash`; changing anything else does.
 

@@ -2,7 +2,7 @@
   "schema_version": 1,
   "name": "special",
   "about": "Triage, plan, check safety, execute with every MCP server, write, edit. It does its own triage.",
-  "token_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "token_sha256": "2a7f4534d43603db8c10623b62503da06024dbd75dee4fdfab0ddde7dcf57e1c",
   "flow": "special",
   "models": "claude_mixed",
   "overrides": {
