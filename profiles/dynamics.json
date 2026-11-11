@@ -2,7 +2,7 @@
   "schema_version": 1,
   "name": "dynamics",
   "about": "The same steps as `special`, with only the Business Central tools of dynamics_microservice. It reaches customer data.",
-  "token_sha256": "ae740ec620790d3e15381f8bbdf8bfd7a9ef8d45b3325199f0f0e16835909dba",
+  "token_sha256": "0e4d84a1c703012121a57eeb06718610c1004835d7fc9462aedca4db4052de1e",
   "flow": "special",
   "models": "claude_mixed",
   "tools": {
