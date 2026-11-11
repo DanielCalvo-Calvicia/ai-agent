@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | in-progress (planned 2026-11-11; T-07.1 done the same day, [ADR-018](../../decisions/ADR-018-mcp-job-follow-up-per-server.md) accepted) |
+| Status | awaiting-user (all tasks done on 2026-11-11; the maintainer decides whether to close it: no real job was seen, T-07.9) |
 | Kind | epic |
 | Parent | project |
 | Depends on | T-01 (the MCP tools) |
@@ -38,7 +38,7 @@ A tool answer that carries a job is followed up to its result by the MCP adapter
 | 8 | [T-07.10 Offer the shipment tools](T-07.10_shipment-tools.md) | code | done (2026-11-11) |
 | 9 | [T-07.11 Tools that are called again, not read as a job](T-07.11_recall-tools.md) | code | done (2026-11-11) |
 | 10 | [T-07.8 Documentation](T-07.8_documentation.md) | docs | done (2026-11-11) |
-| 11 | [T-07.9 First real run](T-07.9_first-real-run.md) | manual | blocked (T-07.8) |
+| 11 | [T-07.9 First real run](T-07.9_first-real-run.md) | manual | done (2026-11-11) with a gap: no job occurred |
 
 ## Exit criteria
 
@@ -56,7 +56,7 @@ A job of each declared protocol is followed to its result, an answer with severa
 ## Open points
 
 - Whether the `pending` shape is final in the Go service, or only on `Dynamics-Development` (T-07.2). **Settled on 2026-11-11:** `Dynamics-Development` is an older version; `local-dynamics` has the jobs contract (`status: ok | running | error`, `job_id`, `retry_after_seconds`, a status per table), documented in the Go service and read into `dynamics_v1` (T-07.5), which the server file declares. `dynamics_pending` is the legacy shape, until at least 2027-01-11.
-- The short wait between two reads of a job: a constant, measured in T-07.9.
+- The short wait between two reads of a job: a constant, **not measured**: no job occurred in the real run (T-07.9).
 - `custom` (a pattern for the id, the read tool, the offset parameter, the signs of "done" and "still running") is **not scheduled**: it is built when a server needs it.
 - The tools `order_shipments`, `shipment_status` and `shipment_tracking` are in this epic since Q10-11 (T-07.10). Open: their parameters and answers (T-07.2), and whether a shipment answer can carry a job.
 - The branch: `feature_mcp_job_follow_up` from `feature` (Q10-13); not created yet.

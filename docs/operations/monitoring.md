@@ -64,7 +64,7 @@ See [debugging-the-flow.md](debugging-the-flow.md): follow one message step by s
 
 ## Known operational limits
 
-- The timeout of the **caller** of ai-agent (Brain, or a web chat) is `UNKNOWN` until it is measured at T-01.9; a message that follows up a slow query can take up to 60 s of tool waiting (plus a cancel of up to 3 s) plus the model calls. Write the measured value here.
+- The timeout of the **caller** of ai-agent (Brain, or a web chat) is not known: the messages of the real run of 2026-11-11 (T-07.9) took 17.5 to 43.3 s on `claude_mixed` (almost all of it the 8 model calls; a tool call took under 1 s), so wait at least about 45 s, 60 s with a followed job;  a message that follows up a slow query can take up to 60 s of tool waiting (plus a cancel of up to 3 s) plus the model calls. Write the measured value here.
 - The Dynamics tools were run only with scripted LLMs and a local fake of the service: nothing says yet how long a real message takes, what it costs or whether a job is followed to its result against the real service (the follow-up is code now and was tested with scripted servers only: T-07.9).
 
 - Sessions are lost on restart (see [api](../api/api.md)).

@@ -156,7 +156,7 @@ Verified on 2026-10-27 against both projects.
 | [T-06.6](T-06_redesign/T-06.6_real-run-and-comparison.md) | Real run and comparison | manual | awaiting-user (runs done 2026-11-09; the maintainer ticks the points) |
 | [T-06.7](T-06_redesign/T-06.7_documentation.md) | Documentation | docs | done (2026-11-09) |
 | [T-06.8](T-06_redesign/T-06.8_runtime-folder-layout.md) | Runtime folder layout | code | done (2026-11-09) |
-| [T-07](T-07_mcp-job-follow-up/T-07_mcp-job-follow-up.md) | **The follow-up of an MCP job is code, chosen per server** (epic) | epic | in-progress (planned 2026-11-11; T-07.1 done the same day, [ADR-018](../decisions/ADR-018-mcp-job-follow-up-per-server.md) accepted; nothing built) |
+| [T-07](T-07_mcp-job-follow-up/T-07_mcp-job-follow-up.md) | **The follow-up of an MCP job is code, chosen per server** (epic) | epic | awaiting-user (every task done on 2026-11-11; the maintainer decides to close it: no real job was seen, T-07.9; [ADR-018](../decisions/ADR-018-mcp-job-follow-up-per-server.md)) |
 | [T-07.1](T-07_mcp-job-follow-up/T-07.1_decisions.md) | Decisions | decision | done (2026-11-11) |
 | [T-07.2](T-07_mcp-job-follow-up/T-07.2_dynamics-contract.md) | Ask the Dynamics service for its contract | manual | done (2026-11-11) |
 | [T-07.3](T-07_mcp-job-follow-up/T-07.3_protocol-interface.md) | The protocol interface, `none` and the `job_protocol` field | code | done (2026-11-11) |
@@ -167,4 +167,4 @@ Verified on 2026-10-27 against both projects.
 | [T-07.10](T-07_mcp-job-follow-up/T-07.10_shipment-tools.md) | Offer the shipment tools | code | done (2026-11-11) |
 | [T-07.11](T-07_mcp-job-follow-up/T-07.11_recall-tools.md) | Tools that are called again, not read as a job | code | done (2026-11-11) |
 | [T-07.8](T-07_mcp-job-follow-up/T-07.8_documentation.md) | Documentation | docs | done (2026-11-11) |
-| [T-07.9](T-07_mcp-job-follow-up/T-07.9_first-real-run.md) | First real run | manual | todo (ask first) |
+| [T-07.9](T-07_mcp-job-follow-up/T-07.9_first-real-run.md) | First real run | manual | done (2026-11-11) with a gap: no job occurred |
