@@ -1,5 +1,5 @@
 {
-  "_about": "Snapshot of the MCP tools of dynamics_microservice: names and parameters, read from the real tools/list on 2026-10-29 (T-01.9; before, from docs/api/mcp.md of that project, 2026-10-27). Placeholders only: no host, tenant, company or customer. A test checks that the allowed tools of mcps/dynamics_microservice.json are all in it and that the local fake server has the same parameters. Refresh it by hand when the service changes its tools.",
+  "_about": "Snapshot of the MCP tools of dynamics_microservice: names and parameters, read from the real tools/list on 2026-10-29 (the three shipment tools: from the tools of `local-dynamics`, 2026-11-11, T-07.10) (T-01.9; before, from docs/api/mcp.md of that project, 2026-10-27). Placeholders only: no host, tenant, company or customer. A test checks that the allowed tools of mcps/dynamics_microservice.json are all in it and that the local fake server has the same parameters. Refresh it by hand when the service changes its tools.",
   "tools": [
     {
       "name": "customer_orders",
@@ -17,6 +17,24 @@
       "name": "customer_card",
       "workflow": true,
       "parameters": ["customer_no", "environment", "company"],
+      "required": ["customer_no"]
+    },
+    {
+      "name": "order_shipments",
+      "workflow": true,
+      "parameters": ["order_no", "customer_no", "environment", "company"],
+      "required": ["order_no"]
+    },
+    {
+      "name": "shipment_status",
+      "workflow": true,
+      "parameters": ["shipment_no", "environment", "company"],
+      "required": ["shipment_no"]
+    },
+    {
+      "name": "shipment_tracking",
+      "workflow": true,
+      "parameters": ["customer_no", "page", "size", "environment", "company"],
       "required": ["customer_no"]
     },
     {

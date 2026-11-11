@@ -1,0 +1,1 @@
+note: pending: the query is still running as job pend-open (running): read it with get_job_result

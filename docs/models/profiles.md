@@ -36,7 +36,7 @@ The cost is an **estimate** of one message with a big plan (5 actions x 5 subact
 ## `dynamics`
 
 - Flow `special`, models `claude_mixed`, answers with `text`, requires nothing, tested never.
-- Hash of the assembled profile: `814b03023f3f` (the first 12 characters).
+- Hash of the assembled profile: `332bad7b3079` (the first 12 characters).
 
 | Step | Kind | Model | Comes from | Tools | Prompt | Calls | Visible | With thinking |
 |---|---|---|---|---|---|---|---|---|
@@ -86,7 +86,7 @@ The cost is an **estimate** of one message with a big plan (5 actions x 5 subact
 ## `special`
 
 - Flow `special`, models `claude_mixed`, answers with `text`, requires nothing, tested 2026-11-04.
-- Hash of the assembled profile: `ee73a493f723` (the first 12 characters).
+- Hash of the assembled profile: `ae4fa6b7d696` (the first 12 characters).
 
 | Step | Kind | Model | Comes from | Tools | Prompt | Calls | Visible | With thinking |
 |---|---|---|---|---|---|---|---|---|

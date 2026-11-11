@@ -265,7 +265,7 @@ Profile behaviour to know:
 
 - A request with a **profile** is checked: unknown, disabled, or wrong token gives `INVALID_PROFILE`.
 - The tool profiles (`default`, `special`, `dynamics`) are bounded: `AI_AGENT_MAX_ATTEMPTS` (3), `AI_AGENT_MAX_MCP_CALLS_PER_MESSAGE` (5) and a 60 s total wait for tools in one message. The history sent to the model is the last `AI_AGENT_HISTORY_TURNS` (6) turns of the session.
-- The `dynamics` tools are read-only: `customer_orders`, `order_status`, `customer_card`, plus helpers (`get_guidance`, `list_workflows`, `get_job_result`, `cancel_job`). The service never sends an environment or a company; the Go service uses its defaults.
+- The `dynamics` tools are read-only: `customer_orders`, `order_status`, `customer_card`, the SEUR shipments (`shipment_tracking`, `order_shipments`, `shipment_status`), plus helpers (`get_guidance`, `list_workflows`, `get_job_result`, `cancel_job`). The service never sends an environment or a company; the Go service uses its defaults.
 
 **Getting a token** (an operator of ai-agent does this once; the file holds a placeholder of zeros until then, so nothing can use the profile): generate a random token, put its SHA-256 in `profiles/<name>.json` (`token_sha256`), and give the token itself to the web's backend secrets. Command in `profiles/README.md`, section 3.
 

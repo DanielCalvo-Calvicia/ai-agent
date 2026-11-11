@@ -1,0 +1,20 @@
+status: running
+found: yes
+found_in: vendors
+name: Vendor one
+items: pending
+coverage: the overview of one vendor: the vendor and its items, each table apart; steps: vendor (ran), items (pending); vendor_no=V1; invoices: not available (test)
+
+## vendor (vendors)
+status: ok
+returned: 1
+complete: yes
+
+no|name
+V1|Vendor one
+
+## items (items)
+status: running
+job_id: job-1
+retry_after_seconds: 3
+note: pending: the query is still running as job job-1 (running): read it with get_job_result

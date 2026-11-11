@@ -256,8 +256,8 @@ jobs:
           # on the network, so the CPU stays low.
           MEM_REQUEST: "256Mi"
           CPU_REQUEST: "100m"
-          MEM_LIMIT: "1Gi"
-          CPU_LIMIT: "1"
+          MEM_LIMIT: "256Mi"
+          CPU_LIMIT: "100m"
         run: |
           envsubst < k8s/deployment.yaml | kubectl apply -f -
           envsubst < k8s/service.yaml | kubectl apply -f -

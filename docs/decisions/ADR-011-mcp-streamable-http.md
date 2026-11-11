@@ -25,6 +25,10 @@ The MCP client of ai-agent only spoke SSE, and `capabilities.txt` and the triage
 - Negative: no authentication and no masking while the data is customer data; a real model was not yet asked to pick the tool, follow a `running` answer up or word an error (T-01.9); the planner is not stopped by the schema from naming a server when every server is hidden (only its prompt steers it); stdio servers stay unsupported and the planner is still told they exist.
 - Open until T-01.9: the caller's timeout (`UNKNOWN`), the enterprise data policy, whether a real model needs the server `instructions`, and the exact tool names and parameters (the snapshot in `tests/fixtures/dynamics_tools_snapshot.json` comes from the Go documents and is refreshed by hand).
 
+## Notes
+
+- **2026-11-11:** a real call, on an older version of the service, showed a job answer that is not `status: running` + `next_offset` (a `pending … job <id>` note); the current service has a documented jobs contract (`status: ok | running | error`, `job_id`, a status per table). [ADR-018](ADR-018-mcp-job-follow-up-per-server.md) (accepted and built on 2026-11-11, not yet run against the real service) moves the follow-up of decision 3 from the operator step to code, with a protocol chosen per server: since T-07.6 the operator no longer follows a job, the MCP adapter does.
+
 ## Alternatives not taken
 
 - Also offering the generic tools (`run_query`, `plan_query`, `list_tables`, `describe_table`): a free query surface the planner could misuse. Not offered.

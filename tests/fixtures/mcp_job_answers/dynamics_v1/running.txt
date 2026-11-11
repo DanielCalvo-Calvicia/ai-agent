@@ -1,0 +1,6 @@
+status: running
+job_id: job-1
+retry_after_seconds: 3
+state: running
+rows_so_far: 0
+hint: the query is not finished: call get_job_result with this job_id in a few seconds to read it, or cancel_job to stop it
