@@ -29,15 +29,16 @@ A tool answer that carries a job is followed up to its result by the MCP adapter
 | Order | Task | Kind | Status |
 |---|---|---|---|
 | 1 | [T-07.1 Decisions](T-07.1_decisions.md) | decision | done (2026-11-11) |
-| 2 | [T-07.2 Ask the Dynamics service for its contract](T-07.2_dynamics-contract.md) | manual | in-progress (sent 2026-11-11 to the Dynamics session; waiting for the answer) |
+| 2 | [T-07.2 Ask the Dynamics service for its contract](T-07.2_dynamics-contract.md) | manual | done (2026-11-11: the Dynamics session answered) |
 | 3 | [T-07.3 The protocol interface, `none` and the `job_protocol` field](T-07.3_protocol-interface.md) | code | done (2026-11-11) |
 | 4 | [T-07.4 The follow-up engine](T-07.4_follow-up-engine.md) | code | done (2026-11-11) |
 | 5 | [T-07.5 The protocols `dynamics_pending` and `dynamics_v1`](T-07.5_dynamics-protocols.md) | code | done (2026-11-11) |
 | 6 | [T-07.6 The operator prompt without job rules](T-07.6_operator-prompt.md) | code | done (2026-11-11) |
 | 7 | [T-07.7 Tests with a fake server per protocol](T-07.7_tests.md) | test | done (2026-11-11) |
 | 8 | [T-07.10 Offer the shipment tools](T-07.10_shipment-tools.md) | code | done (2026-11-11) |
-| 9 | [T-07.8 Documentation](T-07.8_documentation.md) | docs | done (2026-11-11) |
-| 10 | [T-07.9 First real run](T-07.9_first-real-run.md) | manual | blocked (T-07.8) |
+| 9 | [T-07.11 Tools that are called again, not read as a job](T-07.11_recall-tools.md) | code | done (2026-11-11) |
+| 10 | [T-07.8 Documentation](T-07.8_documentation.md) | docs | done (2026-11-11) |
+| 11 | [T-07.9 First real run](T-07.9_first-real-run.md) | manual | blocked (T-07.8) |
 
 ## Exit criteria
 

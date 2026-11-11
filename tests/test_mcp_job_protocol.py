@@ -77,6 +77,9 @@ def test_a_server_without_the_field_is_none_and_needs_nothing_else():
     ({"job_protocol": "fake", "job_read_tool": "read", "job_cancel_tool": 7}, "must be a tool name"),
     ({"job_protocol": "fake", "job_read_tool": "read", "allowed_tools": ["other"]}, "not in allowed_tools"),
     ({"job_protocol": "fake", "job_read_tool": "read", "job_cancel_tool": "cancel", "allowed_tools": ["read"]}, "not in allowed_tools"),
+    ({"job_protocol": "fake", "job_read_tool": "read", "job_recall_tools": "ship"}, "must be a list of tool names"),
+    ({"job_protocol": "fake", "job_read_tool": "read", "job_recall_tools": ["ok", 3]}, "must be a list of tool names"),
+    ({"job_protocol": "fake", "job_read_tool": "read", "job_recall_tools": ["ship"], "allowed_tools": ["read"]}, "job_recall_tools 'ship' is not in allowed_tools"),
 ])
 def test_job_settings_that_cannot_work_are_named(fake_protocol, config, reason):
     assert reason in job_protocol_problem(config)
@@ -84,6 +87,7 @@ def test_job_settings_that_cannot_work_are_named(fake_protocol, config, reason):
 
 def test_job_settings_that_work_have_no_problem(fake_protocol):
     assert job_protocol_problem({"job_protocol": "fake", "job_read_tool": "read"}) is None
+    assert job_protocol_problem({"job_protocol": "fake", "job_read_tool": "read", "job_recall_tools": ["ship"], "allowed_tools": ["read", "ship"]}) is None
     assert job_protocol_problem({"job_protocol": "fake", "job_read_tool": "read", "job_cancel_tool": "cancel",
                                  "allowed_tools": ["read", "cancel", "x"]}) is None
 

@@ -15,6 +15,7 @@ from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple
 from infrastructure.outbound.mcp.job_protocol import DONE, UNKNOWN, JobProtocol, JobRef
 
 # The wait between two reads of a job: starts at the first value, doubles, never passes the second (measured in T-07.9).
+RECALL_FIRST_WAIT_SECONDS = 3.0   # a tool that is called again, not read (job_recall_tools): the service says to ask again after 3 s
 FIRST_WAIT_SECONDS = 1.0
 MAX_WAIT_SECONDS = 5.0
 CANCEL_LIMIT_SECONDS = 3.0       # a cancel is best effort and has a short limit of its own, even when the budget is spent
@@ -40,9 +41,14 @@ class FollowUp:
 
 
 async def follow_up(protocol: JobProtocol, answer_text: str, jobs: List[JobRef], read: Read, cancel: Optional[Cancel],
-                    left: Callable[[], Optional[float]], sleep: Sleep) -> FollowUp:
+                    left: Callable[[], Optional[float]], sleep: Sleep, first_wait: float = 0.0) -> FollowUp:
     finished: Dict[int, str] = {}
     reads, wait = 0, FIRST_WAIT_SECONDS
+    if first_wait > 0:                    # the first read is at once, unless the caller says to wait (the tool is called again)
+        remaining = left()
+        pause = first_wait if remaining is None else min(first_wait, remaining)
+        if pause > 0:
+            await sleep(pause)
     while True:
         for index, job in enumerate(jobs):
             if index in finished:

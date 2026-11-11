@@ -35,7 +35,7 @@ docs/tasks/
 │   └── T-06.1_specification.md ... T-06.8_runtime-folder-layout.md       leaves
 └── T-07_mcp-job-follow-up/                     epic (planned 2026-11-11)
     ├── T-07_mcp-job-follow-up.md
-    └── T-07.1_decisions.md ... T-07.10_shipment-tools.md                 leaves
+    └── T-07.1_decisions.md ... T-07.11_recall-tools.md                  leaves
 ```
 
 ## 2. Execution protocol
@@ -158,12 +158,13 @@ Verified on 2026-10-27 against both projects.
 | [T-06.8](T-06_redesign/T-06.8_runtime-folder-layout.md) | Runtime folder layout | code | done (2026-11-09) |
 | [T-07](T-07_mcp-job-follow-up/T-07_mcp-job-follow-up.md) | **The follow-up of an MCP job is code, chosen per server** (epic) | epic | in-progress (planned 2026-11-11; T-07.1 done the same day, [ADR-018](../decisions/ADR-018-mcp-job-follow-up-per-server.md) accepted; nothing built) |
 | [T-07.1](T-07_mcp-job-follow-up/T-07.1_decisions.md) | Decisions | decision | done (2026-11-11) |
-| [T-07.2](T-07_mcp-job-follow-up/T-07.2_dynamics-contract.md) | Ask the Dynamics service for its contract | manual | in-progress (sent 2026-11-11, waiting for the answer) |
+| [T-07.2](T-07_mcp-job-follow-up/T-07.2_dynamics-contract.md) | Ask the Dynamics service for its contract | manual | done (2026-11-11) |
 | [T-07.3](T-07_mcp-job-follow-up/T-07.3_protocol-interface.md) | The protocol interface, `none` and the `job_protocol` field | code | done (2026-11-11) |
 | [T-07.4](T-07_mcp-job-follow-up/T-07.4_follow-up-engine.md) | The follow-up engine | code | done (2026-11-11) |
 | [T-07.5](T-07_mcp-job-follow-up/T-07.5_dynamics-protocols.md) | The protocols `dynamics_pending` and `dynamics_v1` | code | done (2026-11-11) |
 | [T-07.6](T-07_mcp-job-follow-up/T-07.6_operator-prompt.md) | The operator prompt without job rules | code | done (2026-11-11) |
 | [T-07.7](T-07_mcp-job-follow-up/T-07.7_tests.md) | Tests with a fake server per protocol | test | done (2026-11-11) |
 | [T-07.10](T-07_mcp-job-follow-up/T-07.10_shipment-tools.md) | Offer the shipment tools | code | done (2026-11-11) |
+| [T-07.11](T-07_mcp-job-follow-up/T-07.11_recall-tools.md) | Tools that are called again, not read as a job | code | done (2026-11-11) |
 | [T-07.8](T-07_mcp-job-follow-up/T-07.8_documentation.md) | Documentation | docs | done (2026-11-11) |
 | [T-07.9](T-07_mcp-job-follow-up/T-07.9_first-real-run.md) | First real run | manual | todo (ask first) |

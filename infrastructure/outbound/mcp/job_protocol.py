@@ -115,6 +115,13 @@ def job_protocol_problem(server_config: Dict[str, Any]) -> Optional[str]:
     if not isinstance(read_tool, str) or not read_tool:
         return f"job_protocol {name!r} needs a job_read_tool"
     allowed = server_config.get("allowed_tools")
+    recall = server_config.get("job_recall_tools")
+    if recall is not None:
+        if not isinstance(recall, list) or not all(isinstance(tool, str) and tool for tool in recall):
+            return "job_recall_tools must be a list of tool names"
+        outside = [tool for tool in recall if allowed and tool not in allowed]
+        if outside:
+            return f"job_recall_tools {outside[0]!r} is not in allowed_tools"
     for field, tool in (("job_read_tool", read_tool), ("job_cancel_tool", server_config.get("job_cancel_tool"))):
         if tool is None:
             continue

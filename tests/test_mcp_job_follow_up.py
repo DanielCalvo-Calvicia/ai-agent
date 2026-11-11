@@ -286,3 +286,20 @@ def test_a_server_with_none_follows_nothing_even_when_its_answer_looks_like_a_jo
 
 def test_the_module_keeps_its_constants_where_the_task_says():
     assert job_follow_up.FIRST_WAIT_SECONDS == 1.0 and job_follow_up.MAX_WAIT_SECONDS == 5.0
+
+
+def test_a_wait_before_the_first_read_is_made_once_and_cut_to_what_is_left():
+    clock = Clock()
+    script = Script(clock, {"a": ["DONE x"]}, budget=2)
+    protocol = Toy()
+
+    result = anyio.run(lambda: follow_up(protocol, "JOB:a", protocol.detect("JOB:a"), script.read, script.cancel, script.left, clock.sleep, 3.0))
+
+    assert clock.sleeps == [2]                                           # asked 3 s, only 2 were left
+    assert result.outcome == JOB_CANCELLED and script.reads == []        # nothing left after the wait: no read, the job is stopped
+
+
+def test_without_a_first_wait_the_first_read_is_at_once():
+    result, script, clock = run("JOB:a", {"a": ["DONE x"]})
+
+    assert clock.sleeps == [] and result.outcome == JOB_DONE

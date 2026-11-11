@@ -367,3 +367,58 @@ def test_a_finished_answer_of_either_protocol_is_given_back_untouched():
 
         assert answer == {"result": FINISHED, "is_error": False} and record.outcome == "ok"
         assert [name for name, _ in manager.calls] == ["customer_orders"]
+
+
+# ------------------------------------------------------------------ a composed tool is called again, not read (job_recall_tools)
+
+
+class RecallManager(Manager):
+    """A server whose shipment tool answers `running` once and then the table; the job it names is one inner query."""
+
+    def __init__(self, answers, recall=True):
+        super().__init__("dynamics_v1", answers)
+        if recall:
+            self.configs["local"]["config"]["job_recall_tools"] = ["shipment_tracking"]
+
+
+def execute_tool(manager, tool, budget=None):
+    clock = Clock()
+    executor = MCPToolExecutor(manager)
+    executor._clock, executor._sleep = clock, clock.sleep
+    executor.catalog._server_of_tool[tool] = "local"
+    with watch_tool_failures() as failures:
+        if budget is None:
+            answer = executor.execute(tool, {"customer_no": "CL-1001", "page": 1})
+        else:
+            with tool_wait_budget(budget):
+                answer = executor.execute(tool, {"customer_no": "CL-1001", "page": 1})
+    return answer, failures.calls, clock
+
+
+def test_a_recall_tool_is_called_again_with_the_same_arguments_and_its_inner_job_is_never_read():
+    manager = RecallManager({"shipment_tracking": [fixture("dynamics_v1/running.txt"), FINISHED]})
+
+    answer, [record], clock = execute_tool(manager, "shipment_tracking")
+
+    assert answer == {"result": FINISHED, "is_error": False} and record.outcome == "job_done" and record.attempts == 2
+    assert [name for name, _ in manager.calls] == ["shipment_tracking", "shipment_tracking"]
+    assert manager.calls[0] == manager.calls[1] == ("shipment_tracking", {"customer_no": "CL-1001", "page": 1})
+    assert clock.now == 3.0                                              # it waited the 3 s the service asks for, before asking again
+
+
+def test_a_recall_tool_that_keeps_running_is_called_again_until_the_time_is_spent_then_its_job_is_cancelled():
+    manager = RecallManager({"shipment_tracking": [fixture("dynamics_v1/running.txt")], CANCEL_TOOL: ["cancelled"]})
+
+    answer, [record], clock = execute_tool(manager, "shipment_tracking", budget=10)
+
+    assert answer == {"result": STILL_RUNNING_TEXT, "is_error": False} and record.outcome == "job_cancelled"
+    assert READ_TOOL not in [name for name, _ in manager.calls] and clock.now <= 10
+    assert manager.calls[-1] == (CANCEL_TOOL, {"job_id": "job-1"})
+
+
+def test_a_tool_that_is_not_a_recall_tool_still_has_its_job_read():
+    manager = RecallManager({"customer_orders": [fixture("dynamics_v1/running.txt")], READ_TOOL: [FINISHED]})
+
+    answer, [record], _ = execute(manager)
+
+    assert record.outcome == "job_done" and [name for name, _ in manager.calls] == ["customer_orders", READ_TOOL]

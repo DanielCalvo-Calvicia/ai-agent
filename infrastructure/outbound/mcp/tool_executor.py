@@ -16,7 +16,7 @@ from application.outbound.ports.mcp_ports import (
 )
 from domain.value_objects.llm_request.tool import ToolDefinition
 from infrastructure.outbound.mcp.client_manager import MCPClientManager
-from infrastructure.outbound.mcp.job_follow_up import JOB_UNKNOWN_SHAPE, FollowUp, follow_up
+from infrastructure.outbound.mcp.job_follow_up import JOB_UNKNOWN_SHAPE, RECALL_FIRST_WAIT_SECONDS, FollowUp, follow_up
 from infrastructure.outbound.mcp.job_protocol import NO_JOBS, JobProtocol, JobRef, get_protocol, protocol_name_of
 from infrastructure.outbound.mcp.masking import mask_personal_columns, masking_enabled
 from infrastructure.outbound.mcp.tool_catalog import MCPToolCatalog, call_timeout_seconds
@@ -88,28 +88,35 @@ class MCPToolExecutor(McpToolsPort):
                 answer, _, outcome = await self._call(server_name, tool_name, args, limit)
                 attempts = 2
         if not answer["is_error"]:
-            protocol, read_tool, cancel_tool = self._job_settings(server_name)
+            protocol, read_tool, cancel_tool, recall_tools = self._job_settings(server_name)
             jobs = protocol.detect(answer["result"])
             if jobs and read_tool:
-                followed = await self._follow_jobs(server_name, protocol, answer["result"], jobs, read_tool, cancel_tool, left, begun)
+                recall = (tool_name, args) if tool_name in recall_tools else None
+                followed = await self._follow_jobs(server_name, protocol, answer["result"], jobs, read_tool, cancel_tool, left, begun, recall)
                 return followed.answer, followed.outcome, attempts + followed.reads
         return answer, outcome, attempts
 
-    def _job_settings(self, server_name: str) -> Tuple[JobProtocol, Optional[str], Optional[str]]:
-        """The job protocol the server file declares and its read and cancel tools (`none` without the field; the config loader
-        refuses a name it does not know, so an unknown one here is treated as `none`)."""
+    def _job_settings(self, server_name: str) -> Tuple[JobProtocol, Optional[str], Optional[str], Tuple[str, ...]]:
+        """The job protocol the server file declares, its read and cancel tools and the tools that are called again instead of
+        read (`none` without the field; the config loader refuses a name it does not know, so an unknown one here is `none`)."""
         configs = getattr(self.client_manager, "configs", {}) or {}
         server_config = (configs.get(server_name) or {}).get("config") or {}
         try:
             protocol = get_protocol(protocol_name_of(server_config))
         except ValueError:
             protocol = get_protocol(NO_JOBS)
-        return protocol, server_config.get("job_read_tool"), server_config.get("job_cancel_tool")
+        return (protocol, server_config.get("job_read_tool"), server_config.get("job_cancel_tool"),
+                tuple(server_config.get("job_recall_tools") or ()))
 
     async def _follow_jobs(self, server_name: str, protocol: JobProtocol, answer_text: str, jobs: List[JobRef], read_tool: str,
-                           cancel_tool: Optional[str], left: Optional[float], begun: float) -> FollowUp:
+                           cancel_tool: Optional[str], left: Optional[float], begun: float,
+                           recall: Optional[Tuple[str, Dict[str, Any]]] = None) -> FollowUp:
         """Reads the jobs of an answer to their result (job_follow_up.py), inside what the message may still wait. Only the read
-        tool and the cancel tool the server file names are called, only with the ids the protocol found in the answer."""
+        tool and the cancel tool the server file names are called, only with the ids the protocol found in the answer.
+
+        `recall` is (tool, arguments) for a tool of `job_recall_tools`: its job is only one query of a composed answer, so reading
+        it would give the rows of that query and not the answer. The same tool is called again with the same arguments instead
+        (the service says to ask again after `retry_after_seconds`); nothing the model or an answer says is ever called."""
         left_now = None if left is None else left - (time.monotonic() - begun)     # what is left after the first call
         started = self._clock()
 
@@ -118,13 +125,17 @@ class MCPToolExecutor(McpToolsPort):
 
         async def read(arguments: Dict[str, Any], remaining: Optional[float]) -> Tuple[Dict[str, Any], str]:
             limit = call_timeout_seconds() if remaining is None else min(call_timeout_seconds(), remaining)
-            result, _, outcome = await self._call(server_name, read_tool, arguments, limit)
+            if recall is not None:
+                result, _, outcome = await self._call(server_name, recall[0], recall[1], limit)
+            else:
+                result, _, outcome = await self._call(server_name, read_tool, arguments, limit)
             return result, outcome
 
         async def cancel(arguments: Dict[str, Any], limit: float) -> None:
             await self._call(server_name, cancel_tool, arguments, limit)
 
-        followed = await follow_up(protocol, answer_text, jobs, read, cancel if cancel_tool else None, time_left, self._sleep)
+        followed = await follow_up(protocol, answer_text, jobs, read, cancel if cancel_tool else None, time_left, self._sleep,
+                                   RECALL_FIRST_WAIT_SECONDS if recall is not None else 0.0)
         if followed.outcome == JOB_UNKNOWN_SHAPE:
             logger.warning("MCP job answer not understood", server_name=server_name, protocol=protocol.name)
         return followed

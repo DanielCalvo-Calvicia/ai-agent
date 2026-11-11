@@ -153,6 +153,8 @@ def dynamics_url():
     def shipment_tracking(customer_no: str, page: int = 1, size: int = 25, environment: str = "", company: str = "") -> str:
         """The SEUR shipments of one customer, one page, newest first."""
         SERVER_CALLS["shipment_tracking"] = SERVER_CALLS.get("shipment_tracking", 0) + 1
+        if customer_no == "SLOW-SHIP" and SERVER_CALLS["shipment_tracking"] == 1:      # a composed answer whose inner query is a job
+            return RUNNING.replace("job-1", "ship-job")
         return SHIPMENTS
 
     @mcp.tool()
@@ -206,7 +208,8 @@ def descriptor(url, protocol="dynamics_v1"):
     """The server file of the fake Dynamics server: it declares the job protocol (`none`: it declares none) and its two tools."""
     config = {"type": "streamable_http", "url": url}
     if protocol != "none":
-        config.update(job_protocol=protocol, job_read_tool="get_job_result", job_cancel_tool="cancel_job")
+        config.update(job_protocol=protocol, job_read_tool="get_job_result", job_cancel_tool="cancel_job",
+                      job_recall_tools=["order_shipments", "shipment_status", "shipment_tracking"])
     return {"name": "dynamics_microservice", "type": "streamable_http", "config": config}
 
 
@@ -443,6 +446,18 @@ def test_a_shipment_answer_reaches_the_writer_whole_the_carrier_message_and_the_
     writer = world.input_of("draft_writer")
     assert "ALS-000001|PV-000001||TRK0001|Entregado|10:30 05-01-2026" in writer         # no column of a shipment is personal data
     assert "ALS-000002|PV-000001|||Pendiente|" in writer and "[hidden]" not in writer
+
+
+def test_a_shipment_answer_that_is_a_job_is_asked_again_and_the_inner_job_is_not_read_as_the_answer(dynamics_url):
+    world = World(dynamics_url, tool="shipment_tracking", parameters={"customer_no": "SLOW-SHIP"})
+
+    world.ask("where is the parcel?")
+
+    [call] = world.metrics.tool_calls
+    assert (call.tool, call.outcome, call.attempts) == ("shipment_tracking", "job_done", 2)
+    assert SERVER_CALLS["shipment_tracking"] == 2 and "ship-job" not in SERVER_CALLS      # called again; its inner job never read
+    assert world.clock.now == 3.0
+    assert "ALS-000001|PV-000001||TRK0001|Entregado|10:30 05-01-2026" in world.input_of("draft_writer")
 
 
 def test_the_prompts_tell_the_planner_which_shipment_tool_and_the_writer_what_pending_means():

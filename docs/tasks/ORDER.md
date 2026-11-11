@@ -116,13 +116,13 @@ Starts only after T-05 is done and the maintainer has written the specification 
 
 ## G. T-07 The follow-up of an MCP job is code, chosen per server (added 2026-11-11)
 
-Plan and reasons: [ADR-018](../decisions/ADR-018-mcp-job-follow-up-per-server.md) (accepted 2026-11-11, answers of [Q10](../setup/questionnaires/Q10_mcp-job-follow-up.md)). T-07.3 to T-07.7 are done (2026-11-11). T-07.10 (the shipment tools) is done too. T-07.8 (documentation) is done. Next: T-07.9 (the first real run, to ask the maintainer first). T-07.2 (the contract) is in progress: the Go session's answer is still to come, the contract itself is read from its repository.
+Plan and reasons: [ADR-018](../decisions/ADR-018-mcp-job-follow-up-per-server.md) (accepted 2026-11-11, answers of [Q10](../setup/questionnaires/Q10_mcp-job-follow-up.md)). T-07.3 to T-07.7 are done (2026-11-11). T-07.10 (the shipment tools) is done too. T-07.2, T-07.8 and T-07.11 are done. Next: T-07.9 (the first real run, to ask the maintainer first). T-07.2 (the contract) is in progress: the Go session's answer is still to come, the contract itself is read from its repository.
 
 | # | Task | Name | Kind | State | Detail | Depends on | Last updated |
 |---|---|---|---|---|---|---|---|
 | 65 | [T-07](T-07_mcp-job-follow-up/T-07_mcp-job-follow-up.md) | The follow-up of an MCP job is code, chosen per server (epic) | epic | In progress | T-07.1 done; ADR-018 accepted; nothing built | T-01 | 2026-11-11 |
 | 66 | [T-07.1](T-07_mcp-job-follow-up/T-07.1_decisions.md) | Decisions | decision | Done | Q10: defaults, except all or nothing for two jobs and the shipment tools in the epic | — | 2026-11-11 |
-| 67 | [T-07.2](T-07_mcp-job-follow-up/T-07.2_dynamics-contract.md) | Ask the Dynamics service for its contract | manual | In progress | sent 2026-11-11 to the Dynamics session; waiting for its answer | — | 2026-11-11 |
+| 67 | [T-07.2](T-07_mcp-job-follow-up/T-07.2_dynamics-contract.md) | Ask the Dynamics service for its contract | manual | Done | the Dynamics session answered on 2026-11-11 (its answer in the task notes) | — | 2026-11-11 |
 | 68 | [T-07.3](T-07_mcp-job-follow-up/T-07.3_protocol-interface.md) | The protocol interface, `none` and the `job_protocol` field | code | Done | no change in behaviour; 1410 passed, golden untouched | T-07.1 | 2026-11-11 |
 | 69 | [T-07.4](T-07_mcp-job-follow-up/T-07.4_follow-up-engine.md) | The follow-up engine | code | Done | reads, budget, one job per table (all or nothing), cancel; 1428 passed | T-07.3 | 2026-11-11 |
 | 70 | [T-07.5](T-07_mcp-job-follow-up/T-07.5_dynamics-protocols.md) | The protocols `dynamics_pending` and `dynamics_v1` | code | Done | the two shapes seen; the server file declares `dynamics_pending`; 1472 passed | T-07.4 | 2026-11-11 |
@@ -131,3 +131,4 @@ Plan and reasons: [ADR-018](../decisions/ADR-018-mcp-job-follow-up-per-server.md
 | 73 | [T-07.8](T-07_mcp-job-follow-up/T-07.8_documentation.md) | Documentation | docs | Done | ADR-018 says what was built; the documents true; markdown lint not run locally | T-07.6, T-07.7, T-07.10 | 2026-11-11 |
 | 74 | [T-07.9](T-07_mcp-job-follow-up/T-07.9_first-real-run.md) | First real run | manual | Todo | ask first; measures the wait between reads | T-07.8, T-07.2 | 2026-11-11 |
 | 75 | [T-07.10](T-07_mcp-job-follow-up/T-07.10_shipment-tools.md) | Offer the shipment tools | code | Done | added after Q10-11; the answers were read from `local-dynamics`; 1493 passed, golden changed on purpose (capabilities) | T-07.5 | 2026-11-11 |
+| 76 | [T-07.11](T-07_mcp-job-follow-up/T-07.11_recall-tools.md) | Tools that are called again, not read as a job | code | Done | the shipment tools are composed: their job is called again, never read; 1502 passed | T-07.4, T-07.5, T-07.10 | 2026-11-11 |
