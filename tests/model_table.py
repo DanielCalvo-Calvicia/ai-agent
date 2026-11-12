@@ -190,7 +190,7 @@ def read_model_sets(path: str = MODEL_SETS_DIR) -> Dict[str, Dict[str, Any]]:
 
 def default_resolver():
     """The ModelResolver of the model set the service runs on (what the manual scripts use as the models of the agent)."""
-    from application.support.llm.model_selection import DEFAULT_MODEL_SET, ModelResolver
+    from application.runtime.step.model_selection import DEFAULT_MODEL_SET, ModelResolver
 
     return ModelResolver({"models": DEFAULT_MODEL_SET}, read_model_sets())
 
@@ -224,7 +224,7 @@ def read_config(path: str = MODEL_SETS_DIR) -> Dict[str, Any]:
     The model sets in the shape the tables use: `profile` is the set the service runs on and `profiles` has, for each set,
     the first model of every entry (the others of a list are its fallback) and its `_about` text.
     """
-    from application.support.llm.model_selection import DEFAULT_MODEL_SET
+    from application.runtime.step.model_selection import DEFAULT_MODEL_SET
 
     profiles: Dict[str, Dict[str, Any]] = {}
     for name, data in read_model_sets(path).items():

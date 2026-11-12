@@ -7,19 +7,21 @@ from types import SimpleNamespace
 import pytest
 
 from application.assembly.assemble import assemble
-from application.assembly.model import Agent
+from application.runtime.profile.assembled import Agent
 from application.assembly.config_snapshot import build_snapshot
 from application.assembly.flow_file import flow_from_file
 from application.runtime.flow.pipeline import Pipeline
 from application.runtime.profile.runner import ProfileRunner
 from application.support.tools.mcp_servers import describe_servers, server_names
-from application.support.metrics import SessionMetrics
-from application.outbound.ports.mcp_ports import McpToolsPort, ScopedTools, ToolScope, scoped
+from application.runtime.step.metrics import SessionMetrics
+from application.ports.outbound.mcp_ports import McpToolsPort
+from application.support.tools.scoped_tools import ScopedTools, scoped
+from domain.value_objects.tools.tool_scope import ToolScope
 from domain.value_objects.llm_request.tool import ToolDefinition
 from flow_files import FLOWS
 from infrastructure.outbound.config.file_source import FileConfigSource
-from infrastructure.outbound.llm.tools import resolve_tools
-from infrastructure.outbound.mcp.tool_executor import MCPToolExecutor
+from infrastructure.outbound.llm.vercel.tool_adapter import resolve_tools
+from infrastructure.outbound.mcp.execution.tool_executor import MCPToolExecutor
 from test_flow_golden import SCENARIOS, ScriptedLLM
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
@@ -158,7 +160,7 @@ class TestWhatCanBeCalled:
         assert answer["is_error"] and "not allowed" in answer["error"]
 
     def test_the_refusal_is_a_tool_call_record_with_no_try_and_no_argument(self):
-        from application.outbound.ports.mcp_ports import watch_tool_failures
+        from application.ports.outbound.tool_failures import watch_tool_failures
         with watch_tool_failures() as failures:
             self.executor().execute("order_status", {"customer_no": "SECRET-7"}, scope=ToolScope.of({"servers": [AWS]}))
         assert [c.to_dict() for c in failures.calls] == [{"tool": "order_status", "outcome": "not_found", "duration_ms": failures.calls[0].duration_ms, "attempts": 0}]

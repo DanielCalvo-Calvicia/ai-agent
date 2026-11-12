@@ -30,8 +30,10 @@ load_env(os.path.join(PROJECT_ROOT, '.env'))
 # -----------------------------------------------
 #  IMPORTS
 # -----------------------------------------------
-from infrastructure.outbound.llm.config import VercelAIConfig
-from infrastructure.outbound.llm.vercel import VercelAIAdapter
+from composition_root.environment import install_environment
+install_environment()          # the application reads no file and no environment variable itself: it is given them
+from infrastructure.outbound.llm.shared.providers.config import LLMConfig
+from infrastructure.outbound.llm.vercel.adapter import VercelAIAdapter
 from domain.entities.llm_request.payload import Payload
 from domain.value_objects.llm_request.message import Message, Role, create_message
 from domain.value_objects.llm_request.model import SelectedModel, get_selected_model
@@ -42,8 +44,8 @@ from domain.value_objects.llm_request.max_tokens import create_max_tokens
 
 from mcp.client.session import ClientSession
 from mcp.client.sse import sse_client
-from infrastructure.outbound.mcp.client_manager import MCPClientManager
-from infrastructure.outbound.mcp.tool_executor import MCPToolExecutor
+from infrastructure.outbound.mcp.connection.client_manager import MCPClientManager
+from infrastructure.outbound.mcp.execution.tool_executor import MCPToolExecutor
 import httpx
 
 # -----------------------------------------------
@@ -92,7 +94,7 @@ def main():
     client_manager = MCPClientManager(mcp_config)
     tool_executor = MCPToolExecutor(client_manager)
 
-    llm_config = VercelAIConfig(
+    llm_config = LLMConfig(
         openai_api_key=os.environ.get("OPENAI_API_KEY", ""),
         anthropic_api_key=os.environ.get("ANTHROPIC_API_KEY", ""),
         google_api_key=os.environ.get("GOOGLE_API_KEY", ""),

@@ -11,8 +11,8 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from application.assembly.config_snapshot import build_snapshot
-from application.support.metrics import PHASE_NAMES
-from application.support.llm.model_selection import (
+from application.runtime.step.metrics import PHASE_NAMES
+from application.runtime.step.model_selection import (
     ALL_STEP_NAMES, DEFAULT_MODEL_SET, STEP_NAMES, ModelResolver, check_model_set, effective_models,
 )
 from domain.value_objects.llm_request.model import GoogleModels, get_selected_model
@@ -48,7 +48,7 @@ class TestCodeDefaults:
 
     def test_the_small_steps_use_the_lite_model_and_the_others_the_flash_model(self):
         from application.runtime.step.catalog import PHASES
-        small = {"triage_specialist", "data_engineer", "answer_checker", "user_clarification", "emotion_reader"}
+        small = {"triage_specialist", "data_engineer", "answer_checker", "user_clarification", "emotion_reader", "tool_selector"}
         for info in PHASES.values():
             if info.default_model is not None:
                 expected = "gemini-3.1-flash-lite" if info.step_name in small else "gemini-3.6-flash"
@@ -205,7 +205,7 @@ class TestReachesTheCalls:
         scenario = SCENARIOS["full_path_with_mcp"]
         llm = ScriptedLLM(**scenario["llm"])
         from brain_chain import ChainedMessageFlowService as MessageFlowService
-        from application.inbound.dto.message import TextRequestDTO
+        from application.dtos.inbound.message import TextRequestDTO
         MessageFlowService(outbound_port=llm, mcp_list=MCP_LIST, models=resolver).text(
             TextRequestDTO(user_id="tester", session_id="s", content=scenario["message"]))
         assert {c["format"].split("_response")[0]: c["model"] for c in llm.calls} == {
@@ -220,7 +220,7 @@ class TestReachesTheCalls:
         scenario = SCENARIOS["full_path_with_mcp"]
         llm = ScriptedLLM(**scenario["llm"])
         from brain_chain import ChainedMessageFlowService as MessageFlowService
-        from application.inbound.dto.message import TextRequestDTO
+        from application.dtos.inbound.message import TextRequestDTO
         MessageFlowService(outbound_port=llm, mcp_list=MCP_LIST, models=resolver).text(
             TextRequestDTO(user_id="tester", session_id="s", content=scenario["message"]))
         models = {c["format"].split("_response")[0]: c["model"] for c in llm.calls}
@@ -230,7 +230,7 @@ class TestReachesTheCalls:
     def test_the_answer_checker_and_the_question_use_their_own_models(self):
         resolver = ModelResolver({"overrides": {"answer_checker": {"models": ["gemini-3.1-flash-lite"]},
                                                 "user_clarification": {"models": ["gemini-3.5-flash-lite"]}}})
-        from application.inbound.dto.session import MessageReceivedRequestDTO, StartSessionRequestDTO
+        from application.dtos.inbound.session import MessageReceivedRequestDTO, StartSessionRequestDTO
         from brain_chain import ChainedSessionService as SessionService
         from test_resume import CHECK, TRIAGE_ASKS, TRIAGE_OK, Script, _verdict
         from test_flow_golden import TRIAGE as TRIAGE_FORMAT
@@ -248,7 +248,7 @@ class TestReachesTheCalls:
         scenario = SCENARIOS["full_path_with_mcp"]
         llm = ScriptedLLM(**scenario["llm"])
         from brain_chain import ChainedMessageFlowService as MessageFlowService
-        from application.inbound.dto.message import TextRequestDTO
+        from application.dtos.inbound.message import TextRequestDTO
         MessageFlowService(outbound_port=llm, mcp_list=MCP_LIST).text(
             TextRequestDTO(user_id="tester", session_id="s", content=scenario["message"]))
         assert {c["model"] for c in llm.calls} <= {"gemini-3.1-flash-lite", "gemini-3.6-flash"}
@@ -336,7 +336,7 @@ class TestSameModelsAsBefore:
             return json.load(f)["profiles"]
 
     def test_the_ten_profiles_are_the_ten_sets(self, old, shipped):
-        assert set(old) == set(shipped) and len(old) == 10
+        assert set(old) | {"claude_fast"} == set(shipped) and len(old) == 10      # claude_fast is new since T-08.5: no old profile to compare
 
     @pytest.mark.parametrize("name", ["proven", "budget", "balanced", "quality", "budget50", "claude_sonnet", "budget50_groq",
                                       "google_free", "claude_haiku", "claude_mixed"])

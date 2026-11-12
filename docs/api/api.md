@@ -29,7 +29,7 @@ action / status / status_code / message / data / timestamp
 
 ## `POST /session/message`
 
-Request: `session_id`, `message`, `speak_movements` (Brain's setting, default `true`) and, since T-05.9, these **optional** fields (the vendored `contracts` wheel does not have them yet: ai-agent reads them from its own request model, `application/inbound/dto/session.py`, until the maintainer changes the `contracts` repository):
+Request: `session_id`, `message`, `speak_movements` (Brain's setting, default `true`) and, since T-05.9, these **optional** fields (the vendored `contracts` wheel does not have them yet: ai-agent reads them from its own request model, `application/dtos/inbound/session.py`, until the maintainer changes the `contracts` repository):
 
 | Field | Meaning |
 |---|---|
@@ -49,7 +49,7 @@ Answer (`AIAgentMessageResponse`, plus the fields of a profile request, which ap
 | `response` | What to say. **Always speakable**: an apology when `success` is `false`. Empty only for a movement that goes ahead with `speak_movements` off, or for a profile with no text (`identification`); a refusal or a question is always said |
 | `directives` | The movements to run, in order: `[{arm, degrees, direction}]`. `degrees` is signed (left 90 then left -90 returns the arm). Set by the `movement` profile, and by the `gesture` profile with `gesture: true` |
 | `awaiting_user_input` | `true` when `response` is a question: the next message of the session is its answer |
-| `flow` | Which flow answered: `identification`, `conversation`, `special`, `movement` or `expression` (the flow of the profile that ran) |
+| `flow` | Which flow answered: `identification`, `conversation`, `special`, `movement`, `expression`, `fast` or, for a profile with its own steps, the name of the profile (the flow of the profile that ran) |
 | `message`, `error_code` | The technical reason of a failure and a code |
 | `profile` | The profile that ran. Only when the request named one |
 | `output` | The `Response` of the run as JSON, in the shape of the sections of an LLM answer (`intent`, `user_goal`, `task_category`, `actions`, ...), **without** `tokens_usage` and `raw`. Only when `return` is `full` (or the profile's default is) and the run has a `user_goal`; send it back as `inputs` |
@@ -80,6 +80,8 @@ Answer (`AIAgentMessageResponse`, plus the fields of a profile request, which ap
 | `default` | the same as `special` | none | none | `text` |
 | `movement` | motion planner, motion validator | none | none (accepts the classification) | `text` |
 | `gesture` | emotion reader, gesture builder | none | `reply` (accepts `speech_seconds`) | `text` |
+| `dynamics_fast` | tool selector, tool caller (code), answer writer: **one read-only tool call**, 2 model calls | only `dynamics_microservice` | `user_goal`, `task_category` (accepts the rest of the classification) | `text` |
+| `dynamics_fast_triage` | triage, then the three steps of `dynamics_fast` | only `dynamics_microservice` | none | `text` |
 
 A client that wants the old behaviour chains them: ask `identification` with `return: full`; read `output.task_category.domain`; `communication` -> `chat` with `inputs = output`; `movement` -> `movement`; anything else -> `special` or `dynamics` (they classify again: the service allows it and says nothing, so a client that wants to avoid the extra call asks them directly); then `gesture` with `inputs = {reply}` for a spoken reply (not after `movement`). `tests/brain_chain.py` is that chain, in the tests.
 

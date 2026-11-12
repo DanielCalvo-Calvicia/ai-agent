@@ -9,9 +9,11 @@ import pytest
 
 from step_specs import MOTION_PLANNER
 from application.support.llm.schemas import (
-    SCHEMAS_ROOT, actions_schema, load_schema, load_schema_file, property_schema)
+    actions_schema, load_schema, load_schema_file, property_schema)
 from domain.value_objects.movement.movement import ARMS, DIRECTIONS
-from application.system_prompts.general import PROJECT_ROOT
+from infrastructure.outbound.config.environment import PROJECT_ROOT
+
+SCHEMAS_ROOT = os.path.join(PROJECT_ROOT, "schema", "response")
 
 GENERAL = os.path.join(SCHEMAS_ROOT, "general")
 

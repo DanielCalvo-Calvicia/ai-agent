@@ -10,11 +10,14 @@ from types import SimpleNamespace
 
 import pytest
 
-from application.outbound.ports.mcp_ports import tool_wait_budget, watch_tool_failures
-from infrastructure.outbound.mcp.config import load_mcp_configs, load_supported_mcp_configs
-from infrastructure.outbound.mcp.job_follow_up import STILL_RUNNING_TEXT
-from infrastructure.outbound.mcp.job_protocol import DONE, RUNNING, UNKNOWN, JobRef, get_protocol, job_protocol_problem, known_protocols
-from infrastructure.outbound.mcp.tool_executor import MCPToolExecutor
+from application.ports.outbound.tool_wait_budget import tool_wait_budget
+from application.ports.outbound.tool_failures import watch_tool_failures
+from infrastructure.outbound.mcp.config.loader import load_mcp_configs, load_supported_mcp_configs
+from infrastructure.outbound.mcp.jobs.follow_up import STILL_RUNNING_TEXT
+from infrastructure.outbound.mcp.jobs.protocol import DONE, RUNNING, UNKNOWN, JobRef
+from infrastructure.outbound.mcp.jobs.registry import get_protocol, known_protocols
+from infrastructure.outbound.mcp.jobs.settings import job_protocol_problem
+from infrastructure.outbound.mcp.execution.tool_executor import MCPToolExecutor
 
 PENDING_ONE = (
     "coverage: the order headers of one customer; steps: open_orders (pending); customer_no=CL-1001\n\n"

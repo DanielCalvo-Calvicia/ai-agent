@@ -1,7 +1,7 @@
 # T-01.9, finding e: personal columns of a tool answer are hidden before any model sees them.
 import pytest
 
-from infrastructure.outbound.mcp.masking import HIDDEN, mask_personal_columns, masking_enabled
+from infrastructure.outbound.mcp.execution.masking import HIDDEN, mask_personal_columns, masking_enabled
 
 META = "returned: 2\ntotal: 2\ncoverage: x\n\n"
 

@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "name": "dynamics_fast_triage",
+  "about": "The fast tool path for a client that sends only the message: the triage first, then the same three steps as `dynamics_fast` (ADR-019, Q11-3). It needs no `identification` call. It reaches customer data.",
+  "token_sha256": "18f2881b9d5102ab562c492d1bc2ad1a57452bd99cad1d2425cc817fcd57279c",
+  "steps": [
+    {
+      "step": "triage_specialist",
+      "pause_if": "needs_user_input",
+      "retry_on_status": true
+    },
+    {
+      "step": "tool_selector",
+      "pause_if": "needs_user_input",
+      "retry_on_status": true
+    },
+    "tool_caller",
+    "answer_writer"
+  ],
+  "on_pause": "user_clarification",
+  "on_resume": "answer_checker",
+  "result_from": "answer_writer",
+  "models": "claude_fast",
+  "tools": {
+    "servers": [
+      "dynamics_microservice"
+    ]
+  },
+  "overrides": {
+    "tool_selector": {
+      "prompt_append": {
+        "file": "prompts/profiles/dynamics_fast/tool_selector.txt"
+      }
+    },
+    "answer_writer": {
+      "prompt_append": {
+        "file": "prompts/profiles/tools/draft_writer.txt"
+      }
+    }
+  },
+  "tested": "2026-11-11"
+}

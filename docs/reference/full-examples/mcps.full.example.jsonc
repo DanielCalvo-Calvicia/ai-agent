@@ -1,0 +1,115 @@
+// =====================================================================================
+// MCP SERVERS: FULL EXAMPLE (VISUALIZATION ONLY) - EVERY SETTING AND EVERY POSSIBLE VALUE
+// -------------------------------------------------------------------------------------
+// WHAT IT IS : the list of MCP (Model Context Protocol) servers the agent may call as TOOLS, and how to reach them.
+//              It says only what EXISTS; a PROFILE decides who may use it (profile "tools").
+// WHERE IT LIVES : mcps/<any file name>.json. Read at start by infrastructure/outbound/mcp/config.py. Tools are listed by
+//              infrastructure/outbound/mcp/tool_catalog.py, called by tool_executor.py (client_manager.py), long jobs followed
+//              by job_follow_up.py + job_protocol.py + job_protocols/ (common, dynamics_v1, dynamics_pending), availability in
+//              availability.py, personal columns masked by masking.py. RESTART the service after editing a file.
+// SPECIAL    : the KEYS of the file are the SERVER NAMES (one file may hold several servers; the file name is free). This folder has no
+//              schema_version and no name check, and a file starting with "_" IS still loaded here (it is NOT skipped).
+//              Do not repeat a server name in two files (nothing checks it; the result is unreliable).
+//              To disable a server: move the file out of the folder or leave its ${VARIABLE} unset.
+// HOW TO READ THIS FILE: one object with SEVERAL servers, each showing a different possibility. Alternatives for a value are
+//              listed in comments; "// ALT:" lines show them as code.
+// NOT LOADED. JSONC = JSON with // comments; real files are plain JSON (no comments).
+// FOR AN LLM : READ-ONLY IS A RULE OF THE SERVICE, not of this file: only list tools that cannot change data (ADR-011).
+//              There is NO way to send an authentication header (the only header sent is the trace context `traceparent`);
+//              a server that needs a key cannot be added without a code change. No log line, metric or span ever holds a tool
+//              argument or answer (only name, outcome, duration, tries). Personal columns (name, e-mail, phone, address, VAT, bank
+//              number) of table answers with cells separated by `|` become [hidden] before the model sees them
+//              (AI_AGENT_MASK_PERSONAL_DATA=0 turns it off).
+//              Limits: each call AI_AGENT_MCP_CALL_TIMEOUT_SECONDS (30); one message waits 60 s in total for tools; at most
+//              AI_AGENT_MAX_MCP_CALLS_PER_MESSAGE (5, 0 = no limit) tool actions per message. AI_AGENT_CHECK_MCP_<NAME>=1 lists
+//              that server's tools at start and on /available (log only).
+// =====================================================================================
+{
+  // ===== SERVER 1 - streamable_http with EVERY setting (the one in use: read-only Business Central tools) =====
+  // The KEY is the server name: written by profiles in tools.servers, seen by the planner as `server_id`, shown in metrics.
+  "dynamics_microservice": {
+    // Transport. ALL values:
+    //   "streamable_http" : supported.
+    //   "sse"             : supported.
+    //   "stdio" or MISSING: NOT supported. The server is IGNORED with a warning (it still counts as "existing" for the check of a profile).
+    "type": "streamable_http",
+    // ALT: "type": "sse",
+
+    // Where the server is. REQUIRED for the two supported types. "${NAME}" is replaced by the environment variable NAME in EVERY
+    // string of the file. If a ${...} is still there after the replacement (variable not set) the server is SKIPPED with a warning:
+    // that is how an unset DYNAMICS_MCP_URL turns this server off. Add every new variable to .env.example,
+    // .env.github and docs/configuration/environment-variables.md. A fixed URL is also allowed.
+    "url": "${DYNAMICS_MCP_URL}",
+    // ALT: "url": "http://localhost:8080/mcp",
+
+    // Optional whitelist of the tools the model may see and call. WITHOUT it the server offers EVERY tool it lists. WITH it, any other tool
+    // is hidden and logged at WARNING. It also lets scripts/check_agent.py validate "server.tool" names in profiles
+    // (a server with NO allowed_tools cannot be used as "server.tool").
+    "allowed_tools": [
+      "customer_orders",     // sales orders of one customer (open and past)
+      "order_status",        // status of one order
+      "customer_card",       // name, currency, blocked state of one customer
+      "order_shipments",     // SEUR shipments of an order (composed answer: see job_recall_tools)
+      "shipment_status",     // status of one shipment (composed)
+      "shipment_tracking",   // tracking events of one shipment (composed)
+      "get_guidance",        // text guidance of a topic (general, orders, customers)
+      "list_workflows",      // which workflow tool fits a wording
+      "get_job_result",      // needed by the job protocol (job_read_tool)
+      "cancel_job"           // needed by the job protocol (job_cancel_tool)
+    ],
+
+    // How an answer that is a JOB STILL RUNNING is found and followed to its result, IN CODE (ADR-018), never by the model.
+    // ALL values:
+    //   "none"             (the DEFAULT) the server has no jobs: an answer is the result, whatever it says.
+    //   "dynamics_v1"      the jobs contract of dynamics_microservice since 2026-11-11 (status "running" with a job_id, per table).
+    //   "dynamics_pending" the older shape ("note: pending: ... job <id> ..."): legacy.
+    // Any other name skips the server with a warning.
+    "job_protocol": "dynamics_v1",
+
+    // REQUIRED when job_protocol is not "none". The ONLY tool called to READ a job, and only with the id the protocol found in the answer.
+    // Must be in allowed_tools when that list exists.
+    "job_read_tool": "get_job_result",
+
+    // OPTIONAL. The tool that STOPS a job whose time ran out. Must be in allowed_tools when that list exists.
+    // Without it a job that never ends is left running and the answer says it is still running.
+    "job_cancel_tool": "cancel_job",
+
+    // OPTIONAL. Tools whose answer is COMPOSED from several inner queries: the job a "running" answer names is only ONE inner query, so
+    // reading it would give WRONG data. Such a tool is called AGAIN with the same arguments after 3 s, NEVER read. Each must be in allowed_tools.
+    "job_recall_tools": ["order_shipments", "shipment_status", "shipment_tracking"]
+  },
+
+  // ===== SERVER 2 - the smallest valid server: sse, no whitelist (every tool the server lists is offered), no jobs =====
+  "aws_microservice": {
+    "type": "sse",
+    "url": "http://localhost:8080/mcp/sse"
+  },
+
+  // ===== SERVER 3 - a server with the legacy job protocol and no recall tools =====
+  "legacy_jobs_example": {
+    "type": "streamable_http",
+    "url": "${LEGACY_JOBS_MCP_URL}",
+    "allowed_tools": ["some_query", "read_job"],
+    "job_protocol": "dynamics_pending",
+    "job_read_tool": "read_job"
+    // no job_cancel_tool: a job that does not end is left running; no job_recall_tools: every answer is read as one job
+  },
+
+  // ===== SERVER 4 - a server with an explicit "no jobs" protocol =====
+  "plain_example": {
+    "type": "streamable_http",
+    "url": "${PLAIN_MCP_URL}",
+    "allowed_tools": ["lookup"],
+    "job_protocol": "none"
+  },
+
+  // ===== SERVER 5 - stdio (Docker). NOT SUPPORTED: IGNORED at run time =====
+  "filesystem": {
+    "type": "stdio",
+    // command, args, env and headers are READ BUT NOT USED for any type (including sse and streamable_http).
+    "command": "docker",
+    "args": ["run", "-i", "--rm", "--mount", "type=bind,source=${MCP_FILESYSTEM_DIR},target=/data", "ghcr.io/modelcontextprotocol/servers/filesystem:latest", "/data"],
+    "env": { "SOME_VAR": "value" },
+    "headers": { "X-Example": "value" }
+  }
+}

@@ -19,9 +19,9 @@ from flow_files import MOVEMENT_FLOW
 from brain_chain import AgentRouter, DEFAULT_FLOW, FLOW_BY_DOMAIN, flow_for
 from flow_files import SPECIAL_FLOW
 from application.runtime.state.flow_state import FlowState
-from application.support.metrics import SessionMetrics
+from application.runtime.step.metrics import SessionMetrics
 from application.support.llm.schemas import load_schema_file
-from application.system_prompts.general import LoadCapabilities, LoadSystemPrompt
+from application.runtime.step.system_prompt import LoadCapabilities, LoadSystemPrompt
 from domain.value_objects.llm_response.intent.intent import create_intent
 from domain.value_objects.llm_response.task_category.domain import Domains
 from domain.value_objects.llm_response.task_category.task_category import create_task_category
@@ -55,7 +55,7 @@ ASKING = {"ready_to_execute": False, "status": "awaiting_user_input",
 @pytest.fixture(autouse=True)
 def _project_cwd(monkeypatch):
     monkeypatch.chdir(PROJECT_ROOT)
-    monkeypatch.setattr("application.system_prompts.general.now_text", lambda: "Monday, 2026-01-05, 09:00 (UTC+00:00)")
+    monkeypatch.setattr("application.runtime.step.system_prompt.now_text", lambda: "Monday, 2026-01-05, 09:00 (UTC+00:00)")
 
 
 def formats(llm):

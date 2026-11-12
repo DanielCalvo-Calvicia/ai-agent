@@ -24,13 +24,15 @@ from dotenv import load_dotenv
 
 load_dotenv(os.path.join(ROOT, ".env"), override=False)
 
+from composition_root.environment import install_environment
+install_environment()          # the application reads no file and no environment variable itself: it is given them
 from application.assembly.assemble import assemble
 from application.assembly.config_snapshot import build_snapshot
-from application.support.llm.model_selection import STEP_NAMES
+from application.runtime.step.model_selection import STEP_NAMES
 from budget_table import DOC_PATH as BUDGET_DOC_PATH
 from budget_table import combined, load_budget, markdown as budget_markdown, read as read_json, MEASURED_PATH
 from infrastructure.outbound.config.file_source import FileConfigSource
-from infrastructure.outbound.mcp.config import SUPPORTED_TYPES, load_mcp_configs
+from infrastructure.outbound.mcp.config.loader import SUPPORTED_TYPES, load_mcp_configs
 from model_table import DOC_PATH, blended, load_models, markdown, per_call, read_config, _money
 from profile_tables import DOC_PATH as PROFILES_DOC_PATH, explain, profiles_markdown
 
@@ -111,7 +113,7 @@ def main(argv):
     prices = {m["id"]: m for m in data["models"]}
     for name in sorted(agent.profiles):
         profile = agent.profile(name)
-        print(f"\nprofile {name}: flow {profile.flow_name}, models {profile.definition.get('models')}")
+        print(f"\nprofile {name}: flow {profile.flow_name or '(its own steps)'}, models {profile.definition.get('models')}")
         print(f"  {'step':<28}{'model':<26}{'in $/1M':>9}{'out $/1M':>10}{'blended':>9}   comes from")
         for row in explain(agent, name, [], models={})["rows"]:
             if not row["models"]:

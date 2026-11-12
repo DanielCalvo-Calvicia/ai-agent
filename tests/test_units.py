@@ -19,16 +19,16 @@ from application.support.tools.mcp_servers import describe_servers
 from step_specs import COGNITIVE_WORKER
 from step_specs import make_project_manager
 from application.support.llm.schemas import actions_schema, load_schema, object_schema, property_schema
-from application.outbound.ports.mcp_ports import McpToolsPort
+from application.ports.outbound.mcp_ports import McpToolsPort
 from application.service.user_session import UserSession
 from domain.entities.llm_response.action import create_action
 from domain.value_objects.llm_request.message import Role
 from domain.value_objects.llm_request.tool import ToolDefinition
 from domain.value_objects.llm_request.model import get_selected_model
-from infrastructure.outbound.llm.config import VercelAIConfig
-from infrastructure.outbound.llm.provider_models import resolve_provider_model
-from infrastructure.outbound.llm.response_mapper import build_response
-from infrastructure.outbound.mcp.config import load_supported_mcp_configs
+from infrastructure.outbound.llm.shared.providers.config import LLMConfig
+from infrastructure.outbound.llm.vercel.models import resolve_provider_model
+from application.mappers.outbound.response_mapper import build_response
+from infrastructure.outbound.mcp.config.loader import load_supported_mcp_configs
 
 USAGE = {"prompt_tokens": 1, "completion_tokens": 2, "total_tokens": 3}
 
@@ -146,7 +146,7 @@ class TestSchemas:
 #  PROVIDER ROUTES
 # ===============================================
 
-CONFIG = VercelAIConfig(
+CONFIG = LLMConfig(
     google_api_key="g-key", google_url="https://google.example/v1",
     mistral_api_key="m-key", mistral_url="https://mistral.example/v1",
     groq_api_key="q-key", groq_url="https://groq.example/v1",
@@ -388,7 +388,7 @@ class TestObjectSchema:
 
     def test_the_planner_and_the_action_calls_send_valid_references(self):
         from domain.entities.llm_request.payload import Payload
-        from infrastructure.outbound.llm.response_mapper import build_response
+        from application.mappers.outbound.response_mapper import build_response
         sent = []
 
         class Spy:
@@ -397,7 +397,7 @@ class TestObjectSchema:
                 return build_response({"actions": [_plain_action("1")]}, USAGE)
 
         from application.runtime.state.flow_state import FlowState
-        from application.support.metrics import SessionMetrics
+        from application.runtime.step.metrics import SessionMetrics
         from application.runtime.step.runner import PhaseRunner
         runner = PhaseRunner(Spy(), SessionMetrics(), ["mail"])
         runner.run_phase(make_project_manager(SERVERS), FlowState(message="hi"))

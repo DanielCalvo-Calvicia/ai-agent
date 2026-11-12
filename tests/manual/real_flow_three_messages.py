@@ -27,14 +27,16 @@ sys.path.insert(0, os.path.join(PROJECT_ROOT, "tests"))
 os.chdir(PROJECT_ROOT)
 load_dotenv(os.path.join(PROJECT_ROOT, ".env"), override=False)
 
-from application.inbound.dto.session import MessageReceivedRequestDTO, StartSessionRequestDTO
-from application.outbound.ports.llm_ports import LLMOutboundPort
+from composition_root.environment import install_environment
+install_environment()          # the application reads no file and no environment variable itself: it is given them
+from application.dtos.inbound.session import MessageReceivedRequestDTO, StartSessionRequestDTO
+from application.ports.outbound.llm_ports import LLMOutboundPort
 from application.service.session_service import SessionService
-from infrastructure.outbound.llm.config import VercelAIConfig
+from infrastructure.outbound.llm.shared.providers.config import LLMConfig
 from model_table import manual_resolver, manual_service
-from infrastructure.outbound.llm.vercel import VercelAIAdapter
-from infrastructure.outbound.mcp.client_manager import MCPClientManager
-from infrastructure.outbound.mcp.tool_executor import MCPToolExecutor
+from infrastructure.outbound.llm.vercel.adapter import VercelAIAdapter
+from infrastructure.outbound.mcp.connection.client_manager import MCPClientManager
+from infrastructure.outbound.mcp.execution.tool_executor import MCPToolExecutor
 
 MESSAGES = [
     "Hello, how are you?",                                        # small talk
@@ -121,7 +123,7 @@ def main():
         mcp_list = [{"name": "mail", "type": "sse", "config": {"type": "sse", "url": url}}]
     executor = MCPToolExecutor(MCPClientManager(mcp_list))
 
-    recorder = Recorder(VercelAIAdapter(Config=VercelAIConfig.from_env(tool_executor=executor)))
+    recorder = Recorder(VercelAIAdapter(Config=LLMConfig.from_env(tool_executor=executor)))
     service = SessionService(**manual_service(), outbound_port=recorder, mcp_list=mcp_list, mcp_tools=executor)
     session_id = service.start_session(StartSessionRequestDTO(user_id="tester", username="tester")).session_id
 

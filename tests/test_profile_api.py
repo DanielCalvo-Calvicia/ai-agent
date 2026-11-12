@@ -9,16 +9,16 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from application.assembly.assemble import assemble
-from application.assembly.model import Agent
+from application.runtime.profile.assembled import Agent
 from application.assembly.config_snapshot import build_snapshot
 from application.runtime.profile.access import NO_HASH, check_access, sha256_hex
 from application.runtime.profile.inputs import INVALID_INPUT, MISSING_INPUT, InputsError, read_inputs
 from application.runtime.state.response_json import response_to_json
-from application.inbound.dto.session import MessageReceivedRequestDTO, StartSessionRequestDTO
+from application.dtos.inbound.session import MessageReceivedRequestDTO, StartSessionRequestDTO
 from application.service.session_service import SessionService
 from infrastructure.inbound.http.fastapi import SessionFastAPI
 from infrastructure.outbound.config.file_source import FileConfigSource
-from infrastructure.outbound.llm.response_mapper import read_response_json
+from application.mappers.outbound.response_mapper import read_response_json
 from test_expression import feeling
 from test_flow_golden import SCENARIOS, ScriptedLLM, TRIAGE
 from test_resume import CHECK, Script, _verdict
@@ -228,7 +228,7 @@ class TestInputs:
 
     def test_the_output_of_a_plan_can_be_read_back_unchanged(self):
         from application.runtime.flow.pipeline import Pipeline
-        from application.support.metrics import SessionMetrics
+        from application.runtime.step.metrics import SessionMetrics
         from flow_files import SPECIAL_FLOW
         from test_flow_golden import MCP_LIST
         scenario = SCENARIOS["action_with_subactions"]

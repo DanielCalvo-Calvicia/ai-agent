@@ -6,22 +6,20 @@
 #  list of fields it names a function of runtime/step/functions.py. Python stays for the `code` steps.
 # ===============================================
 
-import json
-import os
 from types import SimpleNamespace
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from domain.value_objects.llm_request.model import GoogleModels
 
 from application.runtime.state.flow_state import FlowState
+from application.support.environment import list_files, read_json
 from application.support.tools.mcp_servers import server_names
 from application.support.llm.schemas import actions_schema, load_schema_file
-from application.outbound.ports.mcp_ports import McpToolsPort
+from application.ports.outbound.mcp_ports import McpToolsPort
 from application.runtime.step import functions
 from application.runtime.step.spec import ActionPhaseSpec, PhaseSpec
 
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", ".."))
-STEP_DEFS_DIR = os.path.join(PROJECT_ROOT, "step_defs")
+STEP_DEFS_DIR = "step_defs"      # relative to the project root, read through the resource port
 
 Reads = List[Tuple[str, str, bool]]          # (the key in what the model is told, the state field, whether the field may be missing)
 
@@ -29,14 +27,11 @@ Reads = List[Tuple[str, str, bool]]          # (the key in what the model is tol
 def load_declarations(directory: str = STEP_DEFS_DIR) -> Dict[str, dict]:
     """name -> declaration of every step_defs/*.json that is valid JSON. A file that is not is left out (assemble() reports it)."""
     found: Dict[str, dict] = {}
-    if not os.path.isdir(directory):
-        return found
-    for file in sorted(os.listdir(directory)):
+    for file in list_files(directory):
         if not file.endswith(".json") or file.startswith("_"):
             continue
         try:
-            with open(os.path.join(directory, file), encoding="utf-8") as f:
-                data = json.load(f)
+            data = read_json(f"{directory}/{file}")
         except (OSError, ValueError):
             continue
         if isinstance(data, dict):
@@ -113,7 +108,8 @@ def _properties(pieces: List[dict], mcp_list: list, mcp_tools: Optional[McpTools
     properties: Dict[str, Dict[str, Any]] = {}
     for piece in pieces:
         if piece.get("mcp_servers"):                      # the actions: `server_id` may only name the servers the step may use
-            properties[piece["name"]] = actions_schema(server_names(mcp_list, mcp_tools), piece["file"])
+            # "read_only": only a server that offers a read-only tool (the fast flow has no safety gate, T-08.4)
+            properties[piece["name"]] = actions_schema(server_names(mcp_list, mcp_tools, piece["mcp_servers"] == "read_only"), piece["file"])
         else:
             properties[piece["name"]] = load_schema_file(piece["file"])[piece["key"]]
     return properties

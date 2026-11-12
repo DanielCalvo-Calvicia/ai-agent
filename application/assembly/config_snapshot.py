@@ -8,7 +8,9 @@
 
 from typing import Dict, Optional
 
-from application.outbound.ports.config_ports import ConfigError, ConfigSourcePort, Loaded
+from domain.errors.config_error import ConfigError
+from application.ports.outbound.config_ports import ConfigSourcePort
+from domain.value_objects.config.loaded import Loaded
 
 SUPPORTED_SCHEMA_VERSIONS = (1,)
 KINDS = ("profiles", "flows", "step_defs", "model_sets")

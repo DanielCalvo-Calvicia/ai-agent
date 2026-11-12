@@ -8,7 +8,7 @@
 
 from typing import Any, Callable, Dict, Optional
 
-from application.assembly.model import AssembledProfile
+from application.runtime.profile.assembled import AssembledProfile
 from application.runtime.state.response_json import INTERNAL
 from domain.entities.llm_response.response import Response
 

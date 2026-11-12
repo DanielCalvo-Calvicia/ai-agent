@@ -15,13 +15,13 @@ import re
 from typing import Any, Callable, Collection, Dict, List, Mapping, Optional, Sequence
 
 from application.assembly.config_snapshot import ConfigSnapshot
-from application.assembly.model import DEFAULT_PROFILE, Agent, AssembledProfile
+from application.runtime.profile.assembled import DEFAULT_PROFILE, Agent, AssembledProfile
 from application.runtime.flow.flow import Flow
 from application.assembly.flow_file import flow_from_file
-from application.support.llm.model_selection import ModelResolver, check_model_set
+from application.runtime.step.model_selection import ModelResolver, check_model_set
 from application.support.llm.prompt_overrides import SOURCE_KEYS, PromptOverride
 from application.support.llm.schemas import load_schema_file
-from application.outbound.ports.config_ports import ConfigError
+from domain.errors.config_error import ConfigError
 from application.runtime.step import functions as step_functions
 from application.runtime.step.catalog import PHASES
 from application.runtime.flow.conditions import CONDITIONS
@@ -34,7 +34,8 @@ RETURNS = ("text", "full")
 TOKEN_HASH = re.compile(r"^[0-9a-f]{64}$")        # the SHA-256 of the token, in hex
 
 PROFILE_KEYS = {"schema_version", "name", "about", "token_sha256", "flow", "steps", "inputs", "default_return", "models", "tools",
-                "settings", "overrides", "flows", "initial_state", "tested"}
+                "settings", "overrides", "flows", "initial_state", "tested", "result_from", "on_pause", "on_resume"}
+OWN_FLOW_KEYS = ("result_from", "on_pause", "on_resume")      # what a profile that lists its own steps says about them, as a flow file does (T-08.10)
 INPUT_KEYS = {"requires", "accepts"}
 SETTING_KEYS = {"history_turns": int, "max_mcp_calls_per_message": int}
 OVERRIDE_KEYS = {"models", "tools", "prompt_replace", "prompt_append"}
@@ -102,10 +103,21 @@ class _Assembly:
             if assembled is not None and f"profiles/{name}" not in self.problems:
                 profiles[name] = assembled
         flows = {name: flow_from_file(name, data) for name, data in self.snapshot.flows.items() if f"flows/{name}" not in self.problems}
+        for name, assembled in profiles.items():            # a profile that lists its own steps: its anonymous flow, named like the profile (T-08.10)
+            if assembled.flow_name is None:
+                assembled.flow = flow_from_file(name, self._own_flow(assembled.definition))
         step_defs = {name: data for name, data in self.snapshot.step_defs.items() if f"step_defs/{name}" not in self.problems}
         step_prompts = {name: self.snapshot.prompt(d["prompt"]["file"]) for name, d in step_defs.items()
                         if d.get("kind") in (LLM, LLM_PER_ACTION) and isinstance(d.get("prompt"), dict) and "file" in d["prompt"]}
         return Agent(profiles, self.problems, flows, step_defs, step_prompts)
+
+    @staticmethod
+    def _own_flow(definition: dict) -> dict:
+        """The data of a flow file for the steps a profile lists: the same keys, `result_from` the last step when the profile says none."""
+        steps = definition["steps"]
+        last = steps[-1]["step"] if isinstance(steps[-1], dict) else steps[-1]
+        return {"steps": steps, "result_from": definition.get("result_from", last), "on_pause": definition.get("on_pause"),
+                "on_resume": definition.get("on_resume")}
 
     def _problem(self, key: str, message: str) -> None:
         self.problems.setdefault(key, []).append(f"{key}.json: {message}" if "/" in key and not message.startswith(key) else message)
@@ -343,6 +355,9 @@ class _Assembly:
         if (flow is None) == (steps is None):
             self._problem(key, "a profile has `flow` or `steps`, not both and not neither")
             return None
+        for own in OWN_FLOW_KEYS:
+            if own in data and steps is None:
+                self._problem(key, f"{own} belongs to a profile that lists its own `steps`; the flow file {flow!r} says it for this profile")
 
         returned = data.get("default_return", "text")
         if returned not in RETURNS:
@@ -371,10 +386,10 @@ class _Assembly:
         except KeyError as error:
             self._problem(key, f"unknown model set {error.args[0]!r}")
 
-        flow_name, step_names, declared = self._resolve_flow(key, flow, steps)
+        flow_name, step_names, declared = self._resolve_flow(key, flow, steps, data)
         if declared:
-            self._check_data_flow(key, flow_name, step_names, requires, initial)
-            self._check_models(key, flow_name or "", step_names, resolver)
+            self._check_data_flow(key, flow_name, step_names, requires, initial, data.get("result_from") if steps is not None else None)
+            self._check_models(key, flow_name if flow_name is not None else name, step_names, resolver)
         prompts = self._prompt_overrides(key, data.get("overrides") or {}, step_names if declared else None)
         return AssembledProfile(name, data, flow_name, step_names, resolver, returned, requires, accepts, prompts,
                                 self._profile_hash(data, flow_name, prompts))
@@ -461,14 +476,15 @@ class _Assembly:
             if expected and (isinstance(value, bool) or not isinstance(value, expected) or value < 0):
                 self._problem(key, f"settings.{setting} must be a whole number, zero or more")
 
-    def _resolve_flow(self, key: str, flow: Any, steps: Any):
+    def _resolve_flow(self, key: str, flow: Any, steps: Any, data: Optional[dict] = None):
         """(the name of the flow or None, the steps in order, whether they are declared as data). Reports an unknown flow or step."""
         if steps is not None:                                         # the profile lists its own steps: an anonymous flow
             if not isinstance(steps, list) or not steps:
                 self._problem(key, "steps must be a list of steps")
                 return None, [], False
             last = steps[-1]["step"] if isinstance(steps[-1], dict) else steps[-1]
-            self._check_flow_steps(key, steps, None, None, last)
+            own = data or {}
+            self._check_flow_steps(key, steps, own.get("on_pause"), own.get("on_resume"), own.get("result_from", last))
             return None, [(s["step"] if isinstance(s, dict) else s) for s in steps], True
 
         if flow in self.snapshot.flows:
@@ -498,7 +514,8 @@ class _Assembly:
             return definition.get("kind")
         return self.registry[step].kind if step in self.registry else None
 
-    def _check_data_flow(self, key: str, flow_name: Optional[str], steps: List[str], requires: List[str], initial: dict) -> None:
+    def _check_data_flow(self, key: str, flow_name: Optional[str], steps: List[str], requires: List[str], initial: dict,
+                         result_from: Optional[str] = None) -> None:
         """Every step reads only what an input, an initial value or an earlier step provides; the result carries a user_goal."""
         if any(self._declaration(step) is None for step in steps):
             return                                                    # a step with no declaration: nothing can be said (until T-05.16)
@@ -512,7 +529,7 @@ class _Assembly:
                                        f"no required input gives it and no initial_state gives it")
             available |= {w.rstrip("?") for w in definition["writes"]}
 
-        result = self._result_step(flow_name, steps)
+        result = result_from or self._result_step(flow_name, steps)
         declaration = self._declaration(result) if result in steps else None
         if declaration is not None and self._kind(result) != CODE and "user_goal" not in declaration["writes"]:
             self._problem(key, f"the result step {result!r} does not write user_goal: the session keeps the input and the output of a request in it")

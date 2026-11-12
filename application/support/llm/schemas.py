@@ -1,16 +1,16 @@
 # ===============================================
 #  RESPONSE SCHEMAS
 #  The JSON Schemas the LLM must follow, by name.
-#  Read from schema/response next to the project, not from the working directory.
+#  Read from schema/response through the resource port (application/support/environment.py), not from the working directory.
 # ===============================================
 
 import copy
-import json
-import os
 from dataclasses import dataclass
 from typing import Any, Dict, Sequence
 
-SCHEMAS_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', 'schema', 'response')
+from application.support.environment import read_json
+
+SCHEMAS_ROOT = "schema/response"      # relative to the project root, read through the resource port
 
 # The actions schema file. Every phase that plans or processes actions names it in its own constants.
 ACTIONS_SCHEMA_FILE = "general/actions/actions.schema.json"
@@ -41,8 +41,7 @@ _cache: Dict[str, Dict[str, Any]] = {}
 def load_schema_file(file: str) -> Dict[str, Any]:
     """The full schema file, relative to SCHEMAS_ROOT. Each call returns its own copy."""
     if file not in _cache:
-        with open(os.path.join(SCHEMAS_ROOT, file), 'r', encoding='utf-8') as f:
-            _cache[file] = json.load(f)
+        _cache[file] = read_json(f"{SCHEMAS_ROOT}/{file}")
 
     return copy.deepcopy(_cache[file])
 

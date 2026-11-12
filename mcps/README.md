@@ -1,6 +1,6 @@
 # mcps/
 
-One JSON file per group of MCP (Model Context Protocol) servers the agent may call as tools. Read at start by `infrastructure/outbound/mcp/config.py`. A **profile** decides which of these servers a step may use (`tools` in [profiles/README.md](../profiles/README.md)); this folder only says **what exists and how to reach it**.
+One JSON file per group of MCP (Model Context Protocol) servers the agent may call as tools. Read at start by `infrastructure/outbound/mcp/config/loader.py`. A **profile** decides which of these servers a step may use (`tools` in [profiles/README.md](../profiles/README.md)); this folder only says **what exists and how to reach it**.
 
 This folder is not read through the configuration source of the other four (no `schema_version`, no `name` check), and **a file whose name starts with `_` is still loaded** here (it is not skipped as in `profiles/` or `flows/`). To disable a server, move the file out of the folder or remove its `url` variable.
 
@@ -58,7 +58,7 @@ How tool names are written in a profile (checked by `scripts/check_agent.py`):
 
 - **Read-only is a rule of the service, not of this file.** Keep `allowed_tools` to tools that cannot change data. Never add a server that can write without a decision (ADR-011).
 - Each tool call may take `AI_AGENT_MCP_CALL_TIMEOUT_SECONDS` (30); the calls of one message may wait 60 s in total; one message runs at most `AI_AGENT_MAX_MCP_CALLS_PER_MESSAGE` tool actions (5, `0` = no limit). All in [docs/configuration/environment-variables.md](../docs/configuration/environment-variables.md).
-- Personal columns of a tool answer (name, e-mail, phone, address, VAT, bank number) are replaced by `[hidden]` before the answer goes to any model, unless `AI_AGENT_MASK_PERSONAL_DATA=0` (`infrastructure/outbound/mcp/masking.py`). The masking looks for table answers with cells separated by `|` (the shape `dynamics_microservice` returns); another server's answers are not masked unless they have that shape.
+- Personal columns of a tool answer (name, e-mail, phone, address, VAT, bank number) are replaced by `[hidden]` before the answer goes to any model, unless `AI_AGENT_MASK_PERSONAL_DATA=0` (`infrastructure/outbound/mcp/execution/masking.py`). The masking looks for table answers with cells separated by `|` (the shape `dynamics_microservice` returns); another server's answers are not masked unless they have that shape.
 - **No log line, metric or span holds a tool argument or answer**: only the tool name, outcome, duration and tries.
 - `AI_AGENT_CHECK_MCP_<NAME>=1` (`<NAME>` is the server name in upper case, other characters as `_`) makes the service list that server's tools at start and on `/available`, and only logs whether it answered.
 - Servers are read **at start**: restart the service after editing a file.

@@ -1,0 +1,227 @@
+// =====================================================================================
+// PROFILE: FULL EXAMPLE (VISUALIZATION ONLY) - EVERY KEY AND EVERY POSSIBLE VALUE
+// -------------------------------------------------------------------------------------
+// WHAT IT IS : a profile is "what ONE request runs": which flow (or own steps), which models, which tools,
+//              which inputs the client may send, and small prompt/model changes per step.
+// WHERE IT LIVES : profiles/<name>.json (file name == "name" inside). Read at start by
+//              infrastructure/outbound/config/file_source.py, checked and built by
+//              application/assembly/assemble.py (PROFILE_KEYS), run by application/runtime/profile/runner.py (ProfileRunner).
+//              Token check: application/runtime/profile/access.py. Inputs: application/runtime/profile/inputs.py.
+// WHO CHOOSES IT : the CLIENT (Brain / web backend) with the `profile` + `token` fields of POST /session/message.
+//              No `profile` in the request => the profile `default` runs. The service NEVER routes between profiles.
+// HOW TO READ THIS FILE:
+//   * It is an ARRAY of the TWO possible shapes of a profile (they exclude each other):
+//       VARIANT 1 = the profile names a flow file ("flow").   VARIANT 2 = the profile has its own steps ("steps").
+//   * Where a key accepts several values/forms, every form is written; the extra ones are shown as commented lines
+//     starting with "// ALT:" (uncomment ONE to use it) and all the allowed values are listed in the comment above.
+//   * NOT loaded by the code. JSONC = JSON with // comments. Real profile files are plain JSON: NO comments there
+//     (use a key that starts with "_" for a note; it is ignored).
+// FOR AN LLM : copy the closest real file, change "name" AND the file name, run `python scripts/check_agent.py`, then
+//              `python scripts/check_agent.py --explain <name>`. Never invent a key: an unknown key is an ERROR and the
+//              profile is disabled at start. Profiles shipped: identification, chat, special, dynamics, default, movement,
+//              gesture, dynamics_fast (uses "flow") and dynamics_fast_triage (uses "steps").
+// =====================================================================================
+[
+  // ###################################################################################
+  // VARIANT 1: the profile uses a FLOW FILE (flows/<flow>.json)
+  // ###################################################################################
+  {
+    // Format version. Always the whole number 1; any other value is refused.
+    "schema_version": 1,
+
+    // Public name of the profile. MUST equal the file name without .json. It is what the client sends in `profile`,
+    // what the answer returns in `profile`, and a label in metrics/Langfuse. Renaming it changes all three.
+    "name": "full_example_flow",
+
+    // Free text for people ("what is this profile for"). Documentation only; never sent to a model.
+    "about": "What the profile is for. Documentation only; not sent to any model.",
+
+    // SHA-256 (64 lowercase hex characters) of the secret token the client must send. The service stores only the hash,
+    // hashes what the client sends and compares in constant time.
+    //   * REQUIRED for every profile EXCEPT `default` (the only one with no token; it is what a request with no `profile` runs).
+    //   * A wrong token, an unknown profile and a disabled profile all give the same generic error INVALID_PROFILE.
+    //   * 64 zeros = placeholder: no token has that hash, so nobody can use the profile until it is replaced.
+    //   * It is a guard against mistakes, NOT access control. Never write the real token in any file.
+    //   * Changing it does NOT change profile_hash (anything else does).
+    // Generate: python -c "import secrets,hashlib; t=secrets.token_hex(32); print(t); print(hashlib.sha256(t.encode()).hexdigest())"
+    "token_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+
+    // The flow to run: the NAME of a file in flows/. Possible values today:
+    //   "identification" (triage alone) | "conversation" (draft writer, editor) | "special" (triage, plan, gate, execute, write, edit)
+    //   | "movement" (motion planner, validator) | "expression" (emotion reader, gesture builder) | "fast" (selector, caller, writer)
+    // The flow says WHAT runs and in WHAT ORDER; many profiles can share one flow.
+    // Exactly ONE of "flow" / "steps" must be present. With "flow", the keys "result_from", "on_pause" and "on_resume" are NOT allowed here.
+    "flow": "special",
+
+    // Models of EVERY step of this profile (level 4 of 5 of the precedence order, see the end of this block).
+    // Two forms: a MODEL SET name (a file of model_sets/) or a LIST of model ids (first answers, the rest = fallback after a lack of capacity).
+    // Set names today: proven | claude_haiku | claude_fast | claude_mixed | claude_sonnet | google_free | balanced | budget | budget50 | budget50_groq | quality
+    // Without any level, each step uses its own default_models (a Google model).
+    // A model id must exist in the catalog (domain/value_objects/llm_request/model_catalog.py) and its provider key in the environment.
+    "models": "claude_mixed",
+    // ALT (a list of ids, the whole list is used):
+    // "models": ["claude-haiku-4-5", "gemini-3.1-flash-lite"],
+
+    // Upper limit of the MCP tools every step of this profile may use. An object with two optional lists:
+    //   "servers": names (keys) of servers in mcps/ -> EVERY tool of that server (the server must exist, any type).
+    //   "tools"  : "server.tool" (the server must list it in allowed_tools), or a bare tool name when only ONE server owns it.
+    // The four ways to write it:
+    //   * NO "tools" key at all, or null  -> NO limit: every available server (only `special` does this).
+    //   * {}  or  {"servers": []}         -> NO tool at all.
+    //   * {"servers": [...]}              -> every tool of those servers.
+    //   * {"tools": [...]}                -> only those tools.
+    // It is INTERSECTED with every other level (flows.<flow>.tools, the flow file's tools, a step's tools in the flow file,
+    // overrides.<step>.tools): a lower level can narrow, never widen. Enforced at run time by ToolScope +
+    // MCPToolExecutor.execute(scope=): a tool outside the scope is refused. Checked against mcps/ by check_agent.py
+    // (unknown server, unknown tool, a bare name two servers own, "server.tool" of a server with no allowed_tools = errors).
+    "tools": {
+      "servers": ["dynamics_microservice"],
+      "tools": ["dynamics_microservice.customer_orders", "customer_card"]
+    },
+    // ALT (no tools at all):  "tools": { "servers": [] },
+    // ALT (no limit):         leave the key out, or  "tools": null,
+
+    // The state fields the CLIENT may hand to this profile in the request's `inputs` (chaining: identification -> chat -> gesture).
+    // Inputs are DATA, never instructions: they fill state fields and are never pasted into a prompt as text of the client.
+    // No "inputs" key = the profile accepts none (any `inputs` in the request is refused with INVALID_INPUT).
+    // Names must be fields of config/state_fields.json (the closed catalog). What a client can REALLY send:
+    //   structured (same code and checks as a model answer): intent, user_goal, mcp_routing, task_category, actions,
+    //                missing_information, constraints, safety_and_validation, next_step
+    //   plain values: reply (text), speech_seconds (number)
+    // Listing any other catalog field (message, history, answers, motion_requested, movements, motion_rejection, spoken_reply,
+    // speak_movements, emotion, intensity, improvised) passes the check but every request that sends it gets INVALID_INPUT.
+    // The data-flow check counts "requires" as available to the steps (that is how `chat` skips the triage).
+    "inputs": {
+      // MUST be sent; a missing one is refused with MISSING_INPUT BEFORE any model is called.
+      "requires": ["user_goal", "task_category"],
+      // MAY be sent. A field in neither list is refused with INVALID_INPUT.
+      "accepts": ["intent", "mcp_routing", "actions", "missing_information", "constraints", "safety_and_validation", "next_step", "reply", "speech_seconds"]
+    },
+
+    // What the answer carries when the request has no `return` field. The request's `return` overrides it.
+    //   "text" (default) : only the reply text.
+    //   "full"           : the whole Response (classification, actions...). Used by `identification`, whose client reads the classification.
+    "default_return": "full",
+
+    // Changes for ONE step in EVERY flow of this profile. Key = step name. Valid step names: any step that has a model or a prompt
+    // and is in the flow: triage_specialist, project_manager, safety_quality_gatekeeper, cognitive_worker, mcp_operator, data_engineer,
+    // draft_writer, editor_in_chief, motion_planner, emotion_reader, tool_selector, answer_writer.
+    // CODE steps (action_executor, motion_validator, gesture_builder, tool_caller) and `user_clarification` / `answer_checker`
+    // prompts CANNOT be overridden. A per-action step counts when the flow has action_executor.
+    // Only these four keys are accepted inside a step. Any override changes profile_hash.
+    "overrides": {
+      "draft_writer": {
+        // Models for this step only (level 2). Same two forms as the profile's "models": a set name or a list of ids.
+        "models": ["claude-sonnet-5-5", "claude-haiku-4-5"],
+        // ALT: "models": "claude_haiku",
+
+        // Tool limit for this step only; same object as the profile's "tools"; can only narrow.
+        "tools": { "servers": [] },
+
+        // REPLACES the step's own prompt. Applied FIRST. Exactly ONE of the two forms, non-empty:
+        //   {"file": "prompts/..."}  a file INSIDE prompts/ (convention: prompts/profiles/<profile>/<step>.txt; ".." is refused)
+        //   {"text": "..."}          the text itself
+        // The generic rules (prompts/0_generic_prompt.txt), capabilities.txt and the date ALWAYS stay IN FRONT, and the ANSWER SCHEMA
+        // is always the step's: a profile can NEVER change the format of an answer. Applied in PhaseRunner (T-05.14).
+        "prompt_replace": { "file": "prompts/profiles/full_example/draft_writer.txt" },
+        // ALT: "prompt_replace": { "text": "You write the reply in two sentences." },
+
+        // ADDS text AFTER the prompt (after the replace, if any), separated by a blank line. Same two forms as prompt_replace.
+        // `special` and `dynamics` use it for the tool rules of the writer and the planner.
+        "prompt_append": { "text": "Always answer in Catalan." }
+        // ALT: "prompt_append": { "file": "prompts/profiles/tools/draft_writer.txt" }
+      }
+    },
+
+    // Changes for ONE FLOW (or one step INSIDE one flow). Key = the flow name (for a profile with "steps": the profile's own name).
+    // Only "models", "tools" and "steps" are accepted.
+    "flows": {
+      "special": {
+        // Models for every step of this flow (level 3). A set name or a list of ids.
+        "models": ["claude-haiku-4-5"],
+        // Tool limit for the whole flow (intersected with the profile's).
+        "tools": { "servers": ["dynamics_microservice"] },
+        // Per step in this flow only (level 1, the MOST specific). Only "models" is accepted here.
+        "steps": {
+          "project_manager": { "models": ["claude-sonnet-5-5"] }
+        }
+      }
+    },
+
+    // Whole numbers >= 0. CHECKED BUT NOT APPLIED YET: the service still uses the environment variables
+    // AI_AGENT_HISTORY_TURNS (default 6) and AI_AGENT_MAX_MCP_CALLS_PER_MESSAGE (default 5, 0 = no limit) for every profile.
+    "settings": {
+      "history_turns": 6,
+      "max_mcp_calls_per_message": 5
+    },
+
+    // State fields a run starts with: { "<field of config/state_fields.json>": value }. CHECKED BUT NOT APPLIED YET.
+    // The value type follows the field (see step_defs.full.example.jsonc for the field list). Also counted by the data-flow check.
+    "initial_state": {
+      "constraints": {}
+    },
+
+    // null, or the date "YYYY-MM-DD" of the last REAL run (scripts/run_profile.py writes it). A note only:
+    // it does not change profile_hash. Leave null for a new profile.
+    "tested": null
+    // ALT: "tested": "2026-11-11"
+
+    // PRECEDENCE of models for one step (the most specific wins; the WHOLE list is replaced, never merged):
+    //   1. flows.<flow>.steps.<step>.models   2. overrides.<step>.models   3. flows.<flow>.models   4. models   5. the step's default_models
+    // PRECEDENCE of tools: the INTERSECTION of profile.tools, flows.<flow>.tools, the flow file's tools, the step's tools in the
+    // flow file, overrides.<step>.tools.
+  },
+
+  // ###################################################################################
+  // VARIANT 2: the profile has its OWN STEPS (an anonymous flow written in the profile; T-08.10, ADR-019)
+  // Same keys as variant 1 except "flow" is replaced by "steps" and three keys become allowed.
+  // Its flow is NAMED LIKE THE PROFILE (the `flow` of the answer, the metrics, and `flows.<profile name>` overrides).
+  // ###################################################################################
+  {
+    "schema_version": 1,
+    "name": "full_example_steps",
+    "about": "A profile with its own steps. No flow file.",
+    "token_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+
+    // The profile's own ordered steps. Same entries as "steps" of a flow file (see flows.full.example.jsonc): a step NAME or an object
+    // {step, pause_if, retry_on_status, tools}. Non-empty. Do NOT write it together with "flow".
+    "steps": [
+      // Object form with BOTH rules:
+      //   pause_if "needs_user_input" (the ONLY value): after the step, if next_step.status is awaiting_user_input or
+      //     awaiting_confirmation, STOP and ASK the user; the next message of the same profile resumes at this step.
+      //   retry_on_status true|false (default false): run the step again while its status is retry/error (max 3 tries in total).
+      { "step": "triage_specialist", "pause_if": "needs_user_input", "retry_on_status": true },
+      // Object form with a tool limit for this step only:
+      { "step": "tool_selector", "pause_if": "needs_user_input", "retry_on_status": false, "tools": { "servers": ["dynamics_microservice"] } },
+      // Plain name = a step with no rules. tool_caller is CODE (no model): it calls the tool the selector chose.
+      "tool_caller",
+      "answer_writer"
+    ],
+
+    // ONLY with "steps". The step whose result is the profile's result. MUST be one of the steps. Default: the LAST step.
+    // It decides the KIND of answer: triage_specialist -> classification only | motion_validator -> spoken line + movements |
+    // gesture_builder -> a gesture | any other step -> the final text it left in user_goal (an LLM result step MUST write user_goal).
+    "result_from": "answer_writer",
+
+    // ONLY with "steps". Hook run when a step asks the user: turns the missing data into ONE question.
+    // The ONLY value: "user_clarification". REQUIRED when any step has pause_if (otherwise it fails at RUN time, the check does not catch it).
+    "on_pause": "user_clarification",
+
+    // ONLY with "steps". Hook run on the user's NEXT message of the same profile: decides if it answers the question, confirms,
+    // declines or stops. The ONLY value: "answer_checker". REQUIRED for any profile that can ask.
+    "on_resume": "answer_checker",
+
+    // All the rest is exactly as in variant 1: models, tools, inputs, default_return, overrides, flows, settings, initial_state, tested.
+    "models": "claude_fast",
+    "tools": { "servers": ["dynamics_microservice"] },
+    // For a client that sends ONLY the message the profile has NO "inputs" (the triage is one of its own steps).
+    "default_return": "text",
+    "overrides": {
+      "tool_selector": { "prompt_append": { "file": "prompts/profiles/dynamics_fast/tool_selector.txt" } },
+      "answer_writer": { "prompt_append": { "file": "prompts/profiles/tools/draft_writer.txt" } }
+    },
+    // Here the flow key is the PROFILE's own name:
+    "flows": { "full_example_steps": { "steps": { "tool_selector": { "models": ["claude-haiku-4-5"] } } } },
+    "tested": null
+  }
+]

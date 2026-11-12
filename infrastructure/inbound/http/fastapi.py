@@ -5,12 +5,12 @@ import anyio.to_thread
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
-from application.inbound.dto.session import (
+from application.dtos.inbound.session import (
     EndSessionRequestDTO,
     MessageReceivedRequestDTO,
     StartSessionRequestDTO,
 )
-from application.inbound.ports.session import SessionInboundPort
+from application.ports.inbound.session import SessionInboundPort
 from contracts.api.microservices.ai_agent.decision import MotorDirective
 from contracts.api.microservices.ai_agent.session import (
     AIAgentEndSessionResponse,

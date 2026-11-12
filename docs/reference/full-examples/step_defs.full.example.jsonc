@@ -1,0 +1,269 @@
+// =====================================================================================
+// STEP DEFINITION: FULL EXAMPLE (VISUALIZATION ONLY) - EVERY KEY AND EVERY POSSIBLE VALUE
+// -------------------------------------------------------------------------------------
+// WHAT IT IS : the declaration of ONE step: its prompt, answer shape, default model, and which state fields it reads/writes.
+//              Adding an LLM step = one JSON file + one prompt (tests/test_step_declarations.py, tests/test_phase_structure.py).
+// WHERE IT LIVES : step_defs/<name>.json (file name == "name"). Read through infrastructure/outbound/config/file_source.py,
+//              checked by application/assembly/assemble.py, turned into a PhaseSpec by application/runtime/step/declared.py,
+//              run by application/runtime/step/runner.py (PhaseRunner). Functions named here live in
+//              application/runtime/step/functions.py. Code steps live in application/runtime/step/library/<group>/ and register
+//              themselves in application/runtime/step/registry.py; catalog.py reads the registry.
+// WHO USES IT : flows (a "step" entry), model sets (the name becomes a valid key), profiles' "overrides", metrics, check_agent.py.
+// HOW TO READ THIS FILE: an ARRAY of FIVE objects, one per SHAPE a declaration can have (the three kinds, and the three forms of "answer"):
+//     1. kind "llm" with answer "pieces"      2. kind "llm" with answer "schema" (inline)     3. kind "llm" with answer "schema_file"
+//     4. kind "llm_per_action"                 5. kind "code"
+//   Every key says which kinds accept it with a tag: [all] [llm] [llm_per_action] [code]. All allowed values are listed in comments.
+// NOT LOADED. JSONC = JSON with // comments; real files are plain JSON (no comments).
+// FOR AN LLM : never invent a state field or a function name: both are CLOSED catalogs (config/state_fields.json,
+//              runtime/step/functions.py). A changed prompt/schema/model changes the golden file: read the diff, then regenerate on
+//              purpose (UPDATE_GOLDEN=1). Keep prompts, schemas and domain/ in sync (docs/rules/schemas-and-prompts.md).
+//              A declaration with a problem makes EVERY flow that uses it unusable. Run `python scripts/check_agent.py`.
+// =====================================================================================
+[
+  // ###################################################################################
+  // 1. kind "llm" - ONE model call, a step of a flow. Answer built from PIECES (the usual way)
+  // ###################################################################################
+  {
+    // [all] Format version. Always 1.
+    "schema_version": 1,
+
+    // [all] Step name. MUST equal the file name. It is the name used in flows, model sets, profile overrides, metrics, check_agent.py.
+    "name": "project_manager",
+
+    // [all] Free text, documentation only.
+    "about": "Documentation only.",
+
+    // [all] ALL values: "llm" (one model call; a step of a flow) | "llm_per_action" (one call PER planned action; only inside
+    // action_executor, NEVER listed in a flow) | "code" (no model).
+    "kind": "llm",
+
+    // [llm, llm_per_action, code] Old phase number: a LABEL for failures, metrics and table order. A whole number, UNIQUE across all steps.
+    // TAKEN: 1 triage_specialist, 2 project_manager, 3 safety_quality_gatekeeper, 4 cognitive_worker, 5 mcp_operator, 6 data_engineer,
+    // 7 draft_writer, 8 editor_in_chief, 9 answer_checker (runtime), 20 motion_planner, 21 motion_validator, 30 emotion_reader,
+    // 31 gesture_builder, 40 action_executor, 50 tool_selector, 51 answer_writer, 52 tool_caller, 99 user_clarification (runtime).
+    "legacy_id": 2,
+
+    // [llm, llm_per_action, code] The family the step sorts with (labels, order of tables; GROUP_ORDER in runtime/step/registry.py).
+    // NOT a permission. ALL values: "identification" | "common" | "special" | "movement" | "expression" | "fast".
+    "group": "special",
+
+    // [llm, llm_per_action] The step's prompt. ONLY {"file": ...} is supported (an inline text is REFUSED); the file must exist
+    // inside the project, by convention prompts/<id>_<name>.txt. The engine puts IN FRONT: prompts/0_generic_prompt.txt,
+    // capabilities.txt and the date. A profile can append to / replace it (overrides.<step>.prompt_*), NEVER the schema.
+    "prompt": { "file": "prompts/2_project_manager.txt" },
+
+    // [llm, llm_per_action] The LAST level of the model order (profile flows.<flow>.steps.<step>.models > overrides.<step>.models >
+    // flows.<flow>.models > models > this). The FIRST must be a Google model of the catalog (it also defines the step's cost row);
+    // ONLY the first is used (fallbacks belong in a model set or a profile).
+    "default_models": ["gemini-3.6-flash"],
+
+    // [llm, llm_per_action] The intent label sent with the call. No other key is allowed. Copy it from a similar step.
+    "intent": {
+      // text, e.g. "decision_support"
+      "primary": "decision_support",
+      // list of texts, may be empty, e.g. ["information_request"]
+      "secondary": ["information_request"],
+      // number between 0 and 1
+      "confidence": 0.9
+    },
+
+    // [llm, llm_per_action] Name of the answer format sent to the model; non-empty. Convention: <step>_phase<id>_response_format.
+    "format_name": "project_manager_phase2_response_format",
+
+    // [llm, llm_per_action] The shape of the model's answer. EXACTLY ONE of three forms (objects 1, 2 and 3 of this file show each).
+    // FORM "pieces": build the answer from existing pieces of schema/response/.
+    "answer": {
+      // Names of pieces (every name must be in "pieces").
+      "required": ["actions", "next_step", "task_category_complexity"],
+      // Must not be empty.
+      "pieces": [
+        {
+          // The property name in the model's answer.
+          "name": "actions",
+          // A file under schema/response/ (path relative to it). ALL the pieces that exist are listed at the end of this file.
+          "file": "general/actions/actions.schema.json",
+          // The property INSIDE that file (default: "name"; the file must contain it).
+          "key": "actions",
+          // Optional, true | false (default false). true makes it the ACTIONS piece: the allowed values of `server_id` become the MCP
+          // servers the step may use in that run (how the planner can only name allowed servers).
+          "mcp_servers": true
+        },
+        { "name": "next_step", "file": "general/next_steps/next_step.schema.json", "key": "next_step" },
+        { "name": "task_category_complexity", "file": "general/task_category/task_category.complexity.schema.json", "key": "complexity" }
+      ]
+    },
+
+    // [all] State fields the step READS = what the model is TOLD. ALL the fields exist in config/state_fields.json (closed catalog;
+    // the list is at the end of this file). Always available: message, history, answers. A step may only read what the profile's
+    // inputs.requires, initial_state or an EARLIER step provides (data-flow check; the error names both ends).
+    // REQUIRED unless functions.input is given. Three ways to write an entry:
+    "reads": [
+      // 1. "field"  : the field, told to the model under the same name.
+      "user_goal",
+      // 2. "field?" : the field MAY be missing; no earlier step has to write it.
+      "actions?",
+      // 3. {"name_for_the_model": "state_field"} : rename only; the model is told `message` under the name `user_message`.
+      { "user_message": "message" }
+    ],
+
+    // [all] Where the answer goes: state fields. A plain name = copied from the parsed answer under the SAME name (a name the answer
+    // does not carry is NOT caught by the check; only a run shows it). "field?" is also accepted. Write both lists always.
+    "writes": ["actions", "next_step"],
+
+    // [llm] true | false (default false). false: a field is written only if the answer's value is not empty. true: written even when
+    // empty (planner and gate use it, so an empty plan replaces an old one).
+    "write_always": true,
+
+    // [llm, llm_per_action] Named PYTHON functions (never code in the JSON) for when plain reads/writes are not enough.
+    // An unknown slot or name is an error. A NEW function is a code change + a test in runtime/step/functions.py.
+    // Do not copy a name onto a step it was not written for (planner_input adds the available MCP servers).
+    "functions": {
+      // What the model is told. ALL values: "message_with_history" (triage, motion_planner) | "planner_input" (project_manager) |
+      // "safety_input" (safety_quality_gatekeeper) | "exchange_text" (emotion_reader)
+      "input": "planner_input",
+      // How the answer is stored. ALL values: "load_from_response" (triage_specialist) | "motion_plan_result" (motion_planner) |
+      // "emotion_result" (emotion_reader)
+      "apply": "load_from_response",
+      // What a PER-ACTION step is told besides the action. ALL values: "worker_extra" (cognitive_worker) | "operator_extra" (mcp_operator)
+      "extra": "operator_extra"
+    },
+
+    // [all] CHECKED against mcps/ but NOT APPLIED at run time. The tool scope is built from the profile, the flow file and
+    // overrides.<step>.tools. Put the limits there.
+    "tools": { "servers": ["dynamics_microservice"] },
+
+    // [all] RESERVED for a future data policy (Q07-16). Only its shape is checked; NOTHING reads it. Do not rely on it.
+    "data": { "reads": ["example"] }
+  },
+
+  // ###################################################################################
+  // 2. kind "llm" - answer written INLINE as a whole JSON Schema ("schema")
+  // ###################################################################################
+  {
+    "schema_version": 1,
+    "name": "inline_schema_example",
+    "kind": "llm",
+    "legacy_id": 60,
+    "group": "common",
+    "prompt": { "file": "prompts/60_inline_schema_example.txt" },
+    "default_models": ["gemini-3.1-flash-lite"],
+    "intent": { "primary": "information_request", "secondary": [], "confidence": 0.8 },
+    "format_name": "inline_schema_example_phase60_response_format",
+    // FORM "schema": a whole JSON Schema object written here ("required", "properties"). With Claude models it may nest at most 3 levels
+    // (checked for every Claude model a profile puts on the step: "unsupported ... cannot run").
+    "answer": {
+      "schema": {
+        "type": "object",
+        "required": ["example"],
+        "additionalProperties": false,
+        "properties": { "example": { "type": "string", "description": "What the model must put here." } }
+      }
+    },
+    "reads": ["message"],
+    "writes": ["user_goal"]
+  },
+
+  // ###################################################################################
+  // 3. kind "llm" - answer is a whole schema FILE ("schema_file")
+  // ###################################################################################
+  {
+    "schema_version": 1,
+    "name": "schema_file_example",
+    "kind": "llm",
+    "legacy_id": 61,
+    "group": "common",
+    "prompt": { "file": "prompts/61_schema_file_example.txt" },
+    "default_models": ["gemini-3.1-flash-lite"],
+    "intent": { "primary": "information_request", "secondary": [], "confidence": 0.8 },
+    "format_name": "schema_file_example_phase61_response_format",
+    // FORM "schema_file": the path of a whole schema under schema/response/ (relative to it).
+    // schema/response/general/full.schema.json is the ONE file edited by hand; every other file is generated by
+    // `python scripts/split_schemas.py --write` (tests/test_schema_tree.py fails on drift).
+    "answer": { "schema_file": "general/actions/actions.schema.json" },
+    "reads": ["message"],
+    "writes": ["actions"]
+  },
+
+  // ###################################################################################
+  // 4. kind "llm_per_action" - ONE model call PER planned action; runs ONLY inside action_executor, NEVER listed in a flow
+  // Today: cognitive_worker (an action that needs no tool), mcp_operator (a tool call), data_engineer (cleans a tool result).
+  // A NEW per-action step ALSO needs Python in action_executor to be called: a declaration alone does not make it run.
+  // Same keys as an "llm" step, plus "for_each"; "answer" MUST be the actions schema file.
+  // ###################################################################################
+  {
+    "schema_version": 1,
+    "name": "mcp_operator",
+    "about": "Runs one MCP tool action with the tools its scope allows (one call per action).",
+    "kind": "llm_per_action",
+    "legacy_id": 5,
+    "group": "special",
+    "prompt": { "file": "prompts/5_mcp_operator.txt" },
+    "default_models": ["gemini-3.6-flash"],
+    "intent": { "primary": "decision_support", "secondary": [], "confidence": 0.9 },
+    "format_name": "phase5_single_action_response_format",
+    // REQUIRED form: schema_file = the ACTIONS schema file.
+    "answer": { "schema_file": "general/actions/actions.schema.json" },
+    // [llm_per_action] REQUIRED; the ONLY value: "actions" = run once per action.
+    "for_each": "actions",
+    "reads": ["safety_and_validation", "actions"],
+    "writes": ["actions"],
+    "functions": { "extra": "operator_extra" }
+  },
+
+  // ###################################################################################
+  // 5. kind "code" - NO model, NO prompt, NO answer, NO intent, NO default_models, NO format_name
+  // It needs a Python file application/runtime/step/library/<group>/<name>.py with the constants at its top
+  // (PHASE_ID, STEP_NAME, LLM = False) and register_step(__name__, "code"), plus this declaration.
+  // ###################################################################################
+  {
+    "schema_version": 1,
+    "name": "tool_caller",
+    "about": "The fast flow: calls the tool the selector chose, in code, and keeps its answer as the output of the action. No model.",
+    "kind": "code",
+    "legacy_id": 52,
+    "group": "fast",
+    "reads": ["actions"],
+    "writes": ["actions"],
+    // [code] REQUIRED. The name of an existing Python code step. ALL values today:
+    //   "action_executor" | "motion_validator" | "gesture_builder" | "tool_caller"
+    "function": "tool_caller"
+  }
+
+  // ###################################################################################
+  // REFERENCE LISTS (everything a declaration may point to)
+  // ###################################################################################
+  // STATE FIELDS (config/state_fields.json) for "reads" / "writes". The state a flow starts with depends on its steps:
+  // a flow that contains motion_planner starts a MOTION state, one that contains emotion_reader an EXPRESSION state, any other the
+  // GENERAL state. Do not mix families in one flow. Reading a field of another family fails at RUN time, not in the check.
+  //   ALWAYS (every state)      : message (text, what the user said) | history (earlier turns) | answers (what the user said when the flow stopped to ask)
+  //   GENERAL / all states      : intent | user_goal | mcp_routing | task_category | actions | missing_information | constraints |
+  //                               safety_and_validation | next_step
+  //   MOTION state only         : motion_requested (bool) | motion_rejection (text or none) | spoken_reply (text) | speak_movements (bool)
+  //   MOTION and EXPRESSION     : movements (list of movements)
+  //   EXPRESSION state only     : reply (text the robot answers) | speech_seconds (number) | emotion (text) | intensity (whole number) |
+  //                               improvised (list of movements)
+  //
+  // SCHEMA PIECES you can reuse in answer.pieces[].file (folders of schema/response/; each folder also has its sub-pieces):
+  //   general/intent/intent.schema.json                          (keys: intent; sub: primary, secondary, confidence)
+  //   general/user_goal/user_goal.schema.json                    (sub: summary, expected_outcome)
+  //   general/mcp_routing/mcp_routing.schema.json                (sub: required_servers)
+  //   general/task_category/task_category.schema.json            (sub: type, domain, complexity)
+  //        type   values: analysis | design | generation | modification | validation | classification | orchestration
+  //        domain values: software | data | writing | design | research | operations | communication | system | movement
+  //        complexity values: low | medium | high
+  //   general/actions/actions.schema.json                        (sub: id, description, action_type, dependencies, mcp_context{server_id,
+  //                                                               tool_name, parameters}, required_inputs, output, error, subactions)
+  //        action_type values: analysis | generation | transformation | decision | retrieval | clarification | mcp_tool_call
+  //   general/missing_information/missing_information.schema.json (sub: field, why_needed, blocking)
+  //   general/constraints/constraints.schema.json                (sub: format, language, length, tone)
+  //   general/safety_and_validation/safety_and_validation.schema.json (sub: sensitive, requires_confirmation)
+  //   general/next_steps/next_step.schema.json                   (sub: status, ready_to_execute, blocking_reason, requested_user_input,
+  //                                                               retry_action_id, recommended_action)
+  //        status values: proceed | awaiting_user_input | awaiting_confirmation | retry | error | complete
+  //   motion/is_motion_request.schema.json | motion/movements/movements.schema.json (arm, direction, degrees) | motion/spoken_reply.schema.json
+  //   expression/emotion.schema.json | expression/intensity.schema.json | expression/improvised/improvised.schema.json (arm, direction, degrees)
+  //
+  // The tag is [all] when a key is accepted by every kind. `tools` and `data` are accepted by every kind but have NO effect.
+  // After changing any piece: edit ONLY schema/response/general/full.schema.json (or the motion/expression one), then
+  // `python scripts/split_schemas.py --write`, then keep domain/, the prompt and the golden file in sync.
+]

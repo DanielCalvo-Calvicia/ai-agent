@@ -29,16 +29,16 @@ A request that needs at most one read-only tool call is answered by a flow of th
 | Order | Task | Kind | Status |
 |---|---|---|---|
 | 1 | [T-08.1 Decisions](T-08.1_decisions.md) | decision | done (2026-11-11) |
-| 2 | [T-08.2 `duration_ms` in the LLM call record](T-08.2_duration-ms.md) | code | todo |
-| 3 | [T-08.3 The direct tool call and the executor](T-08.3_direct-tool-call.md) | code | blocked (T-08.2) |
-| 4 | [T-08.4 Read-only tools](T-08.4_read-only-tools.md) | code | todo |
-| 5 | [T-08.10 A profile's own steps run](T-08.10_profile-own-steps.md) | code | todo |
-| 6 | [T-08.5 The fast flow, its steps and the profile](T-08.5_fast-flow-and-profile.md) | code | blocked (T-08.3, T-08.4) |
-| 7 | [T-08.11 The profile with the triage](T-08.11_triage-profile.md) | code | blocked (T-08.5, T-08.10) |
-| 8 | [T-08.6 Tests and the golden file](T-08.6_tests-and-golden.md) | test | blocked (T-08.5) |
-| 9 | [T-08.7 Tuning on the real models](T-08.7_tuning-on-real-models.md) | manual | blocked (T-08.6) |
-| 10 | [T-08.8 Documentation](T-08.8_documentation.md) | docs | blocked (T-08.7, T-08.11) |
-| 11 | [T-08.9 First real run of the profile](T-08.9_first-real-run.md) | manual | blocked (T-08.8) |
+| 2 | [T-08.2 `duration_ms` in the LLM call record](T-08.2_duration-ms.md) | code | done (2026-11-11) |
+| 3 | [T-08.3 The direct tool call and the executor](T-08.3_direct-tool-call.md) | code | done (2026-11-11), 39 s to 23 s measured |
+| 4 | [T-08.4 Read-only tools](T-08.4_read-only-tools.md) | code | done (2026-11-11) |
+| 5 | [T-08.10 A profile's own steps run](T-08.10_profile-own-steps.md) | code | done (2026-11-11) |
+| 6 | [T-08.5 The fast flow, its steps and the profile](T-08.5_fast-flow-and-profile.md) | code | done |
+| 7 | [T-08.11 The profile with the triage](T-08.11_triage-profile.md) | code | done |
+| 8 | [T-08.6 Tests and the golden file](T-08.6_tests-and-golden.md) | test | done |
+| 9 | [T-08.7 Tuning on the real models](T-08.7_tuning-on-real-models.md) | manual | done |
+| 10 | [T-08.8 Documentation](T-08.8_documentation.md) | docs | done |
+| 11 | [T-08.9 First real run of the profile](T-08.9_first-real-run.md) | manual | done |
 
 ## Exit criteria
 

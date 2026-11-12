@@ -13,13 +13,13 @@ from application.support.llm.failure import (
     AgentFailure, capacity_problem, classify, daily_quota_used_up, max_attempts, wait_before_retry, worth_retrying,
 )
 from application.runtime.state.flow_state import FlowState
-from application.support.metrics import SessionMetrics
+from application.runtime.step.metrics import SessionMetrics
 from application.runtime.step.spec import ActionPhaseSpec, PhaseSpec
 from application.support.llm.schemas import actions_schema, object_schema
-from application.outbound.ports.llm_ports import LLMOutboundPort
-from application.support.llm.model_selection import ModelResolver
+from application.ports.outbound.llm_ports import LLMOutboundPort
+from application.runtime.step.model_selection import ModelResolver
 from application.support.llm.prompt_overrides import PromptOverride
-from application.system_prompts.general import build_system_prompt_from_file
+from application.runtime.step.system_prompt import build_system_prompt_from_file
 
 from domain.entities.llm_response.action import Action
 from domain.entities.llm_request.payload import Payload
@@ -56,6 +56,7 @@ class PhaseRunner:
         self.flow_name = flow_name
         self.prompts = dict(prompts or {})                  # step name -> what the profile does to its prompt (T-05.14)
         self.step_texts = dict(step_texts or {})            # step name -> its prompt as the configuration source read it (T-05.16)
+        self._clock = time.monotonic                        # the call of a step is timed with it (T-08.2); a test sets another
 
     def models_for(self, step_name: str, default: GoogleModels) -> List[SelectedModel]:
         """The ordered models of a step in this flow: the first answers, the others are the fallback (ADR-014)."""
@@ -142,6 +143,7 @@ class PhaseRunner:
         """
         attempts = max_attempts()
         started_ns = time.time_ns()
+        began = self._clock()
         failure: Optional[BaseException] = None
 
         for attempt in range(1, attempts + 1):
@@ -158,16 +160,19 @@ class PhaseRunner:
                 wait_before_retry(attempt, error)
                 continue
 
-            self._track(answer, phase_id, model, action_id, payload, started_ns, time.time_ns())
+            self._track(answer, phase_id, model, action_id, payload, started_ns, time.time_ns(), self._ms(began))
             return answer
 
-        answer = self._fall_back(payload, phase_id, model, action_id, started_ns, failure, fallbacks)
+        answer = self._fall_back(payload, phase_id, model, action_id, started_ns, failure, fallbacks, began)
         if answer is not None:
             return answer
+        # a step that fails has its time in the log too: how long it waited and tried before it gave up (no text, no value)
+        logger.warning("LLM step failed", phase_id=phase_id, model=model.id, error_type=type(failure).__name__, duration_ms=self._ms(began))
         raise AgentFailure(classify(failure), phase_id, failure) from failure
 
     def _fall_back(self, payload: Payload, phase_id: int, model: SelectedModel, action_id: Optional[str],
-                   started_ns: int, failure: Optional[BaseException], fallbacks: Sequence[SelectedModel]) -> Optional[Response]:
+                   started_ns: int, failure: Optional[BaseException], fallbacks: Sequence[SelectedModel],
+                   began: Optional[float] = None) -> Optional[Response]:
         """The answer of the first fallback model that gives one, or None. Only after a lack of capacity of the chosen model."""
         if failure is None or not capacity_problem(failure):
             return None
@@ -182,9 +187,14 @@ class PhaseRunner:
                 logger.warning("Fallback model failed too", phase_id=phase_id, fallback_model=other.id, error_type=type(error).__name__)
                 continue
             logger.warning("Answered by a fallback model", phase_id=phase_id, chosen_model=model.id, fallback_model=other.id)
-            self._track(answer, phase_id, other, action_id, payload, started_ns, time.time_ns())
+            self._track(answer, phase_id, other, action_id, payload, started_ns, time.time_ns(),
+                        self._ms(began) if began is not None else None)
             return answer
         return None
+
+    def _ms(self, began: float) -> int:
+        """The milliseconds since `began` (the clock of this runner): the retries, the waits and the fallback model included."""
+        return max(0, round((self._clock() - began) * 1000))
 
     def _track(
         self,
@@ -195,6 +205,7 @@ class PhaseRunner:
         payload: Optional[Payload] = None,
         started_ns: Optional[int] = None,
         ended_ns: Optional[int] = None,
+        duration_ms: Optional[int] = None,
     ) -> None:
         """Silently skips if the response carries no token usage data."""
         if response.tokens_usage:
@@ -209,6 +220,7 @@ class PhaseRunner:
                 output_text=_output_text(response),
                 started_ns=started_ns,
                 ended_ns=ended_ns,
+                duration_ms=duration_ms,
             )
 
 

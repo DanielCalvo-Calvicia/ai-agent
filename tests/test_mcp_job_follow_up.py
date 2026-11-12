@@ -11,9 +11,12 @@ from typing import Any, Dict, List
 import anyio
 import pytest
 
-from application.outbound.ports.mcp_ports import TOOL_OUTCOMES, tool_wait_budget, watch_tool_failures
-from infrastructure.outbound.mcp import job_follow_up, job_protocol, tool_executor
-from infrastructure.outbound.mcp.job_follow_up import (
+from domain.value_objects.tools.tool_call_record import TOOL_OUTCOMES
+from application.ports.outbound.tool_wait_budget import tool_wait_budget
+from application.ports.outbound.tool_failures import watch_tool_failures
+from infrastructure.outbound.mcp.execution import tool_executor
+from infrastructure.outbound.mcp.jobs import follow_up as job_follow_up, registry as job_registry
+from infrastructure.outbound.mcp.jobs.follow_up import (
     JOB_CANCELLED,
     JOB_DONE,
     JOB_RUNNING,
@@ -21,8 +24,8 @@ from infrastructure.outbound.mcp.job_follow_up import (
     STILL_RUNNING_TEXT,
     follow_up,
 )
-from infrastructure.outbound.mcp.job_protocol import DONE, RUNNING, UNKNOWN, JobProtocol, JobRef
-from infrastructure.outbound.mcp.tool_executor import MCPToolExecutor
+from infrastructure.outbound.mcp.jobs.protocol import DONE, RUNNING, UNKNOWN, JobProtocol, JobRef
+from infrastructure.outbound.mcp.execution.tool_executor import MCPToolExecutor
 
 SECRET = "SECRET-CUSTOMER-VALUE"
 
@@ -210,7 +213,7 @@ class Manager:
 
 @pytest.fixture
 def toy_protocol(monkeypatch):
-    monkeypatch.setitem(job_protocol._PROTOCOLS, "toy", Toy())
+    monkeypatch.setitem(job_registry._PROTOCOLS, "toy", Toy())
 
 
 def execute(manager, budget=None):

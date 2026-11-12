@@ -9,12 +9,12 @@ import pytest
 from application.assembly.assemble import assemble
 from application.assembly.config_snapshot import build_snapshot
 from application.runtime.profile.inputs import read_inputs
-from application.inbound.dto.message import TextRequestDTO
+from application.dtos.inbound.message import TextRequestDTO
 from application.service.message_flow_service import MessageFlowService
 from application.runtime.step import functions
 from application.runtime.step.declared import parse_reads, repository_declarations
 from infrastructure.outbound.config.file_source import FileConfigSource
-from infrastructure.outbound.llm.response_mapper import read_response_json
+from application.mappers.outbound.response_mapper import read_response_json
 from test_flow_golden import ScriptedLLM, _sha
 from test_plug_and_play import chat_like, classification, fingerprint, write
 
@@ -24,7 +24,7 @@ SHOUT_TEXT = "Answer in capital letters, always."
 
 @pytest.fixture(autouse=True)
 def fixed_clock(monkeypatch):
-    monkeypatch.setattr("application.system_prompts.general.now_text", lambda: "NOW")
+    monkeypatch.setattr("application.runtime.step.system_prompt.now_text", lambda: "NOW")
 
 
 @pytest.fixture
@@ -59,9 +59,10 @@ class TestTheRepositoryDeclarations:
     def test_every_llm_step_is_a_declaration_and_the_code_steps_say_what_they_read_and_write(self):
         declarations = repository_declarations()
         assert {n for n, d in declarations.items() if d["kind"] == "llm"} == {
-            "triage_specialist", "project_manager", "safety_quality_gatekeeper", "draft_writer", "editor_in_chief", "motion_planner", "emotion_reader"}
+            "triage_specialist", "project_manager", "safety_quality_gatekeeper", "draft_writer", "editor_in_chief", "motion_planner", "emotion_reader",
+            "tool_selector", "answer_writer"}
         assert {n for n, d in declarations.items() if d["kind"] == "llm_per_action"} == {"cognitive_worker", "mcp_operator", "data_engineer"}
-        assert {n for n, d in declarations.items() if d["kind"] == "code"} == {"action_executor", "motion_validator", "gesture_builder"}
+        assert {n for n, d in declarations.items() if d["kind"] == "code"} == {"action_executor", "motion_validator", "gesture_builder", "tool_caller"}
 
     def test_every_named_function_of_a_declaration_exists(self):
         for name, declaration in repository_declarations().items():
@@ -70,7 +71,7 @@ class TestTheRepositoryDeclarations:
 
     def test_the_real_agent_assembles_with_the_data_flow_checked_for_every_profile(self, config):
         agent = assembled(config)
-        assert agent.problems == {} and len(agent.step_defs) == 13
+        assert agent.problems == {} and len(agent.step_defs) == 16
         assert set(agent.step_prompts) == {n for n, d in agent.step_defs.items() if d["kind"] != "code"}
 
     @pytest.mark.parametrize("entry, expected", [
@@ -113,7 +114,7 @@ class TestAddingAStep:
     def test_the_prompt_of_the_new_step_is_the_file_of_the_configuration_not_one_of_the_repository(self, config):
         self.add_the_step(config)
         _, llm, _ = self.run(config)
-        from application.system_prompts.general import build_system_prompt_from_file
+        from application.runtime.step.system_prompt import build_system_prompt_from_file
         expected = build_system_prompt_from_file(None, step_text=SHOUT_TEXT).content
         assert llm.calls[0]["system_prompt_sha"] == _sha(expected) and expected.endswith(SHOUT_TEXT)
 
@@ -196,6 +197,6 @@ class TestWhatAssemblyRefuses:
         assert "flows/bad" not in agent.flows or True
         from application.assembly.flow_file import flow_from_file
         from application.runtime.flow.pipeline import Pipeline
-        from application.support.metrics import SessionMetrics
+        from application.runtime.step.metrics import SessionMetrics
         with pytest.raises(ValueError, match="run once per action by the action executor"):
             Pipeline(ScriptedLLM(), [], SessionMetrics(), flow=flow_from_file("bad", {"steps": [{"step": "cognitive_worker"}], "result_from": "cognitive_worker"}))

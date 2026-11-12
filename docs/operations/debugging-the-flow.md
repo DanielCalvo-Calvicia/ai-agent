@@ -92,7 +92,7 @@ Search for the names, not for line numbers (they move):
 | a step is about to run | `application/runtime/flow/pipeline.py`, `Pipeline._run_step` (the `step.run(state)` line) |
 | a profile starts its flow | `application/runtime/profile/runner.py`, `ProfileRunner.run` |
 | the answer just became a `Response` (every phase) | `application/runtime/step/runner.py`, `PhaseRunner.send`, right after `self.outbound_port.ask(payload)` |
-| the `Response` is built from the JSON | `infrastructure/outbound/llm/response_mapper.py`, `build_response` |
+| the `Response` is built from the JSON | `application/mappers/outbound/response_mapper.py`, `build_response` |
 | the response is loaded into the state | the `apply` of the phase (`_apply` in its file; triage uses `FlowState.load_from`), called from the flow's `llm_phase` |
 | an action got its result | `application/runtime/step/library/special/action_executor.py`: `_succeed`, `_fail`, `_set_output` |
 | a run resumes after a question | `application/runtime/flow/pipeline.py`, `Pipeline._resume` |

@@ -16,10 +16,10 @@ from typing import Any, Dict, List, Optional, Tuple
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from application.assembly.model import Agent
+from application.runtime.profile.assembled import Agent
 from application.runtime.profile.runner import ProfileRunner
-from application.support.metrics import SessionMetrics
-from application.outbound.ports.llm_ports import LLMOutboundPort
+from application.runtime.step.metrics import SessionMetrics
+from application.ports.outbound.llm_ports import LLMOutboundPort
 from budget_table import combined
 from cost_estimate import usage as plan_usage, price
 
@@ -63,8 +63,8 @@ def explain(agent: Agent, name: str, mcp_servers: Optional[List[str]] = None, mo
         if kind != "code":
             from domain.value_objects.llm_request.model import GoogleModels
             default = GoogleModels(declaration["default_models"][0])
-            row["models"] = [m.id for m in profile.resolver.models_for(profile.flow_name or "", step, default)]
-            row["source"] = profile.resolver.source_for(profile.flow_name or "", step)
+            row["models"] = [m.id for m in profile.resolver.models_for(profile.flow_name or profile.name, step, default)]
+            row["source"] = profile.resolver.source_for(profile.flow_name or profile.name, step)
             override = profile.prompts.get(step)
             row["prompt_override"] = "+".join(part for part, text in (("replace", override.replace if override else None),
                                                                        ("append", override.append if override else None)) if text)
@@ -80,7 +80,7 @@ def explain(agent: Agent, name: str, mcp_servers: Optional[List[str]] = None, mo
 
     priced_rows = [r for r in rows if r["visible"] is not None]
     return {
-        "profile": name, "flow": profile.flow_name, "hash": profile.profile_hash, "return": profile.default_return,
+        "profile": name, "flow": profile.flow_name or "(its own steps)", "hash": profile.profile_hash, "return": profile.default_return,
         "requires": profile.requires, "accepts": profile.accepts, "tested": profile.definition.get("tested"),
         "models": profile.definition.get("models"), "rows": rows,
         "visible": sum(r["visible"] for r in priced_rows), "thinking": sum(r["thinking"] for r in priced_rows),

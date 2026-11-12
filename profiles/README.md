@@ -21,7 +21,9 @@ Read at start by `infrastructure/outbound/config/file_source.py` and checked by 
 | `about` | no | text | What the profile is for. Documentation only; not sent to any model. |
 | `token_sha256` | yes, **except** for `default` | 64 lowercase hex characters | The SHA-256 of the token a client must send. See section 3. |
 | `flow` | one of `flow` / `steps` | name of a file in `flows/` | The ordered steps this profile runs. |
-| `steps` | one of `flow` / `steps` | list of steps (same entries as a flow file) | An anonymous flow written in the profile. **Accepted by the check but cannot run yet**: the runner refuses it (`needs steps as files`). Use `flow`. Exactly one of the two must be present. |
+| `steps` | one of `flow` / `steps` | list of steps (same entries as a flow file) | The profile's **own steps**, an anonymous flow written in the profile (T-08.10, ADR-019): it runs like a flow file with the same steps, its flow is **named like the profile** (in the answer, the metrics and `flows.<profile name>` overrides) and `result_from` is its last step unless `result_from` says another. Exactly one of `flow` and `steps` must be present. |
+| `result_from` | no, only with `steps` | name of one of the steps | The step the result comes from (default: the last step). As in a flow file. A profile with `flow` may not have it: the flow file says it. |
+| `on_pause`, `on_resume` | no, only with `steps` | hook names (`user_clarification`, `answer_checker`) | What the profile does when a step asks the user a question and when the next message answers it. As in a flow file: a profile with a step that can pause (`pause_if`) needs both. |
 | `models` | no | a **model set name** or a **list of model ids** | The models of every step (level 4 of the order below). Without any level, every step uses its own default (a Google model). |
 | `tools` | no | `{"servers": [...], "tools": [...]}` | Which MCP tools every step of this profile may use at most. See section 5. |
 | `inputs` | no | `{"requires": [...], "accepts": [...]}` | State fields the client may send in `inputs`. See section 4. |
@@ -132,5 +134,7 @@ A value is a set name (`"claude_mixed"`; the set's entry for the step, else its 
 | `default` | `special` (what a request with no profile gets) | `proven` | none | **no** | none |
 | `movement` | `movement`: motion planner, motion validator | `proven` | none | yes | accepts `intent`, `user_goal`, `task_category`, `constraints`, `missing_information`, `next_step` |
 | `gesture` | `expression`: emotion reader, gesture builder | `proven` | none | yes | requires `reply`; accepts `speech_seconds` |
+| `dynamics_fast` | `fast`: tool selector, tool caller (code), answer writer; one read-only tool call (ADR-019) | `claude_fast` | only `dynamics_microservice` | yes | requires `user_goal`, `task_category`; accepts `intent`, `constraints`, `missing_information`, `next_step` |
+| `dynamics_fast_triage` | its **own steps**: triage, tool selector, tool caller, answer writer (no flow file) | `claude_fast` | only `dynamics_microservice` | yes | none (for a client that sends only the message) |
 
 `token_sha256` of the shipped profiles is still the placeholder of zeros (nothing can use them until it is replaced).

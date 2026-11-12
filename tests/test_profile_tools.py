@@ -11,12 +11,12 @@ import pytest
 from application.assembly.assemble import assemble
 from application.assembly.config_snapshot import build_snapshot
 from infrastructure.outbound.config.file_source import FileConfigSource
-from infrastructure.outbound.mcp.config import SUPPORTED_TYPES, load_mcp_configs
+from infrastructure.outbound.mcp.config.loader import SUPPORTED_TYPES, load_mcp_configs
 from profile_tables import DOC_PATH, explain, explain_text, profiles_markdown, steps_of
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 SERVERS = [s["name"] for s in load_mcp_configs(os.path.join(PROJECT_ROOT, "mcps")) if s["type"] in SUPPORTED_TYPES]
-NAMES = ["identification", "chat", "special", "dynamics", "default", "movement", "gesture"]
+NAMES = ["identification", "chat", "special", "dynamics", "default", "movement", "gesture", "dynamics_fast", "dynamics_fast_triage"]
 
 
 def script(name):

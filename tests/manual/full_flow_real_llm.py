@@ -16,18 +16,20 @@ sys.path.append(os.path.join(project_root, "tests"))
 os.chdir(project_root)
 load_dotenv(os.path.join(project_root, ".env"), override=False)
     
+from composition_root.environment import install_environment
+install_environment()          # the application reads no file and no environment variable itself: it is given them
 from application.service.message_flow_service import MessageFlowService
-from application.inbound.dto.message import TextRequestDTO
+from application.dtos.inbound.message import TextRequestDTO
 from domain.entities.llm_response.response import Response
 from domain.entities.llm_request.payload import Payload
 
-from application.outbound.ports.llm_ports import LLMOutboundPort
-from infrastructure.outbound.llm.config import VercelAIConfig
-from infrastructure.outbound.llm.vercel import VercelAIAdapter
+from application.ports.outbound.llm_ports import LLMOutboundPort
+from infrastructure.outbound.llm.shared.providers.config import LLMConfig
+from infrastructure.outbound.llm.vercel.adapter import VercelAIAdapter
 from model_table import manual_service
 
 def build_vercel_adapter() -> VercelAIAdapter:
-    config = VercelAIConfig.from_env()
+    config = LLMConfig.from_env()
 
     return VercelAIAdapter(Config=config)
 

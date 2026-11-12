@@ -30,12 +30,12 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.inbound.dto.message import TextRequestDTO
-from application.outbound.ports.llm_ports import LLMOutboundPort
+from application.dtos.inbound.message import TextRequestDTO
+from application.ports.outbound.llm_ports import LLMOutboundPort
 from brain_chain import ChainedMessageFlowService as MessageFlowService
 from domain.entities.llm_request.payload import Payload
 from domain.entities.llm_response.response import Response
-from infrastructure.outbound.llm.response_mapper import build_response as _build_response
+from application.mappers.outbound.response_mapper import build_response as _build_response
 
 GOLDEN_PATH = os.path.join(PROJECT_ROOT, "tests", "golden", "flow_golden.json")
 USAGE = {"prompt_tokens": 10, "completion_tokens": 5, "total_tokens": 15}
@@ -356,7 +356,7 @@ def _project_cwd(monkeypatch):
     # Prompts, schemas and MCP configs are resolved relative to the working directory.
     monkeypatch.chdir(PROJECT_ROOT)
     # The system prompt carries the current date and time. Fix it so the recorded calls do not change.
-    monkeypatch.setattr("application.system_prompts.general.now_text", lambda: FIXED_NOW)
+    monkeypatch.setattr("application.runtime.step.system_prompt.now_text", lambda: FIXED_NOW)
 
 
 def _load_golden() -> Dict[str, Any]:
@@ -397,7 +397,7 @@ from application.runtime.profile.inputs import read_inputs
 from application.runtime.state.response_json import response_to_json
 from application.service.message_flow_service import MessageFlowService as OneProfileService
 from infrastructure.outbound.config.file_source import FileConfigSource
-from infrastructure.outbound.llm.response_mapper import read_response_json
+from application.mappers.outbound.response_mapper import read_response_json
 
 REPLY_TO_GIVE_A_GESTURE = "Hello! How can I help you today?"
 
@@ -428,10 +428,28 @@ def _profile_scenarios() -> Dict[str, Dict[str, Any]]:
         "profile_movement": {"profile": "movement", **SCENARIOS["movement_goes_to_the_movement_flow_and_is_announced"]},
         "profile_gesture": {"profile": "gesture", "message": "hello there", "llm": {"overrides": feeling()},
                             "inputs": lambda: {"reply": REPLY_TO_GIVE_A_GESTURE}},
+        # T-08.6 (ADR-019): the fast profile with no tool fitting: the selector writes one `generation` action, the writer replies
+        "profile_dynamics_fast": {"profile": "dynamics_fast", "message": "hello there",
+                                  "llm": {"overrides": {
+                                      "tool_selector_phase50_response_format": {
+                                          "actions": [{**_action("1", "generation"), "description": "Greet the user back, briefly."}],
+                                          "next_step": {"ready_to_execute": True, "status": "proceed", "recommended_action": "",
+                                                        "blocking_reason": "", "requested_user_input": []}},
+                                      "answer_writer_phase51_response_format": {"user_goal": {"summary": "greeting", "expected_outcome": "Hello! How can I help?"}}}},
+                                  "inputs": lambda: _identification_output(communication["llm"]["overrides"])},
+        # T-08.11: the same with the triage first and no inputs (a client that sends only the message)
+        "profile_dynamics_fast_triage": {"profile": "dynamics_fast_triage", "message": "hello there",
+                                         "llm": {"overrides": {
+                                             **communication["llm"]["overrides"],
+                                             "tool_selector_phase50_response_format": {
+                                                 "actions": [{**_action("1", "generation"), "description": "Greet the user back, briefly."}],
+                                                 "next_step": {"ready_to_execute": True, "status": "proceed", "recommended_action": "",
+                                                               "blocking_reason": "", "requested_user_input": []}},
+                                             "answer_writer_phase51_response_format": {"user_goal": {"summary": "greeting", "expected_outcome": "Hello! How can I help?"}}}}},
     }
 
 
-PROFILE_SCENARIOS = ["profile_identification", "profile_chat", "profile_special", "profile_movement", "profile_gesture"]
+PROFILE_SCENARIOS = ["profile_identification", "profile_chat", "profile_special", "profile_movement", "profile_gesture", "profile_dynamics_fast", "profile_dynamics_fast_triage"]
 
 
 def _run_profile(scenario: Dict[str, Any]) -> Dict[str, Any]:
@@ -506,3 +524,5 @@ def test_each_profile_block_pins_the_models_of_its_profile():
     assert by_step["draft_writer_phase7"] == "claude-sonnet-5-5" and by_step["editor_in_chief_phase8"] == "claude-sonnet-5-5"
     assert {c["model"] for c in golden["profile_movement"]["calls"]} == {"gemini-3.1-flash-lite"}                       # proven
     assert {c["model"] for c in golden["profile_gesture"]["calls"]} == {"gemini-3.1-flash-lite"}                        # proven
+    assert {c["model"] for c in golden["profile_dynamics_fast"]["calls"]} == {"claude-haiku-4-5"}                       # claude_fast
+    assert [c["format"].split("_response")[0] for c in golden["profile_dynamics_fast"]["calls"]] == ["tool_selector_phase50", "answer_writer_phase51"]

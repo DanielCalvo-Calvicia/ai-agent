@@ -27,17 +27,19 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__fi
 sys.path.insert(0, PROJECT_ROOT)
 sys.path.insert(0, os.path.join(PROJECT_ROOT, "tests"))
 
+from composition_root.environment import install_environment
+install_environment()          # the application reads no file and no environment variable itself: it is given them
 from application.assembly.assemble import assemble
-from application.assembly.model import Agent
+from application.runtime.profile.assembled import Agent
 from application.assembly.config_snapshot import build_snapshot
 from application.runtime.profile.inputs import read_inputs
 from application.runtime.state.response_json import response_to_json
-from application.inbound.dto.message import TextRequestDTO
+from application.dtos.inbound.message import TextRequestDTO
 from application.service.message_flow_service import MessageFlowService
 from infrastructure.outbound.config.file_source import FileConfigSource
-from infrastructure.outbound.llm.anthropic_schema import anthropic_schema_problems
-from infrastructure.outbound.llm.response_mapper import read_response_json
-from infrastructure.outbound.mcp.config import SUPPORTED_TYPES, load_mcp_configs, load_tool_snapshot
+from infrastructure.outbound.llm.shared.schemas.anthropic_schema import anthropic_schema_problems
+from application.mappers.outbound.response_mapper import read_response_json
+from infrastructure.outbound.mcp.config.loader import SUPPORTED_TYPES, load_mcp_configs, load_tool_snapshot
 from infrastructure.outbound.usage.prices import cost_usd, load_prices
 
 DEFAULT_MESSAGES = os.path.join(PROJECT_ROOT, "tests", "manual", "profile_messages.json")
@@ -114,7 +116,14 @@ def run_message(agent: Agent, adapter, mcp_list: list, mcp_tools, cost_of, profi
             "then_ran": follow is not None, "then_answer": follow.content if follow else "",
             "then_movements": len(follow.movements) if follow else 0, "then_awaiting": follow.awaiting_user_input if follow else False,
             "calls": sum(s.metrics.totals.requests for s in services), "tokens": sum(s.metrics.totals.total for s in services),
-            "cost_usd": sum(costs) if costs else None, "seconds": round(time.time() - started, 1), "error": ""}
+            "cost_usd": sum(costs) if costs else None, "seconds": round(time.time() - started, 1), "error": "",
+            "steps": steps_of(services)}
+
+
+def steps_of(services) -> List[Dict[str, Any]]:
+    """The calls of the message in the order they were made, each with the seconds it took (the `duration_ms` of its record; T-08.2)."""
+    return [{"step": r.phase_name, "model": r.model, "seconds": round((r.duration_ms or 0) / 1000, 1)}
+            for s in services for r in s.metrics.request_log]
 
 
 def run_all(agent: Agent, adapter, mcp_list: list, mcp_tools, cost_of, profile_name: str, messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -126,7 +135,7 @@ def run_all(agent: Agent, adapter, mcp_list: list, mcp_tools, cost_of, profile_n
                        else run_message(agent, adapter, mcp_list, mcp_tools, cost_of, profile_name, item["message"]))
         except Exception as error:                         # a failed message is reported, the others still run
             outcome = {"classified": "", "answer": "", "movements": 0, "gesture": False, "awaiting": False, "calls": 0, "tokens": 0, "cost_usd": None,
-                       "then_ran": False, "then_answer": "", "then_movements": 0, "then_awaiting": False, "seconds": 0, "error": f"{type(error).__name__}: {error}"[:300]}
+                       "then_ran": False, "then_answer": "", "then_movements": 0, "then_awaiting": False, "seconds": 0, "steps": [], "error": f"{type(error).__name__}: {error}"[:300]}
         results.append({**item, "profile": profile_name, **outcome})
         print(f"  {item['id']:<10} {'ERROR ' + outcome['error'] if outcome['error'] else 'answered'}  "
               f"{outcome['calls']} calls, {outcome['tokens']} tokens, {outcome['seconds']} s")
@@ -163,6 +172,8 @@ def write_report(root: str, profile_name: str, date: str, results: List[Dict[str
             else:
                 lines += ["**The profile did not ask the user a question, so the answer was not sent** (the first answer is judged on its own).", ""]
         lines += [f"{r['calls']} calls, {r['tokens']:,} tokens, {r['seconds']} s" + (f", ERROR: {r['error']}" if r["error"] else ""), ""]
+        if r.get("steps"):
+            lines += ["Steps: " + ", ".join(f"{s['step']} {s['seconds']} s" for s in r["steps"]), ""]
     with open(path, "w", encoding="utf-8", newline="\n") as f:
         f.write("\n".join(lines))
     return path
@@ -196,15 +207,15 @@ def confirm(agent: Agent, profile_name: str, count: int) -> bool:
 def real_services(root: str):
     from dotenv import load_dotenv
     load_dotenv(os.path.join(root, ".env"), override=False)
-    from infrastructure.outbound.llm.config import VercelAIConfig
-    from infrastructure.outbound.llm.vercel import VercelAIAdapter
-    from infrastructure.outbound.mcp.client_manager import MCPClientManager, quiet_client_libraries
-    from infrastructure.outbound.mcp.config import load_supported_mcp_configs
-    from infrastructure.outbound.mcp.tool_executor import MCPToolExecutor
+    from infrastructure.outbound.llm.shared.providers.config import LLMConfig
+    from infrastructure.outbound.llm.vercel.adapter import VercelAIAdapter
+    from infrastructure.outbound.mcp.connection.client_manager import MCPClientManager, quiet_client_libraries
+    from infrastructure.outbound.mcp.config.loader import load_supported_mcp_configs
+    from infrastructure.outbound.mcp.execution.tool_executor import MCPToolExecutor
     quiet_client_libraries()
     mcp_list = load_supported_mcp_configs(os.path.join(root, "mcps"))
     executor = MCPToolExecutor(MCPClientManager(mcp_list))
-    return VercelAIAdapter(Config=VercelAIConfig.from_env(tool_executor=executor)), mcp_list, executor
+    return VercelAIAdapter(Config=LLMConfig.from_env(tool_executor=executor)), mcp_list, executor
 
 
 def main(argv: List[str]) -> int:

@@ -18,11 +18,11 @@ from application.support.llm.failure import (
     max_attempts,
     worth_retrying,
 )
-from application.support.metrics import SessionMetrics
+from application.runtime.step.metrics import SessionMetrics
 from application.runtime.step.runner import PhaseRunner
 from brain_chain import ChainedSessionService as SessionService
 from domain.entities.llm_request.payload import Payload
-from infrastructure.outbound.llm.response_mapper import build_response
+from application.mappers.outbound.response_mapper import build_response
 
 from test_flow_golden import (
     GATE, PM, SCENARIOS, ScriptedLLM, _action, _plan, _run,
@@ -197,11 +197,11 @@ class FailOnPhase(ScriptedLLM):
         return super().ask(Payload)
 
 
-from application.inbound.dto.session import MessageReceivedResponseDTO  # noqa: E402
+from application.dtos.inbound.session import MessageReceivedResponseDTO  # noqa: E402
 
 
 def _say(llm, text="hi") -> MessageReceivedResponseDTO:
-    from application.inbound.dto.session import MessageReceivedRequestDTO, StartSessionRequestDTO
+    from application.dtos.inbound.session import MessageReceivedRequestDTO, StartSessionRequestDTO
     service = SessionService(outbound_port=llm, mcp_list=[])
     session_id = service.start_session(StartSessionRequestDTO(user_id="tester", username="t")).session_id
     return service.message_received(MessageReceivedRequestDTO(user_id="tester", session_id=session_id, message=text))
@@ -230,7 +230,7 @@ class TestFlowFailures:
         assert "skipped because a step it needs failed" in draft
 
     def test_a_failed_message_is_not_remembered(self):
-        from application.inbound.dto.session import MessageReceivedRequestDTO, StartSessionRequestDTO
+        from application.dtos.inbound.session import MessageReceivedRequestDTO, StartSessionRequestDTO
         service = SessionService(outbound_port=FailOnPhase("triage", APIConnectionError("x")), mcp_list=[])
         sid = service.start_session(StartSessionRequestDTO(user_id="tester", username="t")).session_id
         service.message_received(MessageReceivedRequestDTO(user_id="tester", session_id=sid, message="hi"))

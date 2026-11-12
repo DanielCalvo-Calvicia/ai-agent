@@ -17,20 +17,21 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.support.llm.model_selection import ModelResolver
+from application.runtime.step.model_selection import ModelResolver
 from brain_chain import ChainedSessionService as SessionService
-from application.system_prompts.general import LoadSystemPrompt
+from application.runtime.step.system_prompt import LoadSystemPrompt
 from domain.entities.llm_request.payload import Payload
 from domain.entities.llm_response.response import Response
 from domain.value_objects.llm_request.model import GoogleModels, get_selected_model
 from domain.value_objects.llm_request.tool import ToolDefinition
 from infrastructure.inbound.http.fastapi import SessionFastAPI
-from infrastructure.outbound.llm.config import VercelAIConfig
-from infrastructure.outbound.llm.vercel import VercelAIAdapter
-from infrastructure.outbound.llm.provider_models import ErrProviderNotSupported, resolve_provider_model
-from infrastructure.outbound.llm.tools import resolve_tools
-from infrastructure.outbound.mcp.config import load_mcp_configs
-from infrastructure.outbound.mcp.tool_executor import MCPToolExecutor
+from infrastructure.outbound.llm.shared.providers.config import LLMConfig
+from infrastructure.outbound.llm.vercel.adapter import VercelAIAdapter
+from infrastructure.outbound.llm.shared.providers.routes import ErrProviderNotSupported
+from infrastructure.outbound.llm.vercel.models import resolve_provider_model
+from infrastructure.outbound.llm.vercel.tool_adapter import resolve_tools
+from infrastructure.outbound.mcp.config.loader import load_mcp_configs
+from infrastructure.outbound.mcp.execution.tool_executor import MCPToolExecutor
 
 from test_flow_golden import ScriptedLLM
 
@@ -51,7 +52,7 @@ class TestConfigFromEnv:
         monkeypatch.setenv("GOOGLE_URL", "https://models.example/inference")
         monkeypatch.setenv("OLLAMA_URL", "http://ollama.example/v1")
 
-        config = VercelAIConfig.from_env()
+        config = LLMConfig.from_env()
 
         assert config.openai_api_key == "openai-key"
         assert config.google_api_key == "google-key"
@@ -65,40 +66,40 @@ class TestConfigFromEnv:
         monkeypatch.setenv("GITHUB_PAT", "pat")
         monkeypatch.setenv("GITHUB_API_KEY", "old")
         monkeypatch.setenv("GITHUB_URL", "https://models.example/inference")
-        config = VercelAIConfig.from_env()
+        config = LLMConfig.from_env()
         assert not hasattr(config, "github_api_key") and not hasattr(config, "github_url")
         assert VercelAIAdapter(Config=config).is_available() is False
 
     def test_missing_variables_become_empty_strings(self, monkeypatch):
         for name in ("OPENAI_API_KEY", "GOOGLE_API_KEY", "GOOGLE_URL"):
             monkeypatch.delenv(name, raising=False)
-        config = VercelAIConfig.from_env()
+        config = LLMConfig.from_env()
         assert config.openai_api_key == ""
         assert config.google_url == ""
 
     def test_passes_the_tool_executor_through(self):
         marker = object()
-        assert VercelAIConfig.from_env(tool_executor=marker).tool_executor is marker
+        assert LLMConfig.from_env(tool_executor=marker).tool_executor is marker
 
 
 class TestVercelAdapterAvailability:
     def test_unavailable_with_no_provider_configured(self):
-        assert VercelAIAdapter(Config=VercelAIConfig()).is_available() is False
+        assert VercelAIAdapter(Config=LLMConfig()).is_available() is False
 
     @pytest.mark.parametrize("field", [
         "openai_api_key", "anthropic_api_key", "google_api_key", "mistral_api_key",
         "groq_api_key", "cohere_api_key", "OLLAMA_URL",
     ])
     def test_available_when_any_single_provider_setting_is_present(self, field):
-        config = VercelAIConfig(**{field: "set"})
+        config = LLMConfig(**{field: "set"})
         assert VercelAIAdapter(Config=config).is_available() is True
 
     def test_no_network_call_is_made(self, monkeypatch):
         def _fail(*args, **kwargs):
             raise AssertionError("is_available must not call the LLM")
 
-        monkeypatch.setattr("infrastructure.outbound.llm.vercel.generate_text", _fail)
-        VercelAIAdapter(Config=VercelAIConfig(openai_api_key="k")).is_available()
+        monkeypatch.setattr("infrastructure.outbound.llm.vercel.adapter.generate_text", _fail)
+        VercelAIAdapter(Config=LLMConfig(openai_api_key="k")).is_available()
 
 
 # ===============================================
@@ -107,18 +108,18 @@ class TestVercelAdapterAvailability:
 
 class TestProviderResolution:
     def test_google_models_use_the_google_url_and_key(self):
-        config = VercelAIConfig(google_api_key="key", google_url="https://models.example/inference")
+        config = LLMConfig(google_api_key="key", google_url="https://models.example/inference")
         model = resolve_provider_model(get_selected_model(GoogleModels.GEMINI_3_8_FLASH), config, {})
         assert str(model._client.base_url).startswith("https://models.example/inference")
         assert model._client.api_key == "key"
 
     def test_ollama_uses_the_configured_url_instead_of_raising_key_error(self):
-        config = VercelAIConfig(OLLAMA_URL="http://ollama.example/v1")
+        config = LLMConfig(OLLAMA_URL="http://ollama.example/v1")
         model = resolve_provider_model(get_selected_model("llama3.3"), config, {})
         assert str(model._client.base_url).startswith("http://ollama.example/v1")
 
     def test_sampling_options_are_passed_to_the_model(self):
-        config = VercelAIConfig(google_api_key="key", google_url="https://models.example/inference")
+        config = LLMConfig(google_api_key="key", google_url="https://models.example/inference")
         model = resolve_provider_model(
             get_selected_model(GoogleModels.GEMINI_3_8_FLASH), config, {"temperature": 0.3, "max_tokens": 50}
         )
@@ -148,29 +149,29 @@ TOOL = ToolDefinition(name="get_file", description="d", parameters={"type": "obj
 
 class TestResolveTools:
     def test_no_tools(self):
-        assert resolve_tools(VercelAIConfig(), []) == []
-        assert resolve_tools(VercelAIConfig(), None) == []
+        assert resolve_tools(LLMConfig(), []) == []
+        assert resolve_tools(LLMConfig(), None) == []
 
     def test_server_descriptor_without_executor_is_skipped_not_a_crash(self):
-        assert resolve_tools(VercelAIConfig(), [SERVER]) == []
+        assert resolve_tools(LLMConfig(), [SERVER]) == []
 
     def test_server_descriptor_expands_into_the_tools_of_that_server(self):
         executor = FakeExecutor({"aws": [TOOL]})
-        tools = resolve_tools(VercelAIConfig(tool_executor=executor), [SERVER])
+        tools = resolve_tools(LLMConfig(tool_executor=executor), [SERVER])
         assert [t.name for t in tools] == ["get_file"]
 
     def test_expanded_tool_runs_through_the_executor(self):
         executor = FakeExecutor({"aws": [TOOL]})
-        tools = resolve_tools(VercelAIConfig(tool_executor=executor), [SERVER])
+        tools = resolve_tools(LLMConfig(tool_executor=executor), [SERVER])
         tools[0].handler(path="/a")
         assert executor.executed == [("get_file", {"path": "/a"})]
 
     def test_server_with_no_tools_gives_no_tools(self):
-        assert resolve_tools(VercelAIConfig(tool_executor=FakeExecutor({})), [SERVER]) == []
+        assert resolve_tools(LLMConfig(tool_executor=FakeExecutor({})), [SERVER]) == []
 
     def test_tool_definition_is_wrapped(self):
         executor = FakeExecutor({})
-        tools = resolve_tools(VercelAIConfig(tool_executor=executor), [TOOL])
+        tools = resolve_tools(LLMConfig(tool_executor=executor), [TOOL])
         assert [t.name for t in tools] == ["get_file"]
         tools[0].handler(x=1)
         assert executor.executed == [("get_file", {"x": 1})]
@@ -348,14 +349,14 @@ def _pm_inputs(llm: ScriptedLLM) -> List[str]:
 
 
 def _say(service: SessionService, session_id: str, text: str):
-    from application.inbound.dto.session import MessageReceivedRequestDTO
+    from application.dtos.inbound.session import MessageReceivedRequestDTO
     return service.message_received(
         MessageReceivedRequestDTO(user_id="tester", session_id=session_id, message=text)
     )
 
 
 def _service(llm, **kwargs) -> tuple:
-    from application.inbound.dto.session import StartSessionRequestDTO
+    from application.dtos.inbound.session import StartSessionRequestDTO
     service = SessionService(outbound_port=llm, mcp_list=[], **kwargs)
     session_id = service.start_session(StartSessionRequestDTO(user_id="tester", username="t")).session_id
     return service, session_id
@@ -383,7 +384,7 @@ class TestSessionMemory:
     def test_history_is_per_session(self):
         llm = ScriptedLLM()
         service, sid_a = _service(llm)
-        from application.inbound.dto.session import StartSessionRequestDTO
+        from application.dtos.inbound.session import StartSessionRequestDTO
         sid_b = service.start_session(StartSessionRequestDTO(user_id="tester", username="b")).session_id
         _say(service, sid_a, "secret of A")
         _say(service, sid_b, "hello from B")

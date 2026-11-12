@@ -33,7 +33,7 @@ python scripts/run_profile.py special --label after --yes     # does not ask (on
 ## Reading the result
 
 1. Open the report. For each message, read the answer and tick (`[x]`) every point it meets.
-2. Compare with the report of the run before, message by message: **better, the same or worse**, with the tokens and calls of the header and of each message.
+2. Compare with the report of the run before, message by message: **better, the same or worse**, with the tokens and calls of the header and of each message. Since T-08.2 each message also lists its **steps with the seconds each took** (`Steps: triage_specialist 3.1 s, ...`), so a change meant to be faster is judged in seconds.
 3. Worse: the change is reverted, not tuned in place. Write what changed in the Notes of the task.
 4. A profile that answers with no text (`identification`) shows what the triage decided in a `**Classified as:**` line (domain, type, complexity, next step, the questions it asks). A model varies between runs: before judging a message that looks worse, run that one message several times, before and after (`--messages <file>` with only that message).
 

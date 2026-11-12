@@ -2,7 +2,7 @@
 
 Audience: a developer (or a Claude session) working in **another project**, a web with a built-in chat, that must send the user's messages to `ai-agent` and show its answers. It combines the API reference ([api.md](api.md)) with how to use the service from a web chat, and it describes **every field of every route**, so you can decide what to use and what to ignore. If the two documents disagree, `api.md` wins.
 
-Written 2026-11-10 from `api.md`, `infrastructure/inbound/http/fastapi.py`, `application/inbound/dto/session.py`, `application/inbound/dto/base_request.py`, the vendored `contracts` wheel (`contracts.api.microservices.ai_agent.*`), `schema/response/general/full.schema.json` and `profiles/README.md`. Nothing here was run against a web client: the examples are checked against the code, not against a live call.
+Written 2026-11-10 from `api.md`, `infrastructure/inbound/http/fastapi.py`, `application/dtos/inbound/session.py`, `application/dtos/inbound/base_request.py`, the vendored `contracts` wheel (`contracts.api.microservices.ai_agent.*`), `schema/response/general/full.schema.json` and `profiles/README.md`. Nothing here was run against a web client: the examples are checked against the code, not against a live call.
 
 Contents: 1 What the service is · 2 Constraints · 3 The flow · 4 Conventions common to every call · 5 Routes (`start`, `message`, `end`, `health`, `available`) · 6 Profiles · 7 Chaining profiles and `output` · 8 Questions the agent asks · 9 Errors · 10 Backend example · 11 Checklist · 12 Known gaps
 

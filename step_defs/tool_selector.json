@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "name": "tool_selector",
+  "about": "The fast flow: chooses the ONE read-only tool call that answers the request, or asks for the value it misses, or says no tool fits. It is shown only the read-only tools of its scope.",
+  "kind": "llm",
+  "legacy_id": 50,
+  "group": "fast",
+  "prompt": {
+    "file": "prompts/50_tool_selector.txt"
+  },
+  "default_models": [
+    "gemini-3.1-flash-lite"
+  ],
+  "intent": {
+    "primary": "decision_support",
+    "secondary": [
+      "information_request"
+    ],
+    "confidence": 0.9
+  },
+  "format_name": "tool_selector_phase50_response_format",
+  "answer": {
+    "required": [
+      "actions",
+      "next_step"
+    ],
+    "pieces": [
+      {
+        "name": "actions",
+        "file": "general/actions/actions.schema.json",
+        "key": "actions",
+        "mcp_servers": "read_only"
+      },
+      {
+        "name": "next_step",
+        "file": "general/next_steps/next_step.schema.json",
+        "key": "next_step"
+      }
+    ]
+  },
+  "reads": [
+    "user_goal",
+    "task_category",
+    "history",
+    "answers"
+  ],
+  "writes": [
+    "actions",
+    "next_step"
+  ],
+  "write_always": true,
+  "functions": {
+    "input": "selector_input"
+  }
+}

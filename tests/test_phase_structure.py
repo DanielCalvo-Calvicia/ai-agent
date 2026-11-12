@@ -12,8 +12,10 @@ import pytest
 
 from application.runtime.step import registry as step_registry
 from application.runtime.step.declared import repository_declarations
-from application.support.llm.schemas import SCHEMAS_ROOT
-from application.system_prompts.general import CAPABILITIES_FILE, GENERIC_PROMPT_FILE, PROJECT_ROOT
+from application.runtime.step.system_prompt import CAPABILITIES_FILE, GENERIC_PROMPT_FILE
+from infrastructure.outbound.config.environment import PROJECT_ROOT
+
+SCHEMAS_ROOT = os.path.join(PROJECT_ROOT, "schema", "response")
 
 PHASES_DIR = os.path.join(PROJECT_ROOT, "application", "runtime", "step", "library")
 REQUIRED_CONSTANTS = ("PHASE_ID", "STEP_NAME", "DEFAULT_MODEL")
@@ -123,17 +125,17 @@ class TestCatalog:
         assert len(self.ALL) == len(PHASE_FILES) + len(DECLARED)
 
     def test_the_order_is_the_text_flows_first_then_movement_then_expression(self):
-        assert [e.legacy_id for e in self.ALL] == [1, 2, 3, 4, 5, 6, 7, 8, 9, 40, 99, 20, 21, 30, 31]
+        assert [e.legacy_id for e in self.ALL] == [1, 2, 3, 4, 5, 6, 7, 8, 9, 40, 99, 20, 21, 30, 31, 50, 51, 52]
 
     def test_the_kinds_are_the_ones_of_the_design(self):
         kinds = {e.name: e.kind for e in self.ALL}
         assert {name for name, kind in kinds.items() if kind == step_registry.LLM_PER_ACTION} == {
             "cognitive_worker", "mcp_operator", "data_engineer"}
         assert {name for name, kind in kinds.items() if kind == step_registry.CODE} == {
-            "motion_validator", "gesture_builder", "action_executor"}
+            "motion_validator", "gesture_builder", "action_executor", "tool_caller"}
 
     def test_conversation_flow_keeps_its_own_table_for_the_cost_tools(self):
-        from application.support.metrics import ALL_PHASE_NAMES, PHASE_NAMES
+        from application.runtime.step.metrics import ALL_PHASE_NAMES, PHASE_NAMES
         assert set(PHASE_NAMES) < set(ALL_PHASE_NAMES)
         assert "motion_planner" in ALL_PHASE_NAMES.values() and "motion_planner" not in PHASE_NAMES.values()
 

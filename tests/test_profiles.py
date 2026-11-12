@@ -5,24 +5,24 @@ import os
 import pytest
 
 from application.assembly.assemble import assemble
-from application.assembly.model import DEFAULT_PROFILE
+from application.runtime.profile.assembled import DEFAULT_PROFILE
 from application.assembly.config_snapshot import build_snapshot
 from application.runtime.state.expression_state import ExpressionFlowState
 from application.runtime.state.paused_run import PausedRun
-from application.support.metrics import SessionMetrics
+from application.runtime.step.metrics import SessionMetrics
 from application.runtime.profile.runner import ProfileMismatch, ProfileRunner
 from application.service.message_flow_service import MessageFlowService
 from infrastructure.outbound.config.file_source import FileConfigSource
-from infrastructure.outbound.llm.anthropic_schema import anthropic_schema_problems
-from infrastructure.outbound.mcp.config import load_tool_snapshot
-from application.inbound.dto.message import TextRequestDTO
+from infrastructure.outbound.llm.shared.schemas.anthropic_schema import anthropic_schema_problems
+from infrastructure.outbound.mcp.config.loader import load_tool_snapshot
+from application.dtos.inbound.message import TextRequestDTO
 
 from test_expression import feeling
 from test_flow_golden import SCENARIOS, ScriptedLLM, TRIAGE
 from test_resume import CHECK, Script, _verdict
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
-NAMES = ["identification", "chat", "special", "dynamics", "default", "movement", "gesture"]
+NAMES = ["identification", "chat", "special", "dynamics", "default", "movement", "gesture", "dynamics_fast", "dynamics_fast_triage"]
 MCP_LIST = [{"name": "dynamics_microservice", "type": "streamable_http", "config": {"url": "http://x"}},
             {"name": "aws_microservice", "type": "sse", "config": {"url": "http://y"}}]
 
@@ -49,7 +49,7 @@ def models_by_step(llm):
 # ===============================================
 
 class TestTheProfiles:
-    def test_the_repository_has_exactly_these_seven_and_they_assemble(self, agent):
+    def test_the_repository_has_exactly_these_nine_and_they_assemble(self, agent):
         assert sorted(agent.profiles) == sorted(NAMES) and agent.problems == {}
 
     def test_the_ten_generic_profiles_are_kept_aside_and_not_loaded(self, agent):
@@ -76,7 +76,7 @@ class TestTheProfiles:
     def test_the_models_of_each_profile(self, agent):
         sets = {n: p.definition["models"] for n, p in agent.profiles.items()}
         assert sets == {"identification": "proven", "chat": "claude_haiku", "special": "claude_mixed", "dynamics": "claude_mixed",
-                        "default": "proven", "movement": "proven", "gesture": "proven"}
+                        "default": "proven", "movement": "proven", "gesture": "proven", "dynamics_fast": "claude_fast", "dynamics_fast_triage": "claude_fast"}
 
     def test_identification_answers_with_the_whole_response_and_the_others_with_text(self, agent):
         assert {n: p.default_return for n, p in agent.profiles.items()} == {n: ("full" if n == "identification" else "text") for n in NAMES}
@@ -198,11 +198,12 @@ class TestTheServiceRunsOneProfile:
         with pytest.raises(KeyError):
             runner(ScriptedLLM(), agent).run("nope", "hi")
 
-    def test_a_profile_that_lists_its_own_steps_waits_for_steps_as_files(self, agent):
+    def test_a_profile_that_lists_its_own_steps_but_has_no_flow_built_is_refused(self, agent):
+        # since T-08.10 assemble() builds the flow of such a profile (tests/test_profile_own_steps.py); a hand-made one has none
         from dataclasses import replace
         own = replace(agent.profile("chat"), name="mine", flow_name=None, steps=["draft_writer"])
         agent2 = type(agent)({**agent.profiles, "mine": own}, {})
-        with pytest.raises(ValueError, match="T-05.16"):
+        with pytest.raises(ValueError, match="its flow was not built"):
             runner(ScriptedLLM(), agent2).run("mine", "hi")
 
 

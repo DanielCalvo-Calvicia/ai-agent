@@ -8,7 +8,7 @@ Read at start by `infrastructure/outbound/config/file_source.py`, checked by `ap
 
 - File name = flow name = `name` inside. A mismatch refuses the file. The flow names are also the `flow` field of an answer and a key of the metrics: **renaming a flow changes both**.
 - `schema_version` must be `1`. An unknown key is an error. Keys that start with `_` are ignored; a file or folder that starts with `_` is not loaded.
-- The five shipped names (`identification`, `conversation`, `special`, `movement`, `expression`) are the names the old Python flows had.
+- The first five shipped names (`identification`, `conversation`, `special`, `movement`, `expression`) are the names the old Python flows had; `fast` (ADR-019, T-08.5) is new: `tool_selector`, `tool_caller` (code), `answer_writer`, for `dynamics_fast`.
 
 ## 2. All fields
 

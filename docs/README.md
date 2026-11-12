@@ -13,7 +13,7 @@ docs/
   deployment/     how it runs
   operations/     monitoring, failures, debugging
   proposals/      plans and reviews that explain why (history)
-  reference/      notes on the model catalog
+  reference/      notes on the model catalog; full-examples/ (one JSON with every key of flows, mcps, model sets, profiles and steps; for reading only)
   requirements/   what the service must do and its state
   rules/          what must change together (prompts, schemas, domain)
   security/       secrets, exposure, data sent to third parties

@@ -47,9 +47,9 @@ def main(argv):
     if real:
         from dotenv import load_dotenv
         load_dotenv(os.path.join(ROOT, ".env"), override=False)
-        from infrastructure.outbound.llm.config import VercelAIConfig
-        from infrastructure.outbound.llm.vercel import VercelAIAdapter
-        llm, mcp_list = VercelAIAdapter(Config=VercelAIConfig.from_env()), []
+        from infrastructure.outbound.llm.shared.providers.config import LLMConfig
+        from infrastructure.outbound.llm.vercel.adapter import VercelAIAdapter
+        llm, mcp_list = VercelAIAdapter(Config=LLMConfig.from_env()), []
     else:
         llm, mcp_list = ScriptedLLM(**scenario["llm"]), MCP_LIST
 

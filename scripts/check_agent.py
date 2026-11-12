@@ -17,11 +17,13 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__fi
 sys.path.insert(0, PROJECT_ROOT)
 sys.path.insert(0, os.path.join(PROJECT_ROOT, "tests"))          # profile_tables.py (--explain)
 
+from composition_root.environment import install_environment
+install_environment()          # the application reads no file and no environment variable itself: it is given them
 from application.assembly.assemble import assemble
 from application.assembly.config_snapshot import build_snapshot
 from infrastructure.outbound.config.file_source import FileConfigSource
-from infrastructure.outbound.llm.anthropic_schema import anthropic_schema_problems
-from infrastructure.outbound.mcp.config import load_tool_snapshot
+from infrastructure.outbound.llm.shared.schemas.anthropic_schema import anthropic_schema_problems
+from infrastructure.outbound.mcp.config.loader import load_tool_snapshot
 
 
 def main(argv) -> int:
@@ -46,7 +48,7 @@ def main(argv) -> int:
             print(f"error: no profile {name!r}. Profiles: {', '.join(sorted(agent.profiles))}")
             return 1
         from profile_tables import explain, explain_text
-        from infrastructure.outbound.mcp.config import SUPPORTED_TYPES, load_mcp_configs
+        from infrastructure.outbound.mcp.config.loader import SUPPORTED_TYPES, load_mcp_configs
         servers = [s["name"] for s in load_mcp_configs(os.path.join(root, "mcps")) if s["type"] in SUPPORTED_TYPES]    # the ones the agent can use
         print(explain_text(explain(agent, name, servers)))
         return 0

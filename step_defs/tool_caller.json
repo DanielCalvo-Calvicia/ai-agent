@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "name": "tool_caller",
+  "about": "The fast flow: calls the tool the selector chose, in code, and keeps its answer as the output of the action. No model.",
+  "kind": "code",
+  "legacy_id": 52,
+  "group": "fast",
+  "reads": [
+    "actions"
+  ],
+  "writes": [
+    "actions"
+  ],
+  "function": "tool_caller"
+}

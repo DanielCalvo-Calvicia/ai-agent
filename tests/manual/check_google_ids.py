@@ -33,8 +33,10 @@ load_dotenv(os.path.join(PROJECT_ROOT, ".env"), override=False)
 from ai_sdk import generate_text
 
 from domain.value_objects.llm_request.model import AnthropicModels, GoogleModels, get_selected_model
-from infrastructure.outbound.llm.config import VercelAIConfig
-from infrastructure.outbound.llm.provider_models import resolve_provider_model
+from composition_root.environment import install_environment
+install_environment()          # the application reads no file and no environment variable itself: it is given them
+from infrastructure.outbound.llm.shared.providers.config import LLMConfig
+from infrastructure.outbound.llm.vercel.models import resolve_provider_model
 
 PROMPT = "Reply with the single word OK."
 DEFAULT_MODELS = ("gemini-3.1-flash-lite", "gemini-3.6-flash")        # the two code defaults (profile google_free)
@@ -87,7 +89,7 @@ def _call(config, model_id):
 
 
 def main(argv):
-    config = VercelAIConfig.from_env()
+    config = LLMConfig.from_env()
     ids = option(argv, "--ids")
     anthropic = option(argv, "--provider", "google") == "anthropic"
     ids = [i.strip() for i in ids.split(",")] if ids else [m.value for m in (AnthropicModels if anthropic else GoogleModels)]

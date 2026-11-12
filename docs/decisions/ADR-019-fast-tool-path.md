@@ -1,6 +1,6 @@
 # ADR-019 — A fast tool path as a common module; profiles choose its MCP servers and steps
 
-**Status:** Accepted (2026-11-11, the maintainer's answers to [Q11](../setup/questionnaires/Q11_fast-tool-path.md), recorded in [T-08.1](../tasks/T-08_fast-tool-path/T-08.1_decisions.md)). Branch `feature_fast_profile`. **Nothing in this ADR is built.** Two changes from the first proposal: there are **two profiles** (with and without the triage, decision 3) and **a profile can list its own steps** (decision 3, task T-08.10).
+**Status:** Accepted (2026-11-11, the maintainer's answers to [Q11](../setup/questionnaires/Q11_fast-tool-path.md), recorded in [T-08.1](../tasks/T-08_fast-tool-path/T-08.1_decisions.md)). Branch `feature_fast_profile`. **Built on 2026-11-11 (T-08.2 to T-08.8); the fixed messages ran on the real models on 2026-11-11 (T-08.9; the maintainer has not ticked the reports).** Measured (T-08.7): the `fast` flow about 10 s; median 11.2 s for `dynamics_fast_triage`, 19.8 s for `identification` + `dynamics_fast` (the Gemini triage), 21.5 s for `dynamics`. Two changes from the first proposal: there are **two profiles** (with and without the triage, decision 3) and **a profile can list its own steps** (decision 3, task T-08.10).
 
 ## What was understood (confirmed by the maintainer)
 
@@ -24,7 +24,7 @@
   | `triage_specialist` | 124 | Classify |
   | `safety_quality_gatekeeper` | 63 | Always "no confirmation" for reads |
 
-  Latency follows the tokens a call **writes**, so the three copying steps are the cost. The time per step is **not measured**: the log of an LLM call has no duration (see decision 10 and T-08.2).
+  Latency follows the tokens a call **writes**, so the three copying steps are the cost. **Time per step, measured later the same day** (T-08.2: 3 runs of the simple message, 38.7 to 40.6 s each; seconds per step in its Notes): the operator 11.4 s, the data engineer 6.4 s and the cognitive worker 6.0 s are 61 % of the time; the planner 4.1 s, the triage 3.4 s, the editor 3.1 s, the writer 2.9 s and the gate 1.7 s are the rest. **After T-08.3** (the direct call, with the arguments of the tool now written by the planner as JSON text under Claude: see ADR-013 note) the same message takes 23 s in two of three runs (38 s in the third, a slow provider): 6 calls and 31,000 tokens.
 - [ADR-015](ADR-015-profiles-flows-steps.md) gives the layers: a profile names a flow, its tools, its models and its prompt appends; a flow is a JSON list of steps; a step is a JSON declaration or a code step. [ADR-016](ADR-016-runtime-folder-layout.md) gives the folders.
 - [ADR-018](ADR-018-mcp-job-follow-up-per-server.md) already makes the MCP adapter follow jobs in code, so the new module must not do that again.
 - The client chains profiles: it asks `identification` first. A profile can **require** that classification as `inputs`, as `chat` does, so a fast flow needs no triage of its own.
@@ -44,7 +44,7 @@
 7. **One shared direct-call helper**, `support/tools/direct_call.py`, used by `tool_caller` **and** by `ActionExecutor` for any independent MCP action (no dependencies, no subactions, a complete `mcp_context`). The LLM operator stays only as the fallback for dependent actions, and the data engineer only for an answer without the contract shape. This also shortens `special` and `dynamics`.
 8. **Read-only only.** The fast path runs a tool only if the profile's scope allows it **and** the tool is read-only. `ToolDefinition` gets a `read_only` flag from the MCP `readOnlyHint` annotation, which the Dynamics tools already set. A tool without the hint is refused. **The check is at run time**: `assemble()` works from files only (T-05.6) and the annotation is on the live server, so the selector is shown only the read-only tools of its scope and the caller refuses any other one (T-08.4; corrected on 2026-11-11 when the tasks were written).
 9. **Not in scope:** more than one tool call, actions that depend on each other, tools that need confirmation, a gate step, and a router inside the service (ADR-015 forbids it). A request that needs more is for `dynamics`, chosen by the client.
-10. **Target and measure.** The median of 5 real runs of the simple message is **20 s or less**. The estimate is **8 to 14 s** (two model calls of 4 to 6 s and a tool of 1 to 2 s); it is **not measured**. `duration_ms` is added to the record and the log line of an LLM call first (T-08.2), so every later change is judged in seconds.
+10. **Target and measure.** The median of 5 real runs of the simple message is **20 s or less**. The estimate is **8 to 14 s** (two model calls of 3 to 6 s, as the measured steps suggest, and a tool of 1 to 2 s); the fast flow itself is **not measured** yet. `duration_ms` is added to the record and the log line of an LLM call first (T-08.2), so every later change is judged in seconds.
 
 ## What changes
 
@@ -60,7 +60,7 @@
 
 **New:** `flows/fast.json`; `profiles/dynamics_fast_triage.json` (with its own token hash); `step_defs/{tool_selector,tool_caller,answer_writer}.json`; `prompts/50_tool_selector.txt` and `prompts/51_answer_writer.txt`; `runtime/step/library/fast/tool_caller.py`; `support/tools/direct_call.py`; `profiles/dynamics_fast.json` (with a real token hash); a model set for the profile (name to decide); this ADR; the epic folder `docs/tasks/T-08_fast-tool-path/`.
 
-**Changed:** `application/assembly/assemble.py`, `application/assembly/model.py` and `application/runtime/profile/runner.py` (a profile's own steps run); `application/outbound/ports/mcp_ports.py` (`call_tool`; `ScopedTools` forwards it with its scope); `infrastructure/outbound/mcp/tool_executor.py` and `tool_catalog.py`; `domain/value_objects/llm_request/tool.py` (`read_only`); `runtime/step/library/special/action_executor.py`; `runtime/step/build.py` and `functions.py` (the builders and the input function of the new steps); `support/metrics.py` and `runtime/step/runner.py` (`duration_ms`).
+**Changed:** `application/assembly/assemble.py`, `application/runtime/profile/assembled.py` and `application/runtime/profile/runner.py` (a profile's own steps run); `application/ports/outbound/mcp_ports.py` (`call_tool`; `ScopedTools` forwards it with its scope); `infrastructure/outbound/mcp/tool_executor.py` and `tool_catalog.py`; `domain/value_objects/llm_request/tool.py` (`read_only`); `runtime/step/library/special/action_executor.py`; `runtime/step/build.py` and `functions.py` (the builders and the input function of the new steps); `support/metrics.py` and `runtime/step/runner.py` (`duration_ms`).
 
 **Tests and generated files:** new tests for the direct call, the three steps, the read-only check, the "no server name in the module" check and the assembly of the new profile. The golden file changes **on purpose**: a new profile block, and the scenarios that run an MCP action lose their `phase5` and `phase6` calls. `docs/models/profiles.md` is regenerated.
 
@@ -79,7 +79,7 @@
 - **One model call that uses the tools itself** (one agentic step doing selector, caller and writer). Fewer files, but it gives up the tool allow-list check, the read-only check and the per-step metrics. Revisit if two calls are still too slow.
 - **One flow file per variation only.** It works today, but the maintainer wants a profile to set its own steps (Q11-7), so a profile's `steps` are made runnable (T-08.10); the flow `fast` stays a file because two profiles share its steps.
 
-## Plan of work (epic T-08, not created yet)
+## Plan of work (epic T-08, done up to T-08.8 on 2026-11-11)
 
 1. **T-08.1** Decisions (the questions below).
 2. **T-08.2** `duration_ms`, so the before and after are measured.
