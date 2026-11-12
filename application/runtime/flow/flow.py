@@ -13,7 +13,8 @@ from application.runtime.state.paused_run import FlowResult
 from application.runtime.flow.hooks import ANSWER_CHECKER, USER_CLARIFICATION
 from application.runtime.step.spec import Step
 from application.runtime.step.runner import PhaseRunner
-from application.outbound.ports.mcp_ports import McpToolsPort, ToolScope
+from application.ports.outbound.mcp_ports import McpToolsPort
+from domain.value_objects.tools.tool_scope import ToolScope
 from domain.value_objects.llm_request.message import Message
 
 

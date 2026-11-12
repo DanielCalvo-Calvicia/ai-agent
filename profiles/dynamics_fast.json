@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "name": "dynamics_fast",
+  "about": "A request that needs at most one read-only Business Central tool call, answered in two model calls and one code step (ADR-019). Reads the classification the `identification` profile made (inputs). It reaches customer data.",
+  "token_sha256": "4d0ba1813960708339f14e408a657ce00635cc1eeb60674f61be1842e887812d",
+  "flow": "fast",
+  "models": "claude_fast",
+  "tools": {
+    "servers": [
+      "dynamics_microservice"
+    ]
+  },
+  "inputs": {
+    "requires": [
+      "user_goal",
+      "task_category"
+    ],
+    "accepts": [
+      "intent",
+      "constraints",
+      "missing_information",
+      "next_step"
+    ]
+  },
+  "overrides": {
+    "tool_selector": {
+      "prompt_append": {
+        "file": "prompts/profiles/dynamics_fast/tool_selector.txt"
+      }
+    },
+    "answer_writer": {
+      "prompt_append": {
+        "file": "prompts/profiles/tools/draft_writer.txt"
+      }
+    }
+  },
+  "tested": "2026-11-11"
+}

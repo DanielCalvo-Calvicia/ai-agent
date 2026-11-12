@@ -32,7 +32,7 @@ Today the `llm_per_action` steps are exactly `cognitive_worker` (an action that 
 | `about` | all | no | text | Documentation only. |
 | `kind` | all | yes | `llm`, `llm_per_action`, `code` | Section 2. |
 | `legacy_id` | llm kinds | yes | whole number, **unique** across all steps | The old phase number, a **label** for failures, metrics and ordering. Pick one that no other step uses (shipped: 1-8, 20, 21, 30, 31, 40; 9 and 99 belong to the answer checker and the clarification). |
-| `group` | llm kinds | yes | `identification`, `common`, `special`, `movement`, `expression` | The family it sorts with (labels, ordering of tables). Not a permission. |
+| `group` | llm kinds | yes | `identification`, `common`, `special`, `movement`, `expression`, `fast` | The family it sorts with (labels, ordering of tables). Not a permission. |
 | `prompt` | llm kinds | yes | `{"file": "prompts/<id>_<name>.txt"}` | The step's prompt. **Only `file` is supported** (an inline text is refused). The file must exist inside the project. The generic rules (`prompts/0_generic_prompt.txt`), `capabilities.txt` and the date are put in front by the engine. |
 | `default_models` | llm kinds | yes | list of model ids; **the first must be a Google model** | What the step uses when no model set or profile says anything (section 5). |
 | `intent` | llm kinds | yes | `{"primary": text, "secondary": [text], "confidence": number}` | The intent label sent with the call. No other key is allowed. Copy it from a similar step. |
@@ -42,7 +42,7 @@ Today the `llm_per_action` steps are exactly `cognitive_worker` (an action that 
 | `writes` | all | recommended | list of state fields | Where the answer goes. The check for a step with no `reads`/`writes` lists is skipped, so always write both. |
 | `write_always` | llm | no | `true` / `false` | `false` (default): a field is written only if the answer's value is not empty. `true`: it is written even when empty (used by the planner and the gate, so an empty plan replaces an old one). |
 | `for_each` | `llm_per_action` | yes | `"actions"` | Run once per action. |
-| `function` | `code` | yes | name of a Python code step | Which code runs (`action_executor`, `motion_validator`, `gesture_builder`). Must exist in `application/runtime/step/library/` as a code step. |
+| `function` | `code` | yes | name of a Python code step | Which code runs (`action_executor`, `motion_validator`, `gesture_builder`, `tool_caller`). Must exist in `application/runtime/step/library/` as a code step. |
 | `functions` | llm kinds | no | `{"input": name, "apply": name, "extra": name}` | Named Python functions of `application/runtime/step/functions.py`, for when plain `reads`/`writes` are not enough (section 7). Unknown slot or name is an error. |
 | `tools` | all | no | `{"servers": [...], "tools": [...]}` | **Checked against `mcps/` but not applied**: the scope of a step is built from the profile, the flow file and `overrides.<step>.tools`, not from this key. Put limits there instead. |
 | `data` | all | no | `{"reads": [text]}` | **Reserved** for a future data policy (Q07-16). Only its shape is checked; nothing reads it. Do not rely on it. |

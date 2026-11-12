@@ -1,6 +1,6 @@
 # infrastructure/outbound/
 
-Adapters through which ai-agent **reaches out**. Each folder implements one port of `application/outbound/ports/`.
+Adapters through which ai-agent **reaches out**. Each folder implements one port of `application/ports/outbound/`.
 
 | Folder | Port it implements | What it talks to |
 |---|---|---|

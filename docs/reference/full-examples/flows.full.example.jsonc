@@ -1,0 +1,132 @@
+// =====================================================================================
+// FLOW: FULL EXAMPLE (VISUALIZATION ONLY) - EVERY KEY AND EVERY POSSIBLE VALUE
+// -------------------------------------------------------------------------------------
+// WHAT IT IS : an ordered list of steps with named pause and retry rules. A flow says WHAT runs and in WHAT ORDER.
+//              It does NOT say which models (the profile), which tools at profile level (the profile) or what a step
+//              does (step_defs/). NO branches, NO loops, NO sub-flows: steps run top to bottom.
+// WHERE IT LIVES : flows/<name>.json (file name == "name"). Read at start by infrastructure/outbound/config/file_source.py,
+//              checked by application/assembly/assemble.py, built into a Flow by application/assembly/flow_file.py,
+//              executed by application/runtime/flow/pipeline.py (flow.py, conditions.py, hooks.py, pause/).
+// WHO USES IT : a profile names it ("flow": "special"), or a profile writes the same entries as its own "steps".
+//              Shipped: identification, conversation, special, movement, expression, fast. The name is ALSO the `flow` field
+//              of an answer and a key of the metrics: renaming a flow changes both, and changes the profile_hash of every
+//              profile that uses it.
+// HOW TO READ THIS FILE:
+//   * It is an ARRAY of EVERY KIND of flow, one object each (a flow that can ask the user / one that cannot).
+//   * Every place that accepts several values lists ALL of them in a comment, and shows the other forms as "// ALT:" lines.
+//   * NOT loaded. JSONC = JSON with // comments. Real flow files are plain JSON (no comments; a key starting with "_" is ignored).
+// FOR AN LLM : the names a flow may use (steps, conditions, hooks) are written in PYTHON; a flow can only COMBINE them.
+//              An unknown key is an error. ORDER MATTERS: a step may only read what earlier steps wrote (data-flow check).
+//              Keys that start with "_" are ignored; a file or folder that starts with "_" is not loaded.
+// =====================================================================================
+[
+  // ###################################################################################
+  // KIND A: a flow that CAN ASK THE USER (has pause_if steps) -> needs on_pause and on_resume
+  // ###################################################################################
+  {
+    // Format version. Always 1.
+    "schema_version": 1,
+
+    // Public name. MUST equal the file name. Always write it.
+    "name": "full_example_asks",
+
+    // Free text, documentation only.
+    "about": "Documentation only. Free text.",
+
+    // The steps in order. Non-empty. Each entry is ONE of two forms: a step NAME (string) or an OBJECT.
+    //
+    // STEP NAMES THAT EXIST TODAY (a file of step_defs/ or a Python code step):
+    //   LLM  : triage_specialist, project_manager, safety_quality_gatekeeper, draft_writer, editor_in_chief,
+    //          motion_planner, emotion_reader, tool_selector, answer_writer
+    //   CODE : action_executor (runs the planned actions: one model call each, using cognitive_worker / mcp_operator / data_engineer),
+    //          motion_validator, gesture_builder, tool_caller
+    // NOT ALLOWED in a flow: cognitive_worker, mcp_operator, data_engineer (they run once per action INSIDE action_executor;
+    // listing them is not caught by check_agent.py and fails when the flow is built) and answer_checker / user_clarification
+    // (runtime hooks, not steps).
+    // Do not mix families in one flow: motion_planner starts a motion state, emotion_reader an expression state, any other the general state.
+    "steps": [
+      // FORM 1: a plain name = a step with no rules.
+      "triage_specialist",
+
+      // FORM 2: an object. Only "step" is required; every other key is optional.
+      {
+        // Required in an object. The step name (one of the names above).
+        "step": "project_manager",
+
+        // After the step, if the condition is true the flow STOPS and ASKS the user instead of going on.
+        // The ONLY value: "needs_user_input" (application/runtime/flow/conditions.py). It is true when the step's answer has
+        // next_step.status = awaiting_user_input (a detail is missing) or awaiting_confirmation (a yes/no is needed; a yes resumes
+        // AFTER the step, the answer checker decides). The next message of the same profile resumes AT THIS STEP with the answer.
+        // Only works on a step that writes next_step; on any other it does nothing.
+        "pause_if": "needs_user_input",
+
+        // true | false (default false). Run the step again while its next_step.status is "retry" or "error", up to
+        // AI_AGENT_MAX_ATTEMPTS (3, first try included). After that the request fails (reported_error).
+        // Only works on a step that writes next_step.
+        "retry_on_status": true,
+
+        // Tool limit for THIS step only; can only narrow what the profile and the flow allow. Same object as the profile's "tools":
+        //   {"servers": [...], "tools": [...]}   ({} or {"servers": []} = no tools for this step)
+        "tools": {
+          "servers": ["dynamics_microservice"],
+          "tools": ["dynamics_microservice.customer_orders"]
+        },
+
+        // Accepted by the check, IGNORED at run time. Do not use.
+        "optional": true
+      },
+
+      // Objects with only some of the keys (all valid):
+      { "step": "safety_quality_gatekeeper", "pause_if": "needs_user_input", "retry_on_status": true },
+      { "step": "action_executor" },
+      { "step": "editor_in_chief", "retry_on_status": true }
+    ],
+
+    // What the runtime does when a step asks the user: turn the missing data into ONE question (a model call: step user_clarification).
+    // The ONLY value: "user_clarification" (application/runtime/flow/hooks.py).
+    // REQUIRED when any step has pause_if. The check does NOT catch the omission: it fails at RUN time
+    // ("step X can ask the user, but the flow has no on_pause hook").
+    "on_pause": "user_clarification",
+
+    // What the runtime does with the user's NEXT message: decide if it answers the question, confirms, declines or stops
+    // (a model call: step answer_checker). The ONLY value: "answer_checker". REQUIRED for any flow that can be resumed
+    // ("... has no on_resume hook" at run time otherwise).
+    "on_resume": "answer_checker",
+
+    // The step whose result is the flow's result. MUST be a step listed in "steps". It also decides WHAT KIND of answer is built
+    // (application/runtime/flow/hooks.py RESULT_BUILDERS). ALL the cases:
+    //   "triage_specialist" -> no text, classification only (the client reads the state; profile default_return: full)
+    //   "motion_validator"  -> the spoken line and the arm movements (directives)
+    //   "gesture_builder"   -> a gesture: movements only, no reply of its own
+    //   any other step      -> the final text the writer/editor left in user_goal (an LLM result step MUST write user_goal, or the check fails)
+    "result_from": "editor_in_chief",
+
+    // Tool limit for the WHOLE flow. Same object and same intersection rule as the profile's "tools". Optional.
+    "tools": {
+      "servers": ["dynamics_microservice"],
+      "tools": ["customer_orders"]
+    },
+
+    // CHECKED BUT NOT APPLIED. Models are chosen by the profile (flows.<flow>.models). A set name or a list of ids. Do not rely on it.
+    "models": "claude_mixed"
+  },
+
+  // ###################################################################################
+  // KIND B: a flow that CANNOT ask the user (no pause_if) -> NO on_pause, NO on_resume
+  // (shipped: conversation = draft_writer + editor_in_chief; expression = emotion_reader + gesture_builder)
+  // ###################################################################################
+  {
+    "schema_version": 1,
+    "name": "full_example_no_ask",
+    "about": "Two plain steps. Cannot ask the user, so it carries no hooks.",
+    // Plain names only; no pause_if. retry_on_status is still allowed on a step that writes next_step.
+    "steps": ["draft_writer", { "step": "editor_in_chief", "retry_on_status": true }],
+    "result_from": "editor_in_chief"
+  }
+
+  // OTHER SHIPPED COMBINATIONS (for reference; each is its own file):
+  //   identification : steps [triage_specialist (pause_if + retry)]                            result_from triage_specialist
+  //   movement       : steps [motion_planner (pause_if + retry), motion_validator]               result_from motion_validator
+  //   expression     : steps [emotion_reader, gesture_builder]                                   result_from gesture_builder
+  //   fast           : steps [tool_selector (pause_if + retry), tool_caller, answer_writer]      result_from answer_writer
+]

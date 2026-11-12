@@ -10,9 +10,9 @@ import pytest
 
 from application.assembly.assemble import assemble
 from application.assembly.config_snapshot import build_snapshot
-from application.support.metrics import RECORD_KEYS, SessionMetrics
-from application.inbound.dto.message import TextRequestDTO
-from application.outbound.ports.usage_ports import CallDetails
+from application.runtime.step.metrics import RECORD_KEYS, SessionMetrics
+from application.dtos.inbound.message import TextRequestDTO
+from domain.value_objects.usage.call_details import CallDetails
 from application.service.message_flow_service import MessageFlowService
 from infrastructure.outbound.config.file_source import FileConfigSource
 from infrastructure.outbound.usage.langfuse import LangfuseUsageReporter
@@ -108,18 +108,18 @@ class TestEveryKeyIsInTheMetrics:
 class TestTheLogLine:
     def test_one_line_per_call_with_the_run_and_never_a_text_or_a_token(self, agent, monkeypatch):
         recorder = Recorder()
-        monkeypatch.setattr("application.support.metrics.logger", recorder)
+        monkeypatch.setattr("application.runtime.step.metrics.logger", recorder)
         metrics = run_special(agent)
         calls = [fields for message, fields in recorder.records if message == "LLM call"]
         assert len(calls) == len(metrics.request_log)
         assert set(calls[0]) == {"profile", "flow", "step", "phase_id", "model", "client", "profile_hash", "prompt_tokens",
-                                 "completion_tokens", "total_tokens", "cost_usd"}
+                                 "completion_tokens", "total_tokens", "cost_usd", "duration_ms"}
         assert calls[0]["profile_hash"] == agent.profile("special").profile_hash[:12]
         assert "token" not in " ".join(calls[0]).replace("_tokens", "").replace("tokens", "")
 
     def test_no_input_value_reaches_a_record_or_the_log(self, agent, monkeypatch):
         recorder = Recorder()
-        monkeypatch.setattr("application.support.metrics.logger", recorder)
+        monkeypatch.setattr("application.runtime.step.metrics.logger", recorder)
         metrics = run_special(agent, client="web-chat", message=f"my code is {SECRET_INPUT}")
         assert SECRET_INPUT not in json.dumps(metrics.summary(), default=str) and SECRET_INPUT not in repr(recorder.records)
 

@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "name": "claude_fast",
+  "_about": "The models of the fast tool path (ADR-019, T-08.5): claude-haiku-4-5 on every step (the tool selector, the answer writer, and the clarification and answer checker a pause may run). Sonnet only if the quality fails on the fixed messages (Q11-9). Needs ANTHROPIC_API_KEY. Its own file so it can be tuned without touching claude_haiku.",
+  "default": [
+    "claude-haiku-4-5"
+  ]
+}

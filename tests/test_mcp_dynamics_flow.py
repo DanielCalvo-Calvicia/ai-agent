@@ -27,15 +27,15 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.inbound.dto.session import MessageReceivedRequestDTO, StartSessionRequestDTO
+from application.dtos.inbound.session import MessageReceivedRequestDTO, StartSessionRequestDTO
 from brain_chain import AgentRouter
 from application.support.tools.mcp_servers import describe_servers, server_names
-from application.support.metrics import SessionMetrics
+from application.runtime.step.metrics import SessionMetrics
 from brain_chain import ChainedSessionService as SessionService
-from application.system_prompts.general import LoadCapabilities, LoadSystemPrompt
-from infrastructure.outbound.mcp.client_manager import MCPClientManager
-from infrastructure.outbound.mcp.config import load_supported_mcp_configs
-from infrastructure.outbound.mcp.tool_executor import MCPToolExecutor
+from application.runtime.step.system_prompt import LoadCapabilities, LoadSystemPrompt
+from infrastructure.outbound.mcp.connection.client_manager import MCPClientManager
+from infrastructure.outbound.mcp.config.loader import load_supported_mcp_configs
+from infrastructure.outbound.mcp.execution.tool_executor import MCPToolExecutor
 from test_flow_golden import PM, TRIAGE, ScriptedLLM, _ACTION_ID, _action, _plan
 from test_resume import Script
 from test_router import ASKING, formats, short, triage
@@ -201,7 +201,7 @@ def _fresh(monkeypatch):
     monkeypatch.chdir(PROJECT_ROOT)
     monkeypatch.setenv("AI_AGENT_MAX_ATTEMPTS", "1")
     monkeypatch.delenv("AI_AGENT_MAX_MCP_CALLS_PER_MESSAGE", raising=False)
-    monkeypatch.setattr("application.system_prompts.general.now_text", lambda: "Monday, 2026-01-05, 09:00 (UTC+00:00)")
+    monkeypatch.setattr("application.runtime.step.system_prompt.now_text", lambda: "Monday, 2026-01-05, 09:00 (UTC+00:00)")
 
 
 def descriptor(url, protocol="dynamics_v1"):
@@ -278,14 +278,15 @@ class World:
 
 # ---------------------------------------------------------------- a normal table answer
 
-def test_a_table_answer_goes_through_the_tool_step_the_cleaning_and_the_writer(dynamics_url):
+def test_a_table_answer_is_called_by_code_with_no_operator_and_no_cleaning_and_goes_to_the_writer(dynamics_url):
     world = World(dynamics_url)
 
     result = world.ask()
 
     assert result.flow == "special" and result.paused is None                       # and nothing asked for confirmation
+    # T-08.3: the planned tool action is called by code, and an answer of the contract needs no data engineer
     assert world.names() == ["triage_specialist_phase1", "project_manager_phase2", "safety_quality_gatekeeper_phase3",
-                             "phase5_single_action", "phase6_single_action", "draft_writer_phase7", "editor_in_chief_phase8"]
+                             "draft_writer_phase7", "editor_in_chief_phase8"]
     assert "SO-0002|2026-01-06|Open|75.50" in world.input_of("draft_writer")         # the rows reach the writer
     [call] = world.metrics.tool_calls
     assert (call.tool, call.outcome, call.attempts) == ("customer_orders", "ok", 1) and call.duration_ms >= 0
@@ -485,7 +486,7 @@ def test_a_tool_error_reaches_the_writer_with_its_kind_and_is_never_cleaned_as_d
     assert "phase6_single_action" not in world.names()                         # a failed action is not cleaned
     assert world.metrics.tool_calls[0].outcome == kind
     assert SERVER_CALLS[code] == (2 if kind == "retry_later" else 1)          # only retry_later is tried again
-    assert world.names().count("phase5_single_action") == 1                    # and the step is not asked again
+    assert "phase5_single_action" not in world.names()                         # the tool is called by code (T-08.3): no operator to ask again
 
 
 # ---------------------------------------------------------------- a missing customer code
@@ -805,7 +806,7 @@ def test_the_libraries_that_log_the_address_or_the_message_are_kept_at_warning(n
 
 
 def test_the_quieting_can_be_applied_again_after_a_logging_set_up_resets_it():
-    from infrastructure.outbound.mcp.client_manager import quiet_client_libraries
+    from infrastructure.outbound.mcp.connection.client_manager import quiet_client_libraries
     logging.getLogger("httpx").setLevel(logging.DEBUG)
 
     quiet_client_libraries()

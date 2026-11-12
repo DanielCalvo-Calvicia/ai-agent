@@ -4,12 +4,13 @@
 #  tools (the limits of the profile, the flow and the step, T-05.13); the service does not choose between flows any more: the client asks a profile and chains them itself
 #  (PR-005 section 2). A run that stopped to ask the user is resumed by the next message of the same profile.
 #
-#  A profile names a flow file (flows/<name>.json); the Agent holds the Flow built from each one (assemble.py).
+#  A profile names a flow file (flows/<name>.json); the Agent holds the Flow built from each one (assemble.py). A profile may instead
+#  list its own `steps` (T-08.10): its Flow is built the same way and named like the profile.
 # ===============================================
 
 from typing import Iterable, List, Optional
 
-from application.assembly.model import Agent, AssembledProfile
+from application.runtime.profile.assembled import Agent, AssembledProfile
 from application.runtime.flow.flow import Flow
 from application.runtime.flow.pipeline import Pipeline
 from application.runtime.state.expression_state import ExpressionFlowState
@@ -17,9 +18,10 @@ from application.runtime.state.flow_state import FlowState
 from application.runtime.state.motion_state import MotionFlowState
 from application.runtime.state.paused_run import FlowResult, PausedRun
 from application.support.expression_settings import speech_seconds
-from application.support.metrics import SessionMetrics
-from application.outbound.ports.llm_ports import LLMOutboundPort
-from application.outbound.ports.mcp_ports import McpToolsPort, scoped
+from application.runtime.step.metrics import SessionMetrics
+from application.ports.outbound.llm_ports import LLMOutboundPort
+from application.ports.outbound.mcp_ports import McpToolsPort
+from application.support.tools.scoped_tools import scoped
 from domain.value_objects.llm_request.message import Message
 
 
@@ -104,8 +106,10 @@ class ProfileRunner:
             state.speech_seconds = speech_seconds(state.reply)
 
     def _flow_of(self, profile: AssembledProfile) -> Flow:
-        if profile.flow_name is None:
-            raise ValueError(f"profile {profile.name!r} lists its own steps: that needs steps as files (T-05.16)")
+        if profile.flow_name is None:                       # the profile lists its own steps: its flow was built when it was assembled (T-08.10)
+            if profile.flow is None:
+                raise ValueError(f"profile {profile.name!r} lists its own steps, but its flow was not built")
+            return profile.flow
         if profile.flow_name not in self.flows:
             raise ValueError(f"profile {profile.name!r}: unknown flow {profile.flow_name!r}. Flows: {', '.join(self.flows)}")
         return self.flows[profile.flow_name]

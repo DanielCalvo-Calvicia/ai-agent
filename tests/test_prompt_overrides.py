@@ -10,9 +10,9 @@ from application.assembly.assemble import assemble
 from application.assembly.config_snapshot import build_snapshot
 from application.runtime.profile.runner import ProfileRunner
 from application.runtime.state.paused_run import FlowResult
-from application.support.metrics import SessionMetrics
+from application.runtime.step.metrics import SessionMetrics
 from application.support.llm.prompt_overrides import PromptOverride
-from application.system_prompts.general import GENERIC_PROMPT_FILE, build_system_prompt_from_file
+from application.runtime.step.system_prompt import GENERIC_PROMPT_FILE, build_system_prompt_from_file
 from infrastructure.outbound.config.file_source import FileConfigSource
 from test_flow_golden import SCENARIOS, ScriptedLLM, _sha
 
@@ -23,7 +23,7 @@ REPLACED = "You are a draft writer that only says KANGAROO."
 
 @pytest.fixture(autouse=True)
 def fixed_clock(monkeypatch):
-    monkeypatch.setattr("application.system_prompts.general.now_text", lambda: "NOW")
+    monkeypatch.setattr("application.runtime.step.system_prompt.now_text", lambda: "NOW")
 
 
 @pytest.fixture
@@ -130,9 +130,11 @@ class TestWhatIsSent:
         """T-06.4 change 2: the rules for a tool answer (a table, an error, a query still running, [hidden]) are an append of the profiles that have tools."""
         agent = assemble(build_snapshot(FileConfigSource(PROJECT_ROOT)))
         with_rules = {name for name, profile in agent.profiles.items() if profile.prompts}
-        assert with_rules == {"special", "dynamics"}
-        for name in with_rules:
+        assert with_rules == {"special", "dynamics", "dynamics_fast", "dynamics_fast_triage"}
+        for name in ("special", "dynamics"):
             assert set(agent.profile(name).prompts) == {"draft_writer", "project_manager"}
+        assert set(agent.profile("dynamics_fast").prompts) == set(agent.profile("dynamics_fast_triage").prompts) == {"tool_selector", "answer_writer"}      # T-08.5: the same rules for a tool answer
+        assert agent.profile("dynamics_fast").prompts["answer_writer"].append == agent.profile("special").prompts["draft_writer"].append
         core = prompt_of("prompts/7_drawf_writter.txt")
         appended = agent.profile("special").prompts["draft_writer"].append
         assert agent.profile("dynamics").prompts["draft_writer"].append == appended
@@ -183,5 +185,5 @@ class TestWhatAssemblyRefuses:
 
     def test_the_text_of_an_override_is_never_a_field_of_the_request(self):
         # a prompt override is data of the repository, read once at assembly: the request has no way to carry one
-        from application.inbound.dto.session import MessageReceivedRequestDTO
+        from application.dtos.inbound.session import MessageReceivedRequestDTO
         assert not any("prompt" in name for name in MessageReceivedRequestDTO.model_fields)

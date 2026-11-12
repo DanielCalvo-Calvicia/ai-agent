@@ -1,6 +1,6 @@
 # Answers that carry a job, per protocol
 
-One file per kind of answer of the job protocols of `infrastructure/outbound/mcp/job_protocols/` (T-07.7, ADR-018). Placeholder data
+One file per kind of answer of the job protocols of `infrastructure/outbound/mcp/jobs/protocols/` (T-07.7, ADR-018). Placeholder data
 only: no real customer, order or job id. `tests/test_mcp_job_protocols.py` checks that each protocol reads its files, and the fake
 server of `tests/test_mcp_dynamics_flow.py` serves them.
 

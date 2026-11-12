@@ -1,5 +1,7 @@
 # ADR-013 — Claude through Anthropic's OpenAI-compatible endpoint, with a sanitized strict schema
 
+> **Note, 2026-11-11 (T-08.3):** under strict mode the open object `mcp_context.parameters` (no properties, `additionalProperties: false`) could only be `{}`, so with Claude the plan never carried the arguments of a tool and the LLM operator had to fill them in. The sanitizer now asks Claude for `parameters` as **text that holds a JSON object**, and `response_mapper._parameters_of` reads it back; the other providers and `schema/response/` do not change.
+
 **Status:** Accepted (2026-10-28, at the maintainer's request to try Claude with the only paid key at hand, an Anthropic one). Built in epic [T-03](../tasks/T-03_claude-provider/T-03_claude-provider.md); run once on real messages (T-03.6).
 
 ## Context

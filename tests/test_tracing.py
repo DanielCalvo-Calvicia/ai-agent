@@ -27,7 +27,7 @@ def test_app_continues_the_incoming_trace_and_logs_the_service_name():
 def test_mcp_connections_forward_the_trace_context(monkeypatch):
     import asyncio
 
-    from infrastructure.outbound.mcp import client_manager
+    from infrastructure.outbound.mcp.connection import client_manager
     from shared_logging import continue_trace
 
     captured = {}

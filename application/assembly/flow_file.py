@@ -13,7 +13,8 @@ from application.runtime.flow.conditions import CONDITIONS
 from application.runtime.step.declared import repository_declarations
 from application.runtime.flow.hooks import result_builder, state_factory
 from application.runtime.step.spec import Step
-from application.outbound.ports.mcp_ports import ToolScope, scoped
+from domain.value_objects.tools.tool_scope import ToolScope
+from application.support.tools.scoped_tools import scoped
 from application.runtime.step.registry import step as registered_step
 
 

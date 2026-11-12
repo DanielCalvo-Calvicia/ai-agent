@@ -8,9 +8,10 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from application.runtime.flow.pipeline import Pipeline
-from application.support.metrics import SessionMetrics
+from application.runtime.step.metrics import SessionMetrics
 from application.runtime.step.library.special.action_executor import MAX_TOOL_WAIT_SECONDS
-from application.outbound.ports.mcp_ports import remaining_tool_wait, report_final_tool_failure, watch_tool_failures
+from application.ports.outbound.tool_wait_budget import remaining_tool_wait
+from application.ports.outbound.tool_failures import report_final_tool_failure, watch_tool_failures
 from flow_trace import FULL_FLOW
 from test_flow_golden import PM, ScriptedLLM, _action, _no_result, _plan
 

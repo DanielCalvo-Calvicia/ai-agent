@@ -21,6 +21,6 @@ A level uses only the levels below it (`tests/test_orchestration_layout.py`):
 - **A request runs ONE profile**; a profile names one flow (`profiles/<name>.json` -> `flows/<name>.json`). The service does not route between flows: the client (Brain) chains profiles (`identification`, then the profile that answers, then `gesture`).
 - A flow is **data** (a JSON file). The runtime never names the steps of a particular flow: the flow file names them and the registry finds them.
 - LLM steps are **declarations** (`step_defs/<name>.json`); only code steps are Python (`step/library/`).
-- The runtime reads `assembly/model.py` (`Agent`, `AssembledProfile`) and nothing else of `assembly/`, which only runs at start.
+- `runtime/profile/assembled.py` holds `Agent` and `AssembledProfile`, what `assembly/` builds. The runtime never imports `assembly/`, which only runs at start.
 
 See [`docs/architecture/architecture.md`](../../docs/architecture/architecture.md) sections 3 and 4.

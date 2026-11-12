@@ -23,7 +23,7 @@ KINDS = (LLM, LLM_PER_ACTION, CODE)
 
 # The folders of the steps, in the order the catalog lists them: the text flows (identification, conversation, special)
 # first, in execution order, then the movement flow, then the expression flow.
-GROUP_ORDER = {"identification": 0, "common": 0, "special": 0, "movement": 1, "expression": 2}
+GROUP_ORDER = {"identification": 0, "common": 0, "special": 0, "movement": 1, "expression": 2, "fast": 3}
 TEXT_GROUPS = tuple(group for group, rank in GROUP_ORDER.items() if rank == 0)
 
 

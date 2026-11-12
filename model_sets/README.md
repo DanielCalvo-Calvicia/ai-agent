@@ -1,6 +1,6 @@
 # model_sets/
 
-One JSON file per **model set**: a named table that says which LLM answers each step. A profile picks one by name (`"models": "claude_mixed"`) at any level (PR-005 section 5). Every entry is an **ordered list**: the first model answers, the next ones are tried **only when the first is out of capacity** (429, 503, daily quota; ADR-014). Read by `application/support/llm/model_selection.py`.
+One JSON file per **model set**: a named table that says which LLM answers each step. A profile picks one by name (`"models": "claude_mixed"`) at any level (PR-005 section 5). Every entry is an **ordered list**: the first model answers, the next ones are tried **only when the first is out of capacity** (429, 503, daily quota; ADR-014). Read by `application/runtime/step/model_selection.py`.
 
 ## 1. File format
 
@@ -91,6 +91,7 @@ A level is a **set name** or a **list of ids**. Within a set, the step's own ent
 |---|---|---|
 | `proven` | everything on `gemini-3.1-flash-lite` with two Google fallbacks | `default`, `identification`, `movement`, `gesture` |
 | `claude_haiku` | Haiku 4.5 everywhere, Sonnet 5.5 for the planner | `chat` |
+| `claude_fast` | Haiku 4.5 on the tool selector and the answer writer (ADR-019) | `dynamics_fast` |
 | `claude_mixed` | Haiku 4.5, Sonnet 5.5 for planner, writer and editor | `special`, `dynamics` |
 | `claude_sonnet` | Sonnet 5 everywhere (legacy id) | nobody (untested) |
 | `google_free` | Google free-tier models with two fallbacks per step | nobody |

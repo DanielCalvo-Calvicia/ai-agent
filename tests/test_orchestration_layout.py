@@ -2,13 +2,13 @@
 The layout of application/ says what each folder is for, and the dependencies go one way. The runtime is the path of a message,
 top to bottom: profile -> flow -> step -> state, and `support` is the base under all of it.
 
-    runtime/profile   runs one profile (its token, its inputs, its flow)           uses flow, step, state, support and assembly.model
+    runtime/profile   runs one profile (its token, its inputs, its flow)           uses flow, step, state, support (never assembly)
     runtime/flow      runs the steps of one flow, its pauses and resumes           uses step, state, support (never a profile)
     runtime/step      runs one step: its spec, its runner, the registry, library/  uses state, support (never a flow or a profile)
     runtime/state     the data a run carries                                      uses support
-    support           helpers with no business rules                              uses only the step catalog (the tables of metrics and model selection)
-    assembly          start-up only: reads the JSON files, refuses what cannot work; it may use everything
-                      (the runtime reads only assembly/model.py: the assembled Agent, plain data)
+    support           helpers with no business rules                              uses nothing of the runtime (metrics and model selection are in runtime/step)
+    assembly          start-up only: reads the JSON files, refuses what cannot work; it uses the runtime (it builds the Agent
+                      defined in runtime/profile/assembled.py) and the runtime never imports it
 
 A flow is a file (flows/<name>.json) and its steps are declarations (step_defs/<name>.json) or code in runtime/step/library/<group>/;
 the runtime never has to know a particular one. These tests keep it so.
@@ -60,8 +60,8 @@ class TestLayout:
         # a flow is a JSON file; there is no Python package of flows any more (T-05.12)
         assert _offenders(layer, ("flows",)) == []
 
-    def test_the_profile_uses_the_flows_and_steps_but_only_the_assembled_agent_of_assembly(self):
-        assert _offenders("runtime/profile", ("assembly",), allowed=("assembly.model",)) == []
+    def test_the_profile_uses_the_flows_and_steps_and_never_assembly(self):
+        assert _offenders("runtime/profile", ("assembly",)) == []
 
     def test_a_flow_never_uses_a_profile_or_assembly(self):
         assert _offenders("runtime/flow", ("runtime.profile", "assembly")) == []
@@ -88,11 +88,9 @@ class TestLayout:
     def test_state_uses_only_the_support(self):
         assert _offenders("runtime/state", ("runtime.profile", "runtime.flow", "runtime.step", "assembly")) == []
 
-    def test_support_only_reads_the_step_catalog(self):
-        # metrics and model selection take their tables from it; nothing else of the runtime, nothing of assembly
-        assert _offenders("support", ("assembly", "runtime.profile", "runtime.flow", "runtime.state")) == []
-        assert _offenders("support", ("runtime.step",), allowed=("runtime.step.catalog",)) == []
+    def test_support_uses_nothing_of_the_runtime_or_assembly(self):
+        assert _offenders("support", ("assembly", "runtime")) == []
 
-    def test_the_runtime_and_support_never_read_the_assembler_itself(self):
+    def test_the_runtime_and_support_never_read_assembly(self):
         for layer in ("runtime", "support"):
-            assert _offenders(layer, ("assembly.assemble", "assembly.config_snapshot", "assembly.flow_file")) == [], layer
+            assert _offenders(layer, ("assembly",)) == [], layer

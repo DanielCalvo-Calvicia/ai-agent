@@ -1,0 +1,61 @@
+from typing import Callable, Optional
+
+from application.support.environment import read_text
+from application.support.clock import now_text
+from application.support.llm.prompt_overrides import PromptOverride
+from application.runtime.step.catalog import PHASES
+from domain.value_objects.llm_request.message import Message, Role, create_message
+
+# Phase 0 is not a phase: it holds the rules that apply to every phase.
+GENERIC_PROMPT_FILE = "prompts/0_generic_prompt.txt"
+CAPABILITIES_FILE = "prompts/capabilities.txt"
+
+
+def _read(relative_path: str) -> str:
+    return read_text(relative_path)
+
+
+def prompt_file_of(phase: int) -> Optional[str]:
+    """The prompt file of a phase (0 = the rules of every phase), or None for an unknown phase or one without a file."""
+    if phase == 0:
+        return GENERIC_PROMPT_FILE
+
+    info = PHASES.get(phase)
+    return info.prompt_file if info else None
+
+
+def LoadSystemPrompt(phase: int) -> Optional[str]:
+    """The text of the prompt file of a phase, or None for an unknown phase."""
+    filename = prompt_file_of(phase)
+    if filename is None:
+        return None
+
+    return _read(filename)
+
+
+def LoadCapabilities() -> str:
+    """What the robot can and cannot do (prompts/capabilities.txt)."""
+    return _read(CAPABILITIES_FILE)
+
+
+def build_system_prompt_from_file(prompt_file: Optional[str], clock: Optional[Callable[[], str]] = None,
+                                  override: Optional[PromptOverride] = None, step_text: Optional[str] = None) -> Message:
+    """
+    The SYSTEM message of a phase: the generic invariants (phase 0), then what the robot can do
+    and the current date and time, then the prompt file of the phase (replaced or added to by the profile's `override`, T-05.14). `step_text` is that prompt already read through the configuration
+    source (the Agent holds it, T-05.16); without it the file is read from the repository.
+    """
+    step_part = step_text if step_text is not None else (_read(prompt_file) if prompt_file else None)
+    parts = [
+        _read(GENERIC_PROMPT_FILE),
+        LoadCapabilities(),
+        f"CURRENT DATE AND TIME: {(clock or now_text)()}",
+        override.apply(step_part) if override else step_part,
+    ]
+
+    return create_message(Role.SYSTEM, "\n\n".join(part for part in parts if part))
+
+
+def build_system_prompt(phase: int, clock: Optional[Callable[[], str]] = None) -> Message:
+    """The SYSTEM message of a phase number (see build_system_prompt_from_file)."""
+    return build_system_prompt_from_file(prompt_file_of(phase), clock)

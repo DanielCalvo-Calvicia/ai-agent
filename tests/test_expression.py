@@ -15,7 +15,7 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.inbound.dto.session import MessageReceivedResponseDTO
+from application.dtos.inbound.session import MessageReceivedResponseDTO
 from flow_files import EXPRESSION_FLOW
 from brain_chain import EXPRESSIVE_FLOWS, AgentRouter
 from application.runtime.step.library.expression import gesture_builder
@@ -24,7 +24,7 @@ from application.runtime.step.library.movement import motion_validator as valida
 from application.runtime.state.expression_state import ExpressionFlowState
 from application.runtime.state.paused_run import FlowResult
 from application.support import expression_settings
-from application.support.metrics import SessionMetrics
+from application.runtime.step.metrics import SessionMetrics
 from domain.operations import gesture
 from domain.operations.gesture import EMOTIONS, build_gesture, gesture_seconds, net_rotation
 from domain.value_objects.movement.movement import Movement
@@ -209,7 +209,7 @@ class TestSettings:
 @pytest.fixture(autouse=True)
 def _project_cwd(monkeypatch):
     monkeypatch.chdir(PROJECT_ROOT)
-    monkeypatch.setattr("application.system_prompts.general.now_text", lambda: "Monday, 2026-01-05, 09:00 (UTC+00:00)")
+    monkeypatch.setattr("application.runtime.step.system_prompt.now_text", lambda: "Monday, 2026-01-05, 09:00 (UTC+00:00)")
 
 
 @pytest.fixture

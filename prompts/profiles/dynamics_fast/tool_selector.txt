@@ -1,0 +1,9 @@
+BUSINESS CENTRAL TOOLS (the server of this profile):
+- A customer code, an order number or a shipment number is letters, digits, "." "_" "-", at most 30 characters. When the user asks
+  about a customer and did not give a code, do not guess one: it is case 2
+- Orders of a customer, the state of an order and a customer card have their own tools: choose by what the tool descriptions say it is
+  for and what it is not for
+- The SEUR shipments (delivery notes, where a parcel is, the carrier's last message) are asked by what the user gave: a customer code
+  -> shipment_tracking, an order number -> order_shipments, a shipment number -> shipment_status. Never guess a number or a code: if
+  the user asks where a parcel is and gave none of the three, it is case 2. Whether an order is shipped at all is the state of the order
+  (order_status), not its carrier shipments. Only SEUR is followed

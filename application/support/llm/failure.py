@@ -6,10 +6,10 @@
 #  It never includes raw error text: that can hold request details.
 # ===============================================
 
-import os
 import time
 from typing import Optional
 
+from application.support.environment import setting
 from shared_logging import get_logger
 
 logger = get_logger(__name__)
@@ -70,7 +70,7 @@ _EXPLANATIONS = {
 def max_attempts() -> int:
     """How many times something is tried in total (the first try included)."""
     try:
-        return max(1, int(os.environ.get(MAX_ATTEMPTS_VARIABLE, DEFAULT_MAX_ATTEMPTS)))
+        return max(1, int(setting(MAX_ATTEMPTS_VARIABLE, str(DEFAULT_MAX_ATTEMPTS))))
     except ValueError:
         return DEFAULT_MAX_ATTEMPTS
 
@@ -80,7 +80,7 @@ def max_mcp_calls() -> int:
     How many MCP tool actions one message may run; 0 means no limit. A value that is not a whole number, or is
     negative, falls back to the default with a warning (never to 0: a typing mistake must not remove the limit).
     """
-    raw = os.environ.get(MAX_MCP_CALLS_VARIABLE, "").strip()
+    raw = setting(MAX_MCP_CALLS_VARIABLE, "").strip()
     if not raw:
         return DEFAULT_MAX_MCP_CALLS
     try:
@@ -137,7 +137,7 @@ def daily_quota_used_up(error: BaseException) -> bool:
 
 def retry_wait_seconds() -> float:
     try:
-        return max(0.0, float(os.environ.get(RETRY_WAIT_VARIABLE, DEFAULT_RETRY_WAIT_SECONDS)))
+        return max(0.0, float(setting(RETRY_WAIT_VARIABLE, str(DEFAULT_RETRY_WAIT_SECONDS))))
     except ValueError:
         return DEFAULT_RETRY_WAIT_SECONDS
 

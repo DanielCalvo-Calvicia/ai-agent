@@ -13,7 +13,7 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.inbound.dto.session import MessageReceivedRequestDTO, StartSessionRequestDTO
+from application.dtos.inbound.session import MessageReceivedRequestDTO, StartSessionRequestDTO
 from application.runtime.flow.pause.answer_check import AnswerChecker, Check, FALLBACK_MESSAGE
 from application.runtime.state.paused_run import CONFIRMATION, INPUT
 from application.runtime.flow.pipeline import DECLINED_TEXT, STOPPED_TEXT
@@ -381,14 +381,14 @@ class TestContextOfEveryPhase:
         conversation.say("hello")
         assert llm.calls
         # the recorded calls carry only a hash of the system prompt, so read what is built for each phase
-        from application.system_prompts.general import build_system_prompt
+        from application.runtime.step.system_prompt import build_system_prompt
         for phase in range(1, 10):
             text = build_system_prompt(phase, clock=lambda: "Monday, 2026-01-05, 09:00 (UTC+00:00)").content
             assert "move each of its arms independently" in text
             assert "CURRENT DATE AND TIME: Monday, 2026-01-05, 09:00 (UTC+00:00)" in text
 
     def test_the_capabilities_come_before_the_phase_prompt(self):
-        from application.system_prompts.general import build_system_prompt
+        from application.runtime.step.system_prompt import build_system_prompt
         text = build_system_prompt(1, clock=lambda: "now").content
         assert text.index("WHO YOU SERVE") < text.index("You are the TRIAGE SPECIALIST")
 
@@ -398,7 +398,7 @@ class TestContextOfEveryPhase:
         assert re.fullmatch(r"[A-Z][a-z]+, \d{4}-\d{2}-\d{2}, \d{2}:\d{2} \(UTC[+-]\d{2}:\d{2}\)", now_text())
 
     def test_small_talk_and_refusals_do_not_pause_the_flow_by_prompt(self):
-        from application.system_prompts.general import LoadSystemPrompt
+        from application.runtime.step.system_prompt import LoadSystemPrompt
         triage = LoadSystemPrompt(1)
         assert "greeting, thanks, small talk" in triage and "cannot do" in triage
         assert "ONE \"generation\" action" in LoadSystemPrompt(2)

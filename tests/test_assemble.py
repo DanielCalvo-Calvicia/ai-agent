@@ -12,15 +12,17 @@ import typing
 import pytest
 
 from application.assembly.assemble import assemble
-from application.assembly.model import DEFAULT_PROFILE
+from application.runtime.profile.assembled import DEFAULT_PROFILE
 from application.assembly.config_snapshot import build_snapshot
 from application.runtime.state.expression_state import ExpressionFlowState
 from application.runtime.state.flow_state import FlowState
 from application.runtime.state.motion_state import MotionFlowState
-from application.outbound.ports.config_ports import ConfigError, ConfigSourcePort, Loaded
+from domain.errors.config_error import ConfigError
+from application.ports.outbound.config_ports import ConfigSourcePort
+from domain.value_objects.config.loaded import Loaded
 from infrastructure.outbound.config.file_source import FileConfigSource
-from infrastructure.outbound.llm.anthropic_schema import anthropic_schema_problems
-from infrastructure.outbound.mcp.config import load_tool_snapshot
+from infrastructure.outbound.llm.shared.schemas.anthropic_schema import anthropic_schema_problems
+from infrastructure.outbound.mcp.config.loader import load_tool_snapshot
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 FIELDS = FileConfigSource(PROJECT_ROOT).load_state_fields().items          # the real catalog of fields

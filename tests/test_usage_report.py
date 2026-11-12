@@ -10,8 +10,9 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from application.support.metrics import SessionMetrics
-from application.outbound.ports.usage_ports import CallDetails, UsageReporterPort
+from application.runtime.step.metrics import SessionMetrics
+from domain.value_objects.usage.call_details import CallDetails
+from application.ports.outbound.usage_ports import UsageReporterPort
 from infrastructure.outbound.usage.langfuse import LangfuseUsageReporter
 from infrastructure.outbound.usage.prices import billed_output_tokens, cost_usd, load_prices
 
@@ -196,7 +197,7 @@ class TestTheChatName:
         return SessionService(outbound_port=ScriptedLLM(), usage_reporter=recorder)
 
     def talk(self, service, name):
-        from application.inbound.dto.session import MessageReceivedRequestDTO, StartSessionRequestDTO
+        from application.dtos.inbound.session import MessageReceivedRequestDTO, StartSessionRequestDTO
         session = service.start_session(StartSessionRequestDTO(user_id="tester", username="tester", session_name=name)).session_id
         for text in ("first question", "second question"):
             assert service.message_received(MessageReceivedRequestDTO(user_id="tester", session_id=session, message=text)).success
@@ -223,7 +224,8 @@ class TestTheChatName:
 # ---------------------------------------------------------------- MCP tool calls
 
 from application.runtime.flow.pipeline import Pipeline
-from application.outbound.ports.mcp_ports import ToolCallRecord, report_tool_call
+from domain.value_objects.tools.tool_call_record import ToolCallRecord
+from application.ports.outbound.tool_failures import report_tool_call
 from flow_trace import FULL_FLOW
 from test_flow_golden import PM, ScriptedLLM, _action, _plan
 

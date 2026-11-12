@@ -21,11 +21,12 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from application.support.tools.mcp_servers import describe_servers, server_names
-from application.outbound.ports.mcp_ports import remaining_tool_wait, tool_wait_budget, watch_tool_failures
-from infrastructure.outbound.mcp.client_manager import MCPClientManager
-from infrastructure.outbound.mcp.tool_catalog import LIST_TIMEOUT_SECONDS, call_timeout_seconds
-from infrastructure.outbound.mcp import tool_executor
-from infrastructure.outbound.mcp.tool_executor import MCPToolExecutor
+from application.ports.outbound.tool_wait_budget import remaining_tool_wait, tool_wait_budget
+from application.ports.outbound.tool_failures import watch_tool_failures
+from infrastructure.outbound.mcp.connection.client_manager import MCPClientManager
+from infrastructure.outbound.mcp.connection.limits import LIST_TIMEOUT_SECONDS, call_timeout_seconds
+from infrastructure.outbound.mcp.execution import tool_executor
+from infrastructure.outbound.mcp.execution.tool_executor import MCPToolExecutor
 
 SECRET_ARGUMENT = "CUSTOMER-PLACEHOLDER-123"
 CALLS = {}   # how many times the server ran each tool (the server runs in this process)

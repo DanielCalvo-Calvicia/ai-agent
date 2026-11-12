@@ -2447,6 +2447,214 @@
     },
     "reply": "final answer"
   },
+  "profile_dynamics_fast": {
+    "calls": [
+      {
+        "format": "tool_selector_phase50_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "claude-haiku-4-5",
+        "reasoning": "None",
+        "schema_sha": "7fb56b1ea3a57e7980911f29757b5486f1e22fdea7148a445691a3244d5a3111",
+        "seed": null,
+        "system_prompt_len": 6977,
+        "system_prompt_sha": "01a539eca2eb614c1e44bb0cea57aabdc8a59e06791ecabc1cf5e52ff8b8153e",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_message': 'hello there', 'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.COMUNICATION: 'communication'>), type=Type(value=<Types.GENERATION: 'generation'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'available_mcp_servers': []}"
+      },
+      {
+        "format": "answer_writer_phase51_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "claude-haiku-4-5",
+        "reasoning": "None",
+        "schema_sha": "bbe08f1c92d789b4ce521e7fc8786fd56a525623386354344d4ebdfc612eebc9",
+        "seed": null,
+        "system_prompt_len": 6444,
+        "system_prompt_sha": "b79f8450b64542fd55e8e92c2e48813e208f9aaebe9f7e92bd4a01b24b60a246",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_message': 'hello there', 'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.COMUNICATION: 'communication'>), type=Type(value=<Types.GENERATION: 'generation'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'actions': [Action(id=Id(value='1'), description=Description(value='Greet the user back, briefly.'), action_type=ActionType(value='generation'), mcp_context=None, dependencies=None, required_inputs=None, output=None, error=None, subactions=None)], 'constraints': None}"
+      }
+    ],
+    "metrics": {
+      "by_model": {
+        "claude-haiku-4-5": {
+          "completion": 10,
+          "prompt": 20,
+          "requests": 2,
+          "total": 30
+        }
+      },
+      "by_phase": {
+        "answer_writer": {
+          "claude-haiku-4-5": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "tool_selector": {
+          "claude-haiku-4-5": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        }
+      },
+      "request_log": [
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "claude-haiku-4-5",
+          "phase_id": 50,
+          "phase_name": "tool_selector",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "claude-haiku-4-5",
+          "phase_id": 51,
+          "phase_name": "answer_writer",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        }
+      ],
+      "tool_calls": [],
+      "total_completion_tokens": 10,
+      "total_prompt_tokens": 20,
+      "total_requests": 2,
+      "total_tokens": 30
+    },
+    "reply": "Hello! How can I help?"
+  },
+  "profile_dynamics_fast_triage": {
+    "calls": [
+      {
+        "format": "triage_specialist_phase1_response_format",
+        "intent": "Intent(primary='clarification_request', secondary=('information_request',), confidence=1.0)",
+        "max_tokens": 10000,
+        "model": "claude-haiku-4-5",
+        "reasoning": "None",
+        "schema_sha": "d6b3ecff99bbab3abfc35d5a58ccef96e90a296bab320f00520283454bafb161",
+        "seed": null,
+        "system_prompt_len": 6555,
+        "system_prompt_sha": "7295a77d1726b0abc6d45aa4859dc4a3ffdaaacd2d462e389683897945ae8a10",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "hello there"
+      },
+      {
+        "format": "tool_selector_phase50_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "claude-haiku-4-5",
+        "reasoning": "None",
+        "schema_sha": "7fb56b1ea3a57e7980911f29757b5486f1e22fdea7148a445691a3244d5a3111",
+        "seed": null,
+        "system_prompt_len": 6977,
+        "system_prompt_sha": "01a539eca2eb614c1e44bb0cea57aabdc8a59e06791ecabc1cf5e52ff8b8153e",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_message': 'hello there', 'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.COMUNICATION: 'communication'>), type=Type(value=<Types.GENERATION: 'generation'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'available_mcp_servers': []}"
+      },
+      {
+        "format": "answer_writer_phase51_response_format",
+        "intent": "Intent(primary='decision_support', secondary=('information_request',), confidence=0.9)",
+        "max_tokens": 10000,
+        "model": "claude-haiku-4-5",
+        "reasoning": "None",
+        "schema_sha": "bbe08f1c92d789b4ce521e7fc8786fd56a525623386354344d4ebdfc612eebc9",
+        "seed": null,
+        "system_prompt_len": 6444,
+        "system_prompt_sha": "b79f8450b64542fd55e8e92c2e48813e208f9aaebe9f7e92bd4a01b24b60a246",
+        "temperature": 1.0,
+        "tools": "[]",
+        "top_p": null,
+        "user_message": "{'user_message': 'hello there', 'user_goal': UserGoal(summary=Summary(value='goal summary'), expected_outcome=ExpectedOutcome(value='initial outcome')), 'task_category': TaskCategory(domain=Domain(value=<Domains.COMUNICATION: 'communication'>), type=Type(value=<Types.GENERATION: 'generation'>), complexity=Complexity(value=<Complexities.LOW: 'low'>)), 'actions': [Action(id=Id(value='1'), description=Description(value='Greet the user back, briefly.'), action_type=ActionType(value='generation'), mcp_context=None, dependencies=None, required_inputs=None, output=None, error=None, subactions=None)], 'constraints': None}"
+      }
+    ],
+    "metrics": {
+      "by_model": {
+        "claude-haiku-4-5": {
+          "completion": 15,
+          "prompt": 30,
+          "requests": 3,
+          "total": 45
+        }
+      },
+      "by_phase": {
+        "answer_writer": {
+          "claude-haiku-4-5": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "tool_selector": {
+          "claude-haiku-4-5": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        },
+        "triage_specialist": {
+          "claude-haiku-4-5": {
+            "completion": 5,
+            "prompt": 10,
+            "requests": 1,
+            "total": 15
+          }
+        }
+      },
+      "request_log": [
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "claude-haiku-4-5",
+          "phase_id": 1,
+          "phase_name": "triage_specialist",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "claude-haiku-4-5",
+          "phase_id": 50,
+          "phase_name": "tool_selector",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        },
+        {
+          "action_id": null,
+          "completion_tokens": 5,
+          "model": "claude-haiku-4-5",
+          "phase_id": 51,
+          "phase_name": "answer_writer",
+          "prompt_tokens": 10,
+          "total_tokens": 15
+        }
+      ],
+      "tool_calls": [],
+      "total_completion_tokens": 15,
+      "total_prompt_tokens": 30,
+      "total_requests": 3,
+      "total_tokens": 45
+    },
+    "reply": "Hello! How can I help?"
+  },
   "profile_gesture": {
     "calls": [
       {

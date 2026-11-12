@@ -8,13 +8,13 @@ import re
 import uuid
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
-from application.inbound.dto.message import TextRequestDTO
 from application.support.llm.failure import UNKNOWN_SESSION_APOLOGY, apology_for_unexpected, classify
-from application.assembly.model import DEFAULT_PROFILE, Agent, AssembledProfile
+from application.runtime.profile.assembled import DEFAULT_PROFILE, Agent, AssembledProfile
 from application.runtime.profile.access import check_access
 from application.runtime.profile.inputs import InputsError, read_inputs
 from application.runtime.state.response_json import response_to_json
-from application.inbound.dto.session import (
+from application.mappers.inbound.message_mapper import message_response_of, text_request_of
+from application.dtos.inbound.session import (
     EndSessionRequestDTO,
     EndSessionResponseDTO,
     MessageReceivedRequestDTO,
@@ -22,11 +22,11 @@ from application.inbound.dto.session import (
     StartSessionRequestDTO,
     StartSessionResponseDTO,
 )
-from application.inbound.ports.message_flow_ports import MessageInboundPort
-from application.inbound.ports.session import SessionInboundPort
-from application.outbound.ports.llm_ports import LLMOutboundPort
-from application.outbound.ports.mcp_ports import McpToolsPort
-from application.outbound.ports.usage_ports import UsageReporterPort
+from application.ports.inbound.message_flow_ports import MessageInboundPort
+from application.ports.inbound.session import SessionInboundPort
+from application.ports.outbound.llm_ports import LLMOutboundPort
+from application.ports.outbound.mcp_ports import McpToolsPort
+from application.ports.outbound.usage_ports import UsageReporterPort
 from application.service.message_flow_service import MessageFlowService
 from application.service.user_session import UserSession
 from domain.entities.llm_response.response import Response
@@ -139,12 +139,9 @@ class SessionService(SessionInboundPort):
 
             legacy = request.profile is None and request.pause_id is None      # a request with none of the new fields: today's answer
             mode = request.return_ or (profile.default_return if profile is not None else "text")
-            return MessageReceivedResponseDTO(
-                response=result.content, movements=list(result.movements), gesture=result.gesture,
-                awaiting_user_input=result.awaiting_user_input, flow=result.flow, success=True,
-                profile=request.profile,
-                output=response_to_json(response) if mode == "full" and response is not None else None,
-                pause_id=None if legacy else user_session.pause_id, discarded_pause=discarded)
+            return message_response_of(
+                result, request, None if legacy else user_session.pause_id,
+                response_to_json(response) if mode == "full" and response is not None else None, discarded)
         except Exception as e:
             logger.exception("Failed to process message", session_id=request.session_id)
             return self._failed(f"Failed to process message: {str(e)}", apology_for_unexpected(e),
@@ -204,18 +201,7 @@ class SessionService(SessionInboundPort):
             paused=paused,
             **extra,
         )
-        text_request = TextRequestDTO(
-            request_id=request.request_id,
-            user_id=request.user_id,
-            # The DTO field is kept for API compatibility; the active trace is the source of truth.
-            correlation_id=request.correlation_id or _current_correlation_id(),
-            metadata=request.metadata,
-            timestamp=request.timestamp,
-            session_id=request.session_id,
-            content=request.message,
-            session_name=user_session.name,
-            speak_movements=request.speak_movements,
-        )
+        text_request = text_request_of(request, user_session.name, request.correlation_id or _current_correlation_id())
         result = agent.text(text_request)
         user_session.paused = getattr(agent, "paused_run", None)   # only when the message was processed: a failure keeps the old one
         return result, getattr(agent, "last_response", None)

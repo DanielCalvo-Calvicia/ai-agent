@@ -3,7 +3,7 @@
 The **application layer** of ai-agent: everything that decides what to do with a user's message, with no knowledge of HTTP, of a particular LLM provider or of an MCP library. It talks to the outside only through **ports** (abstract classes) that `infrastructure/` implements.
 
 ```text
-infrastructure/inbound/http  ->  application/inbound  ->  application/service  ->  application/runtime  ->  application/outbound (ports)  ->  infrastructure/outbound
+infrastructure/inbound/http  ->  application/{dtos,ports}/inbound  ->  application/service  ->  application/runtime  ->  application/ports/outbound  ->  infrastructure/outbound
                                    (DTOs, ports)           (sessions, one message)  (profile, flow, step)      (what the agent needs)           (LLM, MCP, config, usage)
 ```
 
@@ -12,18 +12,19 @@ infrastructure/inbound/http  ->  application/inbound  ->  application/service  -
 - `application` never imports `infrastructure`. `composition_root/main.py` is the only place that wires both.
 - `application` may import `domain/` (pure data). `domain/` never imports `application`.
 - Inside the runtime, dependencies go one way: **profile -> flow -> step -> state -> support**. `tests/test_orchestration_layout.py` enforces it.
+- Between the layers they go one way too: **service -> assembly -> runtime -> support -> ports, dtos -> domain**, and the application opens no file and reads no environment variable (`support/environment.py`). `tests/test_clean_architecture.py` enforces it.
 
 ## Sub-folders
 
 | Folder | What it is |
 |---|---|
-| [`inbound/`](inbound/README.md) | What the outside world calls: the request/answer DTOs and the ports the services implement. |
+| [`dtos/`](dtos/README.md) | `dtos/inbound/` (request/answer DTOs) and `dtos/outbound/` (the domain's own classes the outbound adapters use). |
+| [`mappers/`](mappers/README.md) | The conversions at the edges: `inbound/` (message request and answer DTOs) and `outbound/` (the LLM's JSON into a domain `Response`). |
+| [`ports/`](ports/README.md) | The interfaces: `ports/inbound/` (what the outside world calls, implemented by the services) and `ports/outbound/` (what the application needs from the outside: LLM, MCP tools, configuration, usage reporting). |
 | [`service/`](service/README.md) | The services behind the ports: sessions (`SessionService`) and one message (`MessageFlowService`). |
 | [`runtime/`](runtime/README.md) | The path of a message: profile, flow, step, state. This is the "mind". |
-| [`assembly/`](assembly/README.md) | Start-up only: reads the configuration, checks it and builds the `Agent` the runtime uses. |
+| [`assembly/`](assembly/README.md) | Start-up only: reads the configuration, checks it and builds the `Agent` (defined in `runtime/profile/assembled.py`) the runtime uses. |
 | [`support/`](support/README.md) | Shared helpers: metrics, clock, model selection, schemas, failures, tool helpers. |
-| [`system_prompts/`](system_prompts/README.md) | Builds the system message of every LLM step (generic rules + capabilities + date + the step's prompt). |
-| [`outbound/`](outbound/README.md) | The ports the application needs from the outside (LLM, MCP tools, configuration, usage reporting). |
 
 ## How a message travels (short version)
 

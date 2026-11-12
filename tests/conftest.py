@@ -1,7 +1,14 @@
 # tests/manual holds scripts that call real services (LLM, MCP servers). pytest must not run them.
 collect_ignore_glob = ["manual/*"]
 
+import os
+import sys
+
 import pytest
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from composition_root.environment import install_environment
+install_environment()          # the application reads no file and no environment variable itself: it is given them
 
 
 @pytest.fixture(autouse=True)

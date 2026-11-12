@@ -10,11 +10,11 @@ from application.assembly.config_snapshot import build_snapshot
 from application.runtime.state.flow_state import FlowState
 from application.runtime.state.history import HistoryEntry, messages_of, response_of
 from application.runtime.state.paused_run import FlowResult
-from application.inbound.dto.session import MessageReceivedRequestDTO, StartSessionRequestDTO
+from application.dtos.inbound.session import MessageReceivedRequestDTO, StartSessionRequestDTO
 from application.service.message_flow_service import MessageFlowService
 from application.service.session_service import SessionService
 from application.service.user_session import UserSession
-from application.inbound.dto.message import TextRequestDTO
+from application.dtos.inbound.message import TextRequestDTO
 from domain.value_objects.llm_request.message import Message, Role
 from infrastructure.outbound.config.file_source import FileConfigSource
 
@@ -104,7 +104,7 @@ class TestTheMessagesAreTheSameAsBefore:
 class TestTheResponseOfARun:
     def classified(self):
         llm = ScriptedLLM()
-        from application.support.metrics import SessionMetrics
+        from application.runtime.step.metrics import SessionMetrics
         from application.runtime.flow.pipeline import Pipeline
         from flow_files import IDENTIFICATION_FLOW
         return Pipeline(llm, [], SessionMetrics(), flow=IDENTIFICATION_FLOW).run("hello")

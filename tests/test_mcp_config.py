@@ -5,9 +5,10 @@ import json
 from contextlib import asynccontextmanager
 from types import SimpleNamespace
 
-from infrastructure.outbound.mcp import config as mcp_config, tool_catalog
-from infrastructure.outbound.mcp.config import SUPPORTED_TYPES, expand_env, load_mcp_configs, load_supported_mcp_configs
-from infrastructure.outbound.mcp.tool_catalog import MCPToolCatalog
+from infrastructure.outbound.mcp.config import loader as mcp_config
+from infrastructure.outbound.mcp.catalog import tool_catalog
+from infrastructure.outbound.mcp.config.loader import SUPPORTED_TYPES, expand_env, load_mcp_configs, load_supported_mcp_configs
+from infrastructure.outbound.mcp.catalog.tool_catalog import MCPToolCatalog
 
 
 def test_expand_env_fills_strings_lists_and_dicts(monkeypatch):

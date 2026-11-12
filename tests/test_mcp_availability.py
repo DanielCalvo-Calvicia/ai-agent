@@ -14,13 +14,14 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from application.support.tools.mcp_servers import describe_servers, server_names
-from application.outbound.ports.mcp_ports import McpToolsPort
+from application.ports.outbound.mcp_ports import McpToolsPort
 from brain_chain import ChainedSessionService as SessionService
 from domain.value_objects.llm_request.tool import ToolDefinition
 from infrastructure.inbound.http.fastapi import SessionFastAPI
-from infrastructure.outbound.mcp import availability, tool_catalog
-from infrastructure.outbound.mcp.availability import McpAvailabilityCheck, check_variable
-from infrastructure.outbound.mcp.tool_catalog import FAILED_LISTING_TTL_SECONDS, MCPToolCatalog
+from infrastructure.outbound.mcp.catalog import availability, tool_catalog
+from infrastructure.outbound.mcp.catalog.availability import McpAvailabilityCheck, check_variable
+from infrastructure.outbound.mcp.connection.limits import FAILED_LISTING_TTL_SECONDS
+from infrastructure.outbound.mcp.catalog.tool_catalog import MCPToolCatalog
 from test_session_fastapi import MockLLMAdapter
 
 URL = "http://placeholder.invalid:9/mcp"

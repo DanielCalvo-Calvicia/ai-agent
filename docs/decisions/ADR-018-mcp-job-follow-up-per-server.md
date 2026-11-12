@@ -66,3 +66,9 @@ Two more facts shape the decision:
 - Not built: `custom` (decision 2), reading the pages after the first of a result (`complete: no`), a spoken "one moment" (Q10-7). Tests: 1493 pass; scripted servers and the Go service's own contract snapshots as fixtures.
 - **First real run (T-07.9, 2026-11-11):** four messages on `dynamics` with real models against the current local service: orders and the two shipment tools answered right, all calls `ok` in under 1 s, so **no job occurred and the follow-up was not exercised against the real service**. The `.env` URL points at an older service (no shipment tools, no `status` line): `dynamics_v1` needs the new service before or with the agent (against the old one a pending answer would not be detected; the writer would say it is still being worked on).
 - Open: a run that makes a job happen; a call of two chained slow steps can take 50 s while the per-call limit is 30 s (T-07.2 open point); the shipment tools were not run by the Go service against the real sandbox.
+
+## Note, 2026-11-12: the files moved
+
+The code of this ADR is the same; its files are now `infrastructure/outbound/mcp/jobs/`: `protocol.py` (was `job_protocol.py`: the interface and `none`), `registry.py` (the protocols by name; was in `job_protocol.py`), `settings.py` (the check of a server file's job settings; was in `job_protocol.py`), `follow_up.py` (was `job_follow_up.py`) and `protocols/` (was `job_protocols/`). The protocols no longer register themselves: `registry.py` lists them, so the lazy import that `job_protocol.py` needed is gone. The text above says where each thing was when it was built.
+
+The same day the rest of `outbound/mcp/` was grouped by usage (`config/`, `connection/`, `catalog/`, `execution/`; only `server.py` stays at the root); `tool_executor.py`, where the hook of this ADR lives, is `execution/tool_executor.py`.

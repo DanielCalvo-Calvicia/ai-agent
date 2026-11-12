@@ -30,7 +30,7 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from application.runtime.state.flow_state import FlowState
-from application.support.metrics import SessionMetrics
+from application.runtime.step.metrics import SessionMetrics
 from application.runtime.flow.pipeline import Pipeline
 from application.runtime.flow.flow import Flow
 from flow_files import IDENTIFICATION_FLOW
@@ -229,7 +229,7 @@ def _capture_raw_text():
     While active, the text the real adapter receives from `generate_text` is kept in CAPTURED["text"].
     Without it, an answer the mapper rejects would be lost. It changes nothing in the real code.
     """
-    import infrastructure.outbound.llm.vercel as vercel
+    import infrastructure.outbound.llm.vercel.adapter as vercel
     original = vercel.generate_text
 
     def wrapper(*args, **kwargs):

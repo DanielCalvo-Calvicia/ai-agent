@@ -54,9 +54,9 @@ def llm_factory(argv, scenario):
 
     from dotenv import load_dotenv
     load_dotenv(os.path.join(ROOT, ".env"), override=False)
-    from infrastructure.outbound.llm.config import VercelAIConfig
-    from infrastructure.outbound.llm.vercel import VercelAIAdapter
-    return lambda: VercelAIAdapter(Config=VercelAIConfig.from_env())
+    from infrastructure.outbound.llm.shared.providers.config import LLMConfig
+    from infrastructure.outbound.llm.vercel.adapter import VercelAIAdapter
+    return lambda: VercelAIAdapter(Config=LLMConfig.from_env())
 
 
 def main(argv):

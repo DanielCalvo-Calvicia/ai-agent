@@ -51,6 +51,31 @@ The cost is an **estimate** of one message with a big plan (5 actions x 5 subact
 | editor_in_chief | llm | `claude-sonnet-5-5` | models (set claude_mixed) |  | `prompts/8_editor_in_chief.txt` | 1 | $0.012 | $0.012 |
 | **Total for one message** | | | | | | | **$0.199** | **$0.199** |
 
+## `dynamics_fast`
+
+- Flow `fast`, models `claude_fast`, answers with `text`, requires `user_goal`, `task_category`, tested 2026-11-11.
+- Hash of the assembled profile: `3c9bf435f2d6` (the first 12 characters).
+
+| Step | Kind | Model | Comes from | Tools | Prompt | Calls | Visible | With thinking |
+|---|---|---|---|---|---|---|---|---|
+| tool_selector | llm | `claude-haiku-4-5` | models (set claude_fast) |  | `prompts/50_tool_selector.txt` (append) | - | - | - |
+| tool_caller | code | plain code |  |  |  | - | - | - |
+| answer_writer | llm | `claude-haiku-4-5` | models (set claude_fast) |  | `prompts/51_answer_writer.txt` (append) | - | - | - |
+| **Total for one message** | | | | | | | **$0** | **$0** | (partial)
+
+## `dynamics_fast_triage`
+
+- Flow `(its own steps)`, models `claude_fast`, answers with `text`, requires nothing, tested 2026-11-11.
+- Hash of the assembled profile: `3af5715507c6` (the first 12 characters).
+
+| Step | Kind | Model | Comes from | Tools | Prompt | Calls | Visible | With thinking |
+|---|---|---|---|---|---|---|---|---|
+| triage_specialist | llm | `claude-haiku-4-5` | models (set claude_fast) |  | `prompts/1_triage_specialist.txt` | 1 | $0.0020 | $0.0020 |
+| tool_selector | llm | `claude-haiku-4-5` | models (set claude_fast) |  | `prompts/50_tool_selector.txt` (append) | - | - | - |
+| tool_caller | code | plain code |  |  |  | - | - | - |
+| answer_writer | llm | `claude-haiku-4-5` | models (set claude_fast) |  | `prompts/51_answer_writer.txt` (append) | - | - | - |
+| **Total for one message** | | | | | | | **$0.0020** | **$0.0020** | (partial)
+
 ## `gesture`
 
 - Flow `expression`, models `proven`, answers with `text`, requires `reply`, tested never.

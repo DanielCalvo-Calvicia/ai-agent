@@ -4,7 +4,7 @@ The **adapters**: the code that talks to the outside world (HTTP clients, LLM pr
 
 ```text
 infrastructure/
-  inbound/http/     FastAPI routes  ->  calls application/inbound ports
+  inbound/http/     FastAPI routes  ->  calls application/ports/inbound
   outbound/
     llm/            LLMOutboundPort    (Vercel AI SDK: Google, Anthropic, OpenAI, Mistral, Groq, Cohere, Ollama)
     mcp/            McpToolsPort       (MCP client, tool catalog, tool executor, masking of personal data)

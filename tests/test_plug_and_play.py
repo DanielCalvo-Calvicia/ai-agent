@@ -12,12 +12,12 @@ from application.assembly.config_snapshot import build_snapshot
 from application.runtime.profile.access import sha256_hex
 from application.runtime.profile.inputs import read_inputs
 from application.runtime.state.response_json import response_to_json
-from application.inbound.dto.session import MessageReceivedRequestDTO, StartSessionRequestDTO
+from application.dtos.inbound.session import MessageReceivedRequestDTO, StartSessionRequestDTO
 from application.service.message_flow_service import MessageFlowService
-from application.inbound.dto.message import TextRequestDTO
+from application.dtos.inbound.message import TextRequestDTO
 from application.service.session_service import SessionService
 from infrastructure.outbound.config.file_source import FileConfigSource
-from infrastructure.outbound.llm.response_mapper import read_response_json
+from application.mappers.outbound.response_mapper import read_response_json
 from test_flow_golden import SCENARIOS, ScriptedLLM
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))

@@ -7,19 +7,12 @@ from typing import Any, Dict, List
 
 import pytest
 
-from infrastructure.outbound.mcp import job_protocol
-from infrastructure.outbound.mcp.config import load_supported_mcp_configs
-from infrastructure.outbound.mcp.job_protocol import (
-    DONE,
-    NO_JOBS,
-    JobProtocol,
-    JobRef,
-    NoJobs,
-    get_protocol,
-    job_protocol_problem,
-    known_protocols,
-)
-from infrastructure.outbound.mcp.tool_executor import MCPToolExecutor
+from infrastructure.outbound.mcp.jobs import registry as job_registry
+from infrastructure.outbound.mcp.config.loader import load_supported_mcp_configs
+from infrastructure.outbound.mcp.jobs.protocol import DONE, NO_JOBS, JobProtocol, JobRef, NoJobs
+from infrastructure.outbound.mcp.jobs.registry import get_protocol, known_protocols
+from infrastructure.outbound.mcp.jobs.settings import job_protocol_problem
+from infrastructure.outbound.mcp.execution.tool_executor import MCPToolExecutor
 
 ANSWER = "returned: 1\njob_id: abc\nstatus: running\n\nNo.|Status\nPV-1|Open"   # looks like a job, and the server has none
 
@@ -45,7 +38,7 @@ class _Fake(JobProtocol):
 
 @pytest.fixture
 def fake_protocol(monkeypatch):
-    monkeypatch.setitem(job_protocol._PROTOCOLS, "fake", _Fake())
+    monkeypatch.setitem(job_registry._PROTOCOLS, "fake", _Fake())
 
 
 def test_the_registry_knows_none_and_refuses_any_other_name():

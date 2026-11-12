@@ -23,15 +23,18 @@ load_dotenv(os.path.join(PROJECT_ROOT, ".env"), override=False)
 #  OUTBOUND ADAPTERS
 # -----------------------------------------------
 
+from composition_root.environment import install_environment
+install_environment(PROJECT_ROOT)          # the files and settings the application is given; before anything of it is imported
+
 from infrastructure.outbound.config.file_source import FileConfigSource
-from infrastructure.outbound.llm.anthropic_schema import anthropic_schema_problems
-from infrastructure.outbound.llm.config import VercelAIConfig
-from infrastructure.outbound.llm.response_mapper import read_response_json
-from infrastructure.outbound.llm.vercel import VercelAIAdapter
-from infrastructure.outbound.mcp.availability import McpAvailabilityCheck
-from infrastructure.outbound.mcp.client_manager import MCPClientManager, quiet_client_libraries
-from infrastructure.outbound.mcp.config import load_supported_mcp_configs, load_tool_snapshot
-from infrastructure.outbound.mcp.tool_executor import MCPToolExecutor
+from infrastructure.outbound.llm.shared.schemas.anthropic_schema import anthropic_schema_problems
+from infrastructure.outbound.llm.shared.providers.config import LLMConfig
+from application.mappers.outbound.response_mapper import read_response_json
+from infrastructure.outbound.llm.vercel.adapter import VercelAIAdapter
+from infrastructure.outbound.mcp.catalog.availability import McpAvailabilityCheck
+from infrastructure.outbound.mcp.connection.client_manager import MCPClientManager, quiet_client_libraries
+from infrastructure.outbound.mcp.config.loader import load_supported_mcp_configs, load_tool_snapshot
+from infrastructure.outbound.mcp.execution.tool_executor import MCPToolExecutor
 from infrastructure.outbound.usage.langfuse import LangfuseUsageReporter
 from infrastructure.outbound.usage.prices import cost_usd, load_prices
 
@@ -94,7 +97,7 @@ def CreateApp() -> FastAPI:
     availabilityCheck = McpAvailabilityCheck(toolExecutor.catalog, [server["name"] for server in mcpList])
     availabilityCheck.run()
 
-    llmConfig = VercelAIConfig.from_env(tool_executor=toolExecutor)
+    llmConfig = LLMConfig.from_env(tool_executor=toolExecutor)
 
     llmAdapter = VercelAIAdapter(Config=llmConfig)
 

@@ -11,7 +11,7 @@ import hmac
 from dataclasses import dataclass
 from typing import Optional
 
-from application.assembly.model import DEFAULT_PROFILE, Agent, AssembledProfile
+from application.runtime.profile.assembled import DEFAULT_PROFILE, Agent, AssembledProfile
 
 NO_HASH = "0" * 64        # what an unknown profile is compared with, so refusing it takes as long as refusing a wrong token
 

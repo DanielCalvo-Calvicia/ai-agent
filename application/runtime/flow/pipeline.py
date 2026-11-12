@@ -16,15 +16,17 @@ from application.support.llm.failure import AgentFailure, max_attempts
 from application.runtime.flow.flow import Flow, FlowContext
 from application.runtime.state.flow_state import FlowState
 from application.support.tools.mcp_servers import server_names
-from application.support.metrics import SessionMetrics
-from application.support.llm.model_selection import ModelResolver
+from application.runtime.step.metrics import SessionMetrics
+from application.runtime.step.model_selection import ModelResolver
 from application.support.llm.prompt_overrides import PromptOverride
 from application.runtime.state.paused_run import CONFIRMATION, INPUT, FlowResult, PausedRun
 from application.runtime.flow.hooks import ANSWER_CHECKER, USER_CLARIFICATION
 from application.runtime.step.spec import Step
 from application.runtime.step.runner import PhaseRunner
-from application.outbound.ports.llm_ports import LLMOutboundPort
-from application.outbound.ports.mcp_ports import McpToolsPort, ToolScope, scoped
+from application.ports.outbound.llm_ports import LLMOutboundPort
+from application.ports.outbound.mcp_ports import McpToolsPort
+from domain.value_objects.tools.tool_scope import ToolScope
+from application.support.tools.scoped_tools import scoped
 from domain.value_objects.llm_request.message import Message
 from shared_logging import get_logger
 

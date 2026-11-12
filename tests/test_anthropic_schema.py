@@ -26,10 +26,10 @@ from domain.value_objects.llm_request.message import Role, create_message
 from domain.value_objects.llm_request.model import get_selected_model
 from domain.value_objects.llm_request.response_format import ResponseFormat
 from domain.value_objects.llm_response.intent.intent import create_intent
-from infrastructure.outbound.llm.anthropic_schema import (
+from infrastructure.outbound.llm.shared.schemas.anthropic_schema import (
     ACTION_DEPTH, UNSUPPORTED_KEYWORDS, anthropic_response_format, sanitize_schema)
-from infrastructure.outbound.llm.config import VercelAIConfig
-from infrastructure.outbound.llm.vercel import _build_options
+from infrastructure.outbound.llm.shared.providers.config import LLMConfig
+from infrastructure.outbound.llm.vercel.options import build_options
 
 ACTION = {
     "type": "object",
@@ -162,18 +162,18 @@ def _payload(model_id):
 
 class TestTheAdapterOptions:
     def test_a_claude_model_gets_the_strict_and_sanitized_schema(self):
-        options = _build_options(VercelAIConfig(), _payload("claude-haiku-4-5"))
+        options = build_options(LLMConfig(), _payload("claude-haiku-4-5"))
         inner = options["response_format"]["json_schema"]
         assert inner["strict"] is True and inner["name"] == "probe"
         assert "$ref" not in json.dumps(inner["schema"]) and inner["schema"]["additionalProperties"] is False
 
     def test_the_other_providers_get_exactly_what_they_got_before(self):
         payload = _payload("gemini-3.1-flash-lite")
-        options = _build_options(VercelAIConfig(), payload)
+        options = build_options(LLMConfig(), payload)
         assert options["response_format"] == payload.response_format.to_dict()
         assert "strict" not in options["response_format"]["json_schema"] and "$ref" in json.dumps(options["response_format"])
 
     def test_no_response_format_stays_no_response_format(self):
         payload = _payload("claude-haiku-4-5")
         payload.response_format = None
-        assert "response_format" not in _build_options(VercelAIConfig(), payload)
+        assert "response_format" not in build_options(LLMConfig(), payload)

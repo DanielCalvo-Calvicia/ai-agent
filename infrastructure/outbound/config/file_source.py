@@ -1,7 +1,8 @@
 import json
 import os
 
-from application.outbound.ports.config_ports import ConfigError, ConfigSourcePort, Loaded
+from application.dtos.outbound.config import ConfigError, Loaded
+from application.ports.outbound.config_ports import ConfigSourcePort
 
 
 class FileConfigSource(ConfigSourcePort):

@@ -9,7 +9,6 @@
 # ===============================================
 
 import contextvars
-import os
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Dict, List, Optional
 
@@ -21,11 +20,15 @@ from application.support.tools.action_tree import (
     subactions_of,
 )
 from application.support.llm.failure import AgentFailure, max_attempts, max_mcp_calls
+from application.support.tools.direct_call import call_directly, direct_call_of, has_contract_shape
 from application.runtime.state.flow_state import FlowState
 from application.runtime.step.spec import ActionPhaseSpec
 from application.runtime.step.registry import register_step
 from application.runtime.step.declared import action_spec_from, extra_function, repository_declarations
-from application.outbound.ports.mcp_ports import McpToolsPort, tool_wait_budget, watch_tool_failures
+from application.support.environment import setting
+from application.ports.outbound.mcp_ports import McpToolsPort
+from application.ports.outbound.tool_wait_budget import tool_wait_budget
+from application.ports.outbound.tool_failures import watch_tool_failures
 from domain.entities.llm_response.action import Action
 from domain.value_objects.llm_response.action.output import create_output
 from shared_logging import get_logger
@@ -185,6 +188,14 @@ class ActionExecutor:
             return "", MCP_CAP_REACHED.format(cap=self._mcp_cap)
         self._mcp_started += 1
 
+        # An independent action whose tool and parameters are in the plan is called by code (ADR-019, T-08.3): no model rewrites the
+        # answer. A dependent action, an incomplete plan or a port that cannot call a tool still go to the LLM operator.
+        direct = direct_call_of(action) if self.mcp_tools is not None else None
+        if direct is not None:
+            done = self._run_direct(action, direct)
+            if done is not None:
+                return done
+
         extra = self.operator_extra(state, self.mcp_list, self.mcp_tools, dependency_outputs, subaction_outputs)
 
         output, error = "", ""
@@ -209,7 +220,23 @@ class ActionExecutor:
         # The raw result of a tool is cleaned before other actions use it.
         return self._normalize(action, output), ""
 
+    def _run_direct(self, action: Action, direct) -> Optional[tuple]:
+        """(output, error) of the direct call, or None when the port cannot call a tool (the operator model does it then)."""
+        with watch_tool_failures() as tool_failures:
+            try:
+                output, error = call_directly(direct, self.mcp_tools)
+            except NotImplementedError:
+                return None
+            finally:
+                for call in tool_failures.calls:
+                    self.runner.metrics.record_tool_call(call)
+        if not output:
+            return "", error
+        return self._normalize(action, output), ""
+
     def _normalize(self, action: Action, output: str) -> str:
+        if has_contract_shape(output):
+            return output             # a tool answer of the contract is already clean: no model copies it again (T-08.3)
         _set_output(action, output)   # so the data engineer sees the raw result in the action
         response = self.runner.run_action(
             action=action,
@@ -256,7 +283,7 @@ class ActionExecutor:
 def parallel_actions() -> int:
     """How many independent actions may run at the same time (1 = one after another)."""
     try:
-        return max(1, int(os.environ.get(PARALLEL_VARIABLE, "1")))
+        return max(1, int(setting(PARALLEL_VARIABLE, "1")))
     except ValueError:
         return 1
 

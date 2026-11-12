@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "name": "answer_writer",
+  "about": "The fast flow: writes the final spoken reply from the action of the tool call in one pass (the draft writer and the editor in one).",
+  "kind": "llm",
+  "legacy_id": 51,
+  "group": "fast",
+  "prompt": {
+    "file": "prompts/51_answer_writer.txt"
+  },
+  "default_models": [
+    "gemini-3.6-flash"
+  ],
+  "intent": {
+    "primary": "decision_support",
+    "secondary": [
+      "information_request"
+    ],
+    "confidence": 0.9
+  },
+  "format_name": "answer_writer_phase51_response_format",
+  "answer": {
+    "required": [
+      "user_goal"
+    ],
+    "pieces": [
+      {
+        "name": "user_goal",
+        "file": "general/user_goal/user_goal.schema.json",
+        "key": "user_goal"
+      }
+    ]
+  },
+  "reads": [
+    {
+      "user_message": "message"
+    },
+    "user_goal",
+    "task_category",
+    "actions?",
+    "constraints?"
+  ],
+  "writes": [
+    "user_goal"
+  ]
+}

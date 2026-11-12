@@ -246,7 +246,10 @@
       "profiles": [
         "identification",
         "special",
-        "dynamics"
+        "dynamics",
+      
+        "dynamics_fast",
+        "dynamics_fast_triage"
       ],
       "points_for": {
         "identification": [
@@ -272,7 +275,10 @@
       },
       "profiles": [
         "special",
-        "dynamics"
+        "dynamics",
+      
+        "dynamics_fast",
+        "dynamics_fast_triage"
       ]
     },
     {
@@ -286,7 +292,10 @@
       ],
       "profiles": [
         "special",
-        "dynamics"
+        "dynamics",
+      
+        "dynamics_fast",
+        "dynamics_fast_triage"
       ]
     }
   ]

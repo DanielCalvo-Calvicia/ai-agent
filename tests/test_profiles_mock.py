@@ -6,16 +6,16 @@ import os
 import pytest
 
 from application.assembly.assemble import assemble
-from application.assembly.model import Agent
+from application.runtime.profile.assembled import Agent
 from application.assembly.config_snapshot import build_snapshot
 from application.runtime.profile.access import sha256_hex
-from application.inbound.dto.message import TextRequestDTO
-from application.inbound.dto.session import MessageReceivedRequestDTO, StartSessionRequestDTO
+from application.dtos.inbound.message import TextRequestDTO
+from application.dtos.inbound.session import MessageReceivedRequestDTO, StartSessionRequestDTO
 from application.service.message_flow_service import MessageFlowService
 from application.service.session_service import SessionService
 from infrastructure.outbound.config.file_source import FileConfigSource
 from domain.value_objects.llm_request.model import GoogleModels
-from infrastructure.outbound.llm.response_mapper import read_response_json
+from application.mappers.outbound.response_mapper import read_response_json
 from test_flow_golden import SCENARIOS, ScriptedLLM
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))

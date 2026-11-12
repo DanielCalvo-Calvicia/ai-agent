@@ -18,7 +18,7 @@ from flow_files import CONVERSATION_FLOW, FLOWS
 from flow_files import IDENTIFICATION_FLOW
 from flow_files import MOVEMENT_FLOW
 from flow_files import SPECIAL_FLOW
-from application.support.metrics import SessionMetrics
+from application.runtime.step.metrics import SessionMetrics
 from application.runtime.flow.pipeline import Pipeline
 from application.runtime.step.spec import Step
 from brain_chain import ChainedSessionService as SessionService
@@ -40,7 +40,7 @@ def _app() -> TestClient:
 
 class TestTheFlowFiles:
     def test_the_flows_are_the_files_of_flows_under_their_public_names(self):
-        assert list(FLOWS) == ["conversation", "expression", "identification", "movement", "special"]
+        assert list(FLOWS) == ["conversation", "expression", "fast", "identification", "movement", "special"]
         assert FLOWS["identification"] is IDENTIFICATION_FLOW and FLOWS["conversation"] is CONVERSATION_FLOW
         assert FLOWS["special"] is SPECIAL_FLOW and FLOWS["movement"] is MOVEMENT_FLOW
 
@@ -50,7 +50,7 @@ class TestTheFlowFiles:
 
     def test_only_the_flows_that_can_ask_the_user_carry_the_hooks(self):
         asking = {name for name, flow in FLOWS.items() if flow.on_pause and flow.on_resume}
-        assert asking == {"identification", "special", "movement"}
+        assert asking == {"identification", "special", "movement", "fast"}
         assert FLOWS["conversation"].on_pause is None and FLOWS["expression"].on_resume is None
 
 

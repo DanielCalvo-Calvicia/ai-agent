@@ -16,7 +16,7 @@ from application.runtime.state.flow_state import FlowState
 from application.runtime.state.motion_state import as_motion
 from application.support.tools.action_tree import with_outputs
 from application.support.tools.mcp_servers import describe_servers
-from application.outbound.ports.mcp_ports import McpToolsPort
+from application.ports.outbound.mcp_ports import McpToolsPort
 
 MAX_IMPROVISED = 3          # movements the emotion reader may improvise
 
@@ -35,6 +35,21 @@ def planner_input(state: FlowState, mcp_list: list, mcp_tools: Optional[McpTools
         "user_goal": state.user_goal,
         "task_category": state.task_category,
         "available_mcp_servers": describe_servers(mcp_list, mcp_tools),
+    }
+    if state.history:
+        user_message["conversation_history"] = state.history_as_dicts()
+    if state.answers:
+        user_message["user_answers"] = state.answers_as_dicts()
+    return user_message
+
+
+def selector_input(state: FlowState, mcp_list: list, mcp_tools: Optional[McpToolsPort]) -> dict:
+    """What the tool selector of the fast flow is told: the user's words, the goal, and only the READ-ONLY tools of its scope (T-08.4)."""
+    user_message = {
+        "user_message": state.message,
+        "user_goal": state.user_goal,
+        "task_category": state.task_category,
+        "available_mcp_servers": describe_servers(mcp_list, mcp_tools, read_only_only=True),
     }
     if state.history:
         user_message["conversation_history"] = state.history_as_dicts()
@@ -129,6 +144,7 @@ def operator_extra(state: FlowState, mcp_list: list, mcp_tools: Optional[McpTool
 
 INPUTS: Dict[str, Callable] = {
     "message_with_history": message_with_history, "planner_input": planner_input, "safety_input": safety_input, "exchange_text": exchange_text,
+    "selector_input": selector_input,
 }
 APPLIES: Dict[str, Callable] = {
     "load_from_response": load_from_response, "motion_plan_result": motion_plan_result, "emotion_result": emotion_result,

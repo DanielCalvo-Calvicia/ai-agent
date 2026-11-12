@@ -17,9 +17,9 @@ import urllib.request
 import uuid
 from typing import Any, Dict, List, Optional, Tuple
 
-from application.support.metrics import RequestRecord
-from application.outbound.ports.mcp_ports import ToolCallRecord
-from application.outbound.ports.usage_ports import CallDetails, UsageReporterPort
+from application.dtos.outbound.usage import RequestRecord, CallDetails
+from application.dtos.outbound.tools import ToolCallRecord
+from application.ports.outbound.usage_ports import UsageReporterPort
 from infrastructure.outbound.usage.prices import billed_output_tokens, cost_usd, load_prices
 from shared_logging import get_logger
 

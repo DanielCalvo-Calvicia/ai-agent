@@ -1,0 +1,94 @@
+// =====================================================================================
+// MODEL SET: FULL EXAMPLE (VISUALIZATION ONLY) - EVERY KEY AND EVERY VALUE YOU CAN WRITE
+// -------------------------------------------------------------------------------------
+// WHAT IT IS : a named table that says WHICH LLM answers EACH STEP. It says nothing about tools, prompts or flows.
+// WHERE IT LIVES : model_sets/<name>.json. Read by application/runtime/step/model_selection.py. Checked at start and by
+//              scripts/check_agent.py (a set with a problem disables the profiles that use it; unused sets are still checked).
+// WHO USES IT : a profile names it at any level ("models": "claude_mixed"). The REAL choice happens per profile with a
+//              precedence order (profiles.full.example.jsonc, "models"). A step with a model set entry uses its own list; without
+//              one it uses "default".
+// EVERY VALUE IS AN ORDERED LIST: the FIRST model answers; the next ones are tried ONLY when the first is out of capacity
+//              (HTTP 429, 503, daily quota; ADR-014). The WHOLE list is replaced, never merged: a step entry does NOT inherit
+//              the fallbacks of "default"; repeat them if you want them. Each list must be non-empty.
+// FILE RULES : a file or folder whose name starts with "_" is NOT loaded (use _old_balanced.json to retire a set). Keys that start
+//              with "_" are comments. A set is not used until a profile names it. At least "default" OR one step key is required.
+// NOT LOADED. JSONC = JSON with // comments; real files are plain JSON (no comments).
+// FOR AN LLM : model ids must be EXACT ids of the catalog (domain/value_objects/llm_request/model_catalog.py); a typo is an
+//              error. A NEW model is a CODE change (catalog + price in config/{gemini_models,other_models}.json), not a file here.
+//              After editing a set run `python scripts/model_tables.py --write` (docs/models/ is generated: never edit it by hand)
+//              and update docs/configuration/environment-variables.md section 3.
+//              Claude models run through Anthropic's OpenAI-compatible endpoint with a strict, sanitized schema that nests at most
+//              3 levels (ADR-013) and hides Claude's thinking (the cost tables understate the cost of the big Claude steps).
+//              Google free tier: no published limits, a daily cap per model (about 20 requests on some): use fallbacks.
+//              A model that cannot call tools well should not be on mcp_operator / project_manager / tool_selector of a profile
+//              with tools; nothing checks that, only a real run does (scripts/run_profile.py, costs money).
+// =====================================================================================
+{
+  // Format version. Always 1 (the whole number; no other version loads).
+  "schema_version": 1,
+
+  // Recommended. Same text as the file name without .json; if present and different, the file is refused.
+  "name": "full_example",
+
+  // COMMENT KEYS: any key starting with "_" is ignored, e.g.  "_about": "free text for people".
+  // NEVER use "about": it is read as a step name and the set is refused ("unknown step 'about'").
+  "_about": "Comment key. Ignored by the code.",
+
+  // Used by EVERY step that has no entry of its own. Here Claude Haiku first, a Google model as fallback.
+  // A list may mix PROVIDERS; each needs its own API key in the environment, and a missing key only shows when that model is called.
+  "default": ["claude-haiku-4-5", "gemini-3.1-flash-lite"],
+
+  // ---------------------------------------------------------------------------------
+  // STEP KEYS: ALL the steps that call a model (each one is a valid key). Each value is a list of ids.
+  // action_executor, motion_validator, gesture_builder and tool_caller are plain CODE: they have no model and are REFUSED as keys.
+  // A new LLM step declared in step_defs/ becomes a valid key automatically.
+  // ---------------------------------------------------------------------------------
+  // identification group: classifies the message (domain, type, intent...).
+  "triage_specialist": ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite"],
+  // special group: the planner; decomposes the goal into actions and picks MCP servers/tools.
+  "project_manager": ["claude-sonnet-5-5"],
+  // special group: safety gate; validates the actions and decides if the user must confirm.
+  "safety_quality_gatekeeper": ["claude-haiku-4-5"],
+  // special group: ONE call per planned action that needs NO tool.
+  "cognitive_worker": ["claude-haiku-4-5"],
+  // special group: ONE call per planned TOOL action (fills the tool arguments).
+  "mcp_operator": ["claude-haiku-4-5"],
+  // special group: ONE call per tool result; cleans it.
+  "data_engineer": ["claude-haiku-4-5"],
+  // common group: first text of the reply.
+  "draft_writer": ["claude-sonnet-5-5", "claude-haiku-4-5"],
+  // common group: final text of the reply (user's language, tone).
+  "editor_in_chief": ["claude-sonnet-5-5"],
+  // runtime hook (flow on_resume): decides if the user's next message answers a pending question.
+  "answer_checker": ["gemini-3.1-flash-lite"],
+  // runtime hook (flow on_pause): turns missing data into ONE question for the user.
+  "user_clarification": ["gemini-3.1-flash-lite"],
+  // movement group: plans arm movements.
+  "motion_planner": ["gemini-3.6-flash"],
+  // expression group: reads the emotion of an exchange (one cheap call).
+  "emotion_reader": ["gemini-3.1-flash-lite"],
+  // fast group (ADR-019): chooses at most one read-only tool call.
+  "tool_selector": ["claude-haiku-4-5"],
+  // fast group: writes the reply from the tool's answer.
+  "answer_writer": ["claude-haiku-4-5"]
+
+  // ---------------------------------------------------------------------------------
+  // ALL MODEL IDS YOU CAN WRITE (catalog of 2026-10-27; some are deprecated or have a shutdown date, see the comments in
+  // domain/value_objects/llm_request/model_catalog.py and the prices in config/{gemini_models,other_models}.json):
+  //
+  //   Google    (GOOGLE_API_KEY)   : gemini-4-argon, gemini-3.8-flash, gemini-3.6-flash, gemini-3.5-flash-lite,
+  //                                  gemini-3.1-flash-lite, gemini-3.1-pro-preview, gemini-3-flash-preview
+  //   Anthropic (ANTHROPIC_API_KEY): claude-fable-5-1, claude-opus-5-5, claude-sonnet-5-5, claude-haiku-5-5, claude-sonnet-5, claude-haiku-4-5
+  //   OpenAI                       : gpt-6-astra, gpt-6.1-sol, gpt-6.1-terra, gpt-6-luna, gpt-6-sol, gpt-5.6-sol, gpt-5.6-terra,
+  //                                  gpt-5.6-luna, gpt-5.5, gpt-5.4, gpt-5.4-mini, gpt-5.4-nano, gpt-5.2, gpt-5.1, gpt-5, gpt-5-mini,
+  //                                  gpt-5-nano, gpt-4o, gpt-4o-mini, o3-mini
+  //   Groq                         : openai/gpt-oss-120b, openai/gpt-oss-20b, llama-3.3-70b-versatile, llama-3.1-8b-instant
+  //   Cohere                       : command-a-plus-05-2026, command-a-03-2025, command-a-reasoning-08-2025, command-a-vision-07-2025,
+  //                                  command-r-08-2024, command-r-plus-08-2024
+  //   Ollama    (OLLAMA_URL)       : llama4, llama3.3, phi4, deepseek-v3, mistral-nemo
+  //   Mistral                      : the catalog has no usable id yet
+  //
+  // THE SETS SHIPPED TODAY: proven | claude_haiku | claude_fast | claude_mixed | claude_sonnet | google_free | balanced | budget |
+  //                         budget50 | budget50_groq | quality
+  // ---------------------------------------------------------------------------------
+}

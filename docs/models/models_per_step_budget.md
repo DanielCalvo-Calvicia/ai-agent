@@ -42,6 +42,7 @@ Cost of one message, thinking included. The limit is **$0.0575 (0.050 EUR)**. Bi
 | google_free | $0.201 | 174.89 | no | $0.033 | Google |  |
 | claude_haiku | $0.177 | 153.77 | no | $0.028 | Anthropic |  |
 | claude_mixed | $0.199 | 172.99 | no | $0.040 | Anthropic |  |
+| claude_fast | $0.158 | 137.50 | no | $0.025 | Anthropic |  |
 
 ### What each step uses in the profiles that fit, and what it costs (big plan)
 

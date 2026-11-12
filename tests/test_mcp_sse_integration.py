@@ -17,10 +17,10 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from infrastructure.outbound.llm.config import VercelAIConfig
-from infrastructure.outbound.llm.tools import resolve_tools
-from infrastructure.outbound.mcp.client_manager import MCPClientManager
-from infrastructure.outbound.mcp.tool_executor import MCPToolExecutor
+from infrastructure.outbound.llm.shared.providers.config import LLMConfig
+from infrastructure.outbound.llm.vercel.tool_adapter import resolve_tools
+from infrastructure.outbound.mcp.connection.client_manager import MCPClientManager
+from infrastructure.outbound.mcp.execution.tool_executor import MCPToolExecutor
 
 
 def _free_port() -> int:
@@ -87,7 +87,7 @@ def test_unknown_tool_is_an_error(sse_server):
 def test_phase5_style_server_descriptor_becomes_callable_tools(sse_server):
     executor = _executor(sse_server)
     descriptor = {"name": "local", "type": "sse", "config": {"url": sse_server}}
-    tools = resolve_tools(VercelAIConfig(tool_executor=executor), [descriptor])
+    tools = resolve_tools(LLMConfig(tool_executor=executor), [descriptor])
     assert [t.name for t in tools] == ["echo", "slow"]
     assert tools[0].handler(text="yo") == {"result": "echo:yo", "is_error": False}
 

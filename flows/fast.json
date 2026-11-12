@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "name": "fast",
+  "about": "A request that needs at most one read-only tool call: choose the call, make it in code, write the reply. It knows no MCP server: a profile gives the servers and the prompts.",
+  "steps": [
+    {
+      "step": "tool_selector",
+      "pause_if": "needs_user_input",
+      "retry_on_status": true
+    },
+    {
+      "step": "tool_caller"
+    },
+    {
+      "step": "answer_writer"
+    }
+  ],
+  "on_pause": "user_clarification",
+  "on_resume": "answer_checker",
+  "result_from": "answer_writer"
+}
